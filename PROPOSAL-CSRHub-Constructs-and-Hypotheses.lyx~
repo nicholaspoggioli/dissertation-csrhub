@@ -79,15 +79,14 @@
 Constructs and Proto-hypotheses
 \end_layout
 
-\begin_layout Section
+\begin_layout Part
 Constructs
 \end_layout
 
-\begin_layout Itemize
+\begin_layout Section
 Corporate financial performance
 \end_layout
 
-\begin_deeper
 \begin_layout Itemize
 Accounting
 \end_layout
@@ -97,6 +96,7 @@ Accounting
 ROA: COMPUSTAT: Net income / total assets
 \end_layout
 
+\begin_deeper
 \begin_layout Itemize
 ROE: COMPUSTAT: Net income / total equity
 \end_layout
@@ -145,15 +145,15 @@ MVA: COMPUSTAT: Equity market value - book value of equity and debt
 
 \end_deeper
 \end_deeper
-\begin_layout Itemize
+\begin_layout Section
 Corporate social performance
 \end_layout
 
-\begin_layout Itemize
+\begin_layout Section
 Corporate social responsibility
 \end_layout
 
-\begin_layout Itemize
+\begin_layout Section
 Strategic CSR 
 \begin_inset CommandInset citation
 LatexCommand citep
@@ -164,37 +164,43 @@ key "Orlitzky2011"
 
 \end_layout
 
-\begin_layout Itemize
-Stakeholder influence capacity 
+\begin_layout Section
+Stakeholder influence capacity
+\end_layout
+
+\begin_layout Standard
 \begin_inset CommandInset citation
 LatexCommand cite
 key "Barnett2007"
 
 \end_inset
 
-: a firm's ability to use CSR to profitably improve relationships
+defines stakeholder influence capacity as a firm's ability to use CSR to
+ profitably improve relationships.
 \end_layout
 
-\begin_layout Itemize
-Stakeholder salience 
+\begin_layout Section
+Stakeholder salience
+\end_layout
+
+\begin_layout Standard
 \begin_inset CommandInset citation
 LatexCommand citet
 key "Mitchell1997"
 
 \end_inset
 
-: 
+ defines stakeholder salience as 
 \begin_inset Quotes eld
 \end_inset
 
-the degree to which managers give priority to competing stakeholder claims
+the degree to which managers give priority to competing stakeholder claims.
 \begin_inset Quotes erd
 \end_inset
 
-
+ Examples of stakeholder salience include:
 \end_layout
 
-\begin_deeper
 \begin_layout Itemize
 Community stakeholders salience: Community around gold mines 
 \begin_inset CommandInset citation
@@ -240,27 +246,8 @@ Shareholder stakeholders salience: Governance measures
 Supplier stakeholders salience
 \end_layout
 
-\end_deeper
-\begin_layout Section
-The basic model
-\end_layout
-
-\begin_layout Standard
-Abbreviations
-\end_layout
-
-\begin_layout Itemize
-\begin_inset Formula $CFP$
-\end_inset
-
-: corporate financial performance
-\end_layout
-
-\begin_layout Itemize
-\begin_inset Formula $CSP$
-\end_inset
-
-: corporate social performance
+\begin_layout Part
+The basic model and refinements
 \end_layout
 
 \begin_layout Standard
@@ -271,8 +258,15 @@ reference "eq:basic model"
 
 \end_inset
 
- is the basic model of corporate financial performance as a function of
- corporate social performance.
+ is the basic model of corporate financial performance 
+\begin_inset Formula $CFP$
+\end_inset
+
+ as a function of corporate social performance 
+\begin_inset Formula $CSP$
+\end_inset
+
+.
  It asserts a direct relationship between a firm's performance on social
  issues and its financial performance:
 \end_layout
@@ -304,12 +298,13 @@ key "Freeman1984,Donaldson1995"
 .
 \end_layout
 
-\begin_layout Subsection
-Model refinements
+\begin_layout Standard
+The basic model has been refined by empirical research examining firm characteri
+stics and characteristics of the CSR action itself.
 \end_layout
 
-\begin_layout Subsubsection
-Importance of firm characteristics
+\begin_layout Section
+Firm characteristics
 \end_layout
 
 \begin_layout Standard
@@ -378,8 +373,8 @@ key "Barnett2007"
 .
 \end_layout
 
-\begin_layout Subsubsection
-Importance of CSR characteristics
+\begin_layout Section
+CSR characteristics
 \end_layout
 
 \begin_layout Standard
@@ -469,85 +464,47 @@ CFP=f(H,\,L,\,B,\,C,\,S,\,P)\label{eq:full Barnett model}
 
 \end_layout
 
+\begin_layout Part
+Two related gaps in the model
+\end_layout
+
+\begin_layout Standard
+There are at least two outstanding gaps in research on the CSP-CFP relationship:
+\end_layout
+
+\begin_layout Enumerate
+Stakeholder characteristics and 
+\end_layout
+
+\begin_layout Enumerate
+Industry characteristics.
+\end_layout
+
+\begin_layout Standard
+These gaps are related because which stakeholder characteristics matter
+ to a firm depends on the industry or industries the firm is in.
+\end_layout
+
 \begin_layout Section
-Importance of stakeholder characteristics
+Stakeholder characteristics
 \end_layout
 
 \begin_layout Standard
 Barnett (2007) argues firm characteristics matter to the CFP-CSP relationship,
  and Barnett (2016) argues CSR characteristics matter.
- Building on these works, I argue stakeholder characteristics matter, too,
- yet remain missing from theory about the CFP-CSP relationship.
-\end_layout
-
-\begin_layout Standard
-Previous research on how managers should prioritize stakeholder demands
- is limited in its consideration of the different stakeholder characteristics
- that affect the CFP-CSP relationship.
- Most prior theorization treats all stakeholders the same, regardless of
- which particular social issue the stakeholder cares about.
- For example, 
-\begin_inset CommandInset citation
-LatexCommand citet
-key "Mitchell1997"
-
-\end_inset
-
- suggests three stakeholder characteristics determine whether a firm should
- prioritize a paritcular stakeholder group: the group's power, legitimacy,
- and urgency.
- I argue a fourth stakeholder characteristic needs to be added to this list:
- the social problem around which the group organizes.
-\end_layout
-
-\begin_layout Standard
-I argue Barnett's 
-\begin_inset CommandInset citation
-LatexCommand citeyearpar
-key "Barnett2016"
-
-\end_inset
-
- attempt to link a firm addressing society's needs to corporate performance
- is incomplete without a more complete consideration of how stakeholder
- groups are distinguished by caring about different social problems.
- How a stakeholder group affects the CFP-CSP relationship depends on the
- social problems a firm addresses with its CSR and which it ignores.
- Even the largest, most resource-rich firms cannot address all social problems,
- and managers need to prioritize which social problems to engage with through
- CSR actions 
+ Stakeholder characteristics matter to how CSP affects CFP, but how CSP
+ value varies as function of such characteristics has not yet been deeply
+ examined 
 \begin_inset CommandInset citation
 LatexCommand citep
-key "Barnett2016"
+key "Dorobantu2017a"
 
 \end_inset
 
 .
- If the CFP-CSP differs by stakeholder characteristics, we might not be
- able to determine the exact character of such heterogeneity by studying
- the relationship between a firm's CFP and all of its CSR activity combined,
- which is the typical model in which financial performance measures are
- regressed on net CSR measures like KLD scores.
 \end_layout
 
-\begin_layout Standard
-The traditional view of the stakeholder characteristics that matter to the
- CFP-CSP relationship is quite limited to 
-\end_layout
-
-\begin_layout Standard
-\begin_inset CommandInset citation
-LatexCommand citet
-key "Barnett2016"
-
-\end_inset
-
- refines CSP to account for some firm and CSR characteristics.
- I argue characteristics of stakeholders also matter to the CSP-CFP relationship.
- I theorize these relationships in this section.
-\end_layout
-
-\begin_layout Section
+\begin_layout Subsection
 Empirical evidence that stakeholder characteristics matter
 \end_layout
 
@@ -656,19 +613,68 @@ key "Faleye2011"
  works when the CSP is focused on stakeholders concerned about labor issues.
 \end_layout
 
+\begin_layout Standard
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Dorobantu2017a"
+
+\end_inset
+
+ study how gold mining firms manage community stakeholders located around
+ mining sites.
+ They find that firms that sign community benefit agreements (which they
+ argue is a form of CSR, such that signing an agreement is high CSP) do
+ not always perform better in financial markets.
+ Characteristics of the stakeholders with whom firms sign CBAs appear to
+ matter.
+ They find that 
+\begin_inset Quotes eld
+\end_inset
+
+the strength of a community's property rights and their history of institutional
+ action and extra-institutional mobilization
+\begin_inset Quotes erd
+\end_inset
+
+ matter by both positively moderating the relationship between CSP and CFP
+ 
+\begin_inset CommandInset citation
+LatexCommand citeyearpar
+after "p. 2699"
+key "Dorobantu2017a"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+Strength of stakeholder groups property rights and
+\end_layout
+
+\begin_layout Itemize
+Stakeholder group's history of activism.
+\end_layout
+
 \begin_layout Section
-The importance of industry
+Industry characteristics
 \end_layout
 
 \begin_layout Standard
-It is possible that the importance of stakeholder characteristics varies
- by industry.
+The concept of stakeholder salience can be applied at the level of the industry
+ to describe how some stakeholders matter more to industries than others.
+ For example, environmental activists might matter more to whether and how
+ a firm's CSP translates into CFP in the chemical manufacturing industry
+ than in, for example, the telecommunications industry.
+ The modern environmental movement largely started in response to the effects
+ of the chemical industry on natural systems, while the telecommunications
+ industry has received less focused criticism from environmental activists.
 \end_layout
 
 \begin_layout Standard
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
-bibfiles "D:/Dropbox/library"
+bibfiles "D:/Dropbox/library,C:/Dropbox/library"
 options "apalike2"
 
 \end_inset

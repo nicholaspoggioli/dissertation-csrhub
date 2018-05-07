@@ -1,0 +1,3 @@
+I adapted Flammer's (2013) process for searching for coverage of environmental stakeholder corporate social responsibility coverage. I searched for CSR related to customers by searching the Factiva database for "corporate social responsibility" AND "customer*" for All dates, all authors, all companies, all subjects, all industries, all regions, and all languages.
+
+The search returned 32,300 results (31,843 documents) (Duplicates set to "Off"). Dow Jones publications had 1,971 hits, Web News 446, Blogs 9, Pictures 0, and Multimedia 2.
