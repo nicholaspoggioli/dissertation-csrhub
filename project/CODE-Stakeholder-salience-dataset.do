@@ -110,17 +110,38 @@ label var year "year"
 label var supplier "count Factiva results with 'corporate social responsibility' AND 'supplier*'"
 
 merge 1:1 year using `d3', nogen
+tempfile d4
+save `d4'
 
-***	Save
+***	All CSR articles
+import delimited "$media/FACTIVA-csr-only-by-year.csv", clear
+
+drop in 1/4
+drop in 41/54
+rename (v1 v2) (date csr)
+
+destring csr, replace
+
+gen year = substr(date,23,4)
+destring year, replace
+
+drop date
+order year
+
 compress
 
+label var year "year"
+label var csr "count Factiva results with 'corporate social responsibility'"
+
+merge 1:1 year using `d4', nogen
+
+***	Save
 tsset year
 tsfill, full
 
-egen ch1 = rowtotal(supplier customer employee enviro), missing
-gen missing_year = (ch1==.)
-drop ch1
-label var missing_year "=1 if no articles for any group in year"
+mark nomiss
+markout nomiss csr supplier customer employee enviro
+label var nomiss "=1 if no missing values of csr supplier customer employee enviro"
 
 foreach v in supplier customer employee enviro {
 	replace `v' = 0 if `v' == .
@@ -140,14 +161,30 @@ save data-csrhub/factiva-stakeholder-coverage.dta, replace
 
 *	Stacked
 graph bar (asis) supplier customer employee enviro, over(year, lab(angle(90))) stack ///
-	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment")) ///
-	ti("Articles returned from Factiva search") ///
+	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") order(4 3 2 1)) ///
+	ti("Count of results from Factiva search of media coverage") ///
 	note("Search term: 'corporate social responsibility' AND '<stakeholder name>'", size(vsmall)) ///
 	scheme(plotplainblind)
 
-graph bar (asis) supplier customer employee enviro, over(year) stack scheme(plotplainblind) ///
-	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment")) 
+graph bar (asis) supplier customer employee enviro csr, over(year, lab(angle(90))) stack ///
+	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") lab(5 "csr only") order(5 4 3 2 1)) ///
+	ti("Count of results from Factiva search of media coverage") ///
+	note("Search terms:""(all except csr only): 'corporate social responsibility' AND '<stakeholder name>'""(csr only): 'corporate social responsibility' NOT 'environment*' NOT 'employee*' NOT 'customer*' NOT 'supplier*'", size(vsmall)) ///
+	scheme(plotplainblind)
+
+*	Percent
+graph bar (asis) supplier customer employee enviro, over(year, lab(angle(90))) percentages stack ///
+	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") order(4 3 2 1)) ///
+	ti("Percent of results from Factiva search of media coverage, by stakeholder type") ///
+	note("Search term: 'corporate social responsibility' AND '<stakeholder name>'", size(vsmall)) ///
+	scheme(plotplainblind)
+
+graph bar (asis) supplier customer employee enviro csr, over(year, lab(angle(90))) percentages stack ///
+	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") lab(5 "csr only") order(5 4 3 2 1)) ///
+	ti("Count of results from Factiva search of media coverage") ///
+	note("Search terms:""(all except csr only): 'corporate social responsibility' AND '<stakeholder name>'""(csr only): 'corporate social responsibility' NOT 'environment*' NOT 'employee*' NOT 'customer*' NOT 'supplier*'", size(vsmall)) ///
+	scheme(plotplainblind)
 	
 	
-	
+*	Environment	
 graph bar (asis) env, over(year, lab(angle(90))) blab(total) scale(.7) yti("")
