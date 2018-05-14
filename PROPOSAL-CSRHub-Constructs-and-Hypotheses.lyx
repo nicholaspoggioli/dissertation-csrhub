@@ -96,7 +96,6 @@ Accounting
 ROA: COMPUSTAT: Net income / total assets
 \end_layout
 
-\begin_deeper
 \begin_layout Itemize
 ROE: COMPUSTAT: Net income / total equity
 \end_layout
@@ -143,7 +142,6 @@ MTB: COMPUSTAT: Equity market value / equity book value
 MVA: COMPUSTAT: Equity market value - book value of equity and debt
 \end_layout
 
-\end_deeper
 \end_deeper
 \begin_layout Section
 Corporate social performance
