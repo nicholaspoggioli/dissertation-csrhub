@@ -1,106 +1,111 @@
 ﻿Most Mentioned Executives
-173373 documents  for All Dates
+118750 documents  for All Dates
 
 Executive,Document Count
-Narendra Modi,547
-Brian D Goldner,228
-Nicole McGougan,218
-Narendra Modi,194
-Jean-Paul Agon,194
-Srinivas Bommidala,182
+Narendra Modi,482
+Jean-Paul Agon,191
+Srinivas Bommidala,180
+Narendra Modi,173
 Hajime Sasaki,162
 Mario Valcarce Duran,162
-Gregg Saretsky,155
-Giampiero Pesenti,143
-Carlo Pesenti,143
-Ratan Naval Tata,137
-Lata N Reddy,134
-William H Gates III,131
-Barack Obama,127
-Jeffrey A Joerres,127
-Stanley M Bergman,124
-Svein Aaser,123
-Howard Henry James Stevenson,120
-Jinping Xi,119
-Ronald F Hochstein,119
-Stephen Joseph Harper,117
-Donald John Trump,108
-Douglas L Tobler CPA,105
+Gregg Saretsky,124
+Ratan Naval Tata,117
 Shigeharu Suzuki,103
 Akira Kiyota,103
 Arne Solberg,103
 Walter Hafslo Qvam,103
 Finn Marum Jebsen,103
 Johnny Løcka,103
-Marc Maillet,99
-Paulus Gerardus J Polman,98
-Matthew Hall,98
-Debbie Hancock,95
-Connie L Lindsey,93
-Manmohan Singh,92
-Philippe Bordenave,90
-Michel Pébereau,88
+Jeffrey A Joerres,96
 Noriyuki Inoue,87
-Mukesh Dhirubhai Ambani,87
-Mark Elliot Zuckerberg,85
+William H Gates III,87
 Janis Romanovskis,85
-Michael P Gianoni,84
-Eileen Howard Boone,82
-Julie Duffy,81
-Deborah M Thomas,81
-Goodluck Jonathan,80
-Warren Edward Buffett,80
-Sophia Shane,79
-Denise M Morrison,78
-David Cameron,77
-John A Frascotti,77
-Cyrus Pallonji Mistry,76
-Mohamad Najib Abdul Razak,74
-Mushtaq Ahmad,73
-John T Chambers,72
-Arne Frank,69
+Stephen Joseph Harper,83
+Barack Obama,80
+Manmohan Singh,79
+Howard Henry James Stevenson,70
+Mukesh Dhirubhai Ambani,69
+Mohamad Najib Abdul Razak,68
 Sherif Fawzy Omara,67
 Brian Stanley Findlay,67
-Saeed Mohammed Ahmed Al-Tayer,67
-Atiur Rahman,65
+Jinping Xi,66
 Nobuyuki Iwamoto,64
-Aaron W Regent,64
-Justin Pierre James Trudeau,63
-David A Gardella,63
-Hasan Cebeci,62
-Arundhati Bhattacharya,61
-Syed Wamiq Abrar Bokhari,60
-Hillary Rodham Clinton,59
-Richard Garneau,59
-Anastasios Parisis Kallitsantsis,59
-Dimitrios Parisis Kallitsantsis,59
-Dimitrios Athanasios Koutras,59
-Harry Taylor,58
+Julie Duffy,62
+Douglas L Tobler CPA,62
+Harry Taylor,61
+Goodluck Jonathan,60
+Syed Wamiq Abrar Bokhari,59
+Mushtaq Ahmad,59
+Aaron W Regent,59
 Mallikarjuna Rao Grandhi,58
-Manuel Velez Pangilinan,58
-Indra K Nooyi,58
-Jayant Sinha,57
-Ping Li,55
+Brian D Goldner,58
+Cyrus Pallonji Mistry,57
+Donald John Trump,55
+David Cameron,54
 Konosuke Kashima,54
-Azim Hasham Premji,54
-Truman Hunt,54
-Crayton W Webb,53
-Seth Kursman,53
-Richard A Noll MBA,52
-Peter Munk,52
-Rahul Gandhi,51
+Debbie Hancock,53
+Crayton W Webb,52
+Indra K Nooyi,52
+Atiur Rahman,51
 Dimitrios Th Papalexopoulos,51
-Rupert Murdoch,51
-François Poisson,51
-Lirong Shi,49
-Ying Chun Hai,48
-Kevin T Kabat,48
-Sudha Murty,47
-Shiv Nadar,45
+Eileen Howard Boone,51
+Warren Edward Buffett,50
+Ed Sims,49
+Azim Hasham Premji,49
+Rahul Gandhi,48
+Arundhati Bhattacharya,47
+Paulus Gerardus J Polman,47
+Denise M Morrison,46
+Mark Elliot Zuckerberg,46
+Lata N Reddy,46
+Justin Pierre James Trudeau,44
+Manohar Lal Khattar,43
+Wee Cho Yaw,43
+Peter Munk,43
+Jamie C Sokalsky,42
+Sudha Murty,41
+Jayant Sinha,41
+Saeed Mohammed Ahmed Al-Tayer,40
+Rupert Murdoch,40
+Shiv Nadar,39
+Kiran Mazumdar-Shaw,39
+Stanley M Bergman,39
+Muppavarapu Venkaiah Naidu,38
+Daniel Paul Amos,37
+Adi Burjorji Godrej,37
+Robert Cummings,37
+Seth Kursman,37
+Hillary Rodham Clinton,36
+David Arkless,36
+Samir Jimy Fancy,36
+Martin Milette,36
+Nita Mukesh Ambani,35
+Rahul Kumar Bajaj,35
+Vishal Goenka,35
+Wee Ee Cheong,34
+Connie L Lindsey,34
+N R Narayana Murthy,33
+Nitin Jairam Gadkari,33
+Anil Kumar Agarwal,33
+Jeff M Fettig,33
+Roy W Templin,33
+Ann Swain,33
+Manuel Velez Pangilinan,33
+Devendra Gangadharrao Fadnavis,32
+John T Chambers,32
+Marc Kielburger,32
+Richard Bartrem,31
+Colin Dyer,31
+Peter Michael Bertram,31
+Sunil Bharti Mittal,31
+Adel Mustafawi,30
+Richard Nixon,30
+Mamata Banerjee,29
 
 
 Search Summary,
-Text,""corporate social responsibility"" NOT ""environment*"" not ""employee*"" not ""customer*"" not ""supplier*""
+Text,"""corporate social responsibility"" NOT environment* not employee* not customer* not (supplier* or ""supply chain*"")
+"
 Date,All Dates
 Source,All Sources
 Author,All Authors
@@ -109,6 +114,6 @@ Subject,All Subjects
 Industry,All Industries
 Region,All Regions
 Language,All Languages
-Results Found,"176,889"
-Timestamp,8 May 2018 5:20 PM GMT
+Results Found,"121,397"
+Timestamp,11 May 2018 9:34 PM GMT
 "© 2018 Factiva, Inc.  All rights reserved."
