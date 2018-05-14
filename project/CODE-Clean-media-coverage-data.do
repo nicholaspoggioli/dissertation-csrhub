@@ -9,6 +9,11 @@ version
 cd
 
 
+*************************
+*	ALL MEDIA INCLUDED IN FACTIVA SEARCH
+*	(see below for subset of media sources data)
+
+
 							***===========================***
 							*								*
 							*	STAKEHOLDER TYPE BY YEAR	*
@@ -119,7 +124,7 @@ save `d4'
 import delimited "$media/FACTIVA-csr-only-by-year.csv", clear
 
 drop in 1/4
-drop in 41/54
+drop in 41/55
 rename (v1 v2) (date csr)
 
 destring csr, replace
@@ -149,41 +154,41 @@ foreach v in supplier customer employee enviro {
 	replace `v' = 0 if `v' == .
 }
 
-label data "Number of hits for Factiva media search of stakeholders and CSR coverage"
+label data "Number of hits for Factiva search of all media for stakeholders and CSR coverage"
 
-save data-csrhub/factiva-stakeholder-type-by-year.dta, replace
+save data-csrhub/factiva-stakeholder-type-by-year-media-all.dta, replace
 
 
 
 ***	EXPLORATORY GRAPHICS	*
 
-use data-csrhub/factiva-stakeholder-type-by-year.dta, clear
+use data-csrhub/factiva-stakeholder-type-by-year-media-all.dta, clear
 							
 ***	Bar graphs
 
 *	Stacked
 graph bar (asis) supplier customer employee enviro, over(year, lab(angle(90))) stack ///
 	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") order(4 3 2 1)) ///
-	ti("Count of results from Factiva search of media coverage") ///
+	ti("Count of results from Factiva search of all media coverage") ///
 	note("Search term: 'corporate social responsibility' AND '<stakeholder name>'", size(vsmall)) ///
 	scheme(plotplain)
 
 graph bar (asis) supplier customer employee enviro csr, over(year, lab(angle(90))) stack ///
 	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") lab(5 "csr only") order(5 4 3 2 1)) ///
-	ti("Count of results from Factiva search of media coverage") ///
+	ti("Count of results from Factiva search of all media coverage") ///
 	note("Search terms:""(all except csr only): 'corporate social responsibility' AND '<stakeholder name>'""(csr only): 'corporate social responsibility' NOT 'environment*' NOT 'employee*' NOT 'customer*' NOT 'supplier*'", size(vsmall)) ///
 	scheme(plotplain)
 
 *	Percent
 graph bar (asis) supplier customer employee enviro, over(year, lab(angle(90))) percentages stack ///
 	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") order(4 3 2 1)) ///
-	ti("Percent of results from Factiva search of media coverage") ///
+	ti("Percent of results from Factiva search of all media coverage") ///
 	note("Search term: 'corporate social responsibility' AND '<stakeholder name>'", size(vsmall)) ///
 	scheme(plotplain)
 
 graph bar (asis) supplier customer employee enviro csr, over(year, lab(angle(90))) percentages stack ///
 	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") lab(5 "csr only") order(5 4 3 2 1)) ///
-	ti("Percent of results from Factiva search of media coverage") ///
+	ti("Percent of results from Factiva search of all media coverage") ///
 	note("Search terms:""(all except csr only): 'corporate social responsibility' AND '<stakeholder name>'""(csr only): 'corporate social responsibility' NOT 'environment*' NOT 'employee*' NOT 'customer*' NOT 'supplier*'", size(vsmall)) ///
 	scheme(plotplain)
 	
@@ -339,6 +344,180 @@ tw kdensity pct_sup || kdensity pct_env || kdensity pct_emp || kdensity pct_cus,
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+/*************************
+*	SUBSET OF MEDIA INCLUDED IN FACTIVA SEARCH
+*	(see below for subset of media sources data)
+
+The New York Times - All sources Or 
+The Wall Street Journal - All sources Or 
+Washington Post - All sources Or 
+USA Today - All sources Or 
+Chicago Tribune - All sources Or 
+Financial Times (Available through Third Party Subscription Services) - All sources Or 
+Los Angeles Times - All sources
+*/
+
+clear all
+
+
+							***===========================***
+							*								*
+							*	STAKEHOLDER TYPE BY YEAR	*
+							*								*
+							***===========================***
+global media data-Factiva-CSR-stakeholder-media-coverage/subset-of-sources
+
+***	Environment
+import delimited "$media\FACTIVA-SUBSET-csr-environment-stakeholder-media-hits-by-year.csv", clear
+
+drop in 1/3
+drop in 37/50
+rename (v1 v2) (date enviro)
+drop in 1
+
+destring enviro, replace
+
+gen year = substr(date,23,4)
+destring year, replace
+
+drop date
+order year
+
+compress
+
+label var year "year"
+label var enviro "FACTIVA SUBSET media hits for environment"
+
+tempfile d1
+save `d1'
+
+
+***	Employee
+import delimited "$media\FACTIVA-SUBSET-csr-employee-stakeholder-media-hits-by-year.csv", clear
+
+drop in 1/3
+drop in 38/51
+compress
+rename (v1 v2) (date employee)
+drop in 1
+
+destring employee, replace
+
+gen year = substr(date,23,4)
+destring year, replace
+
+drop date
+order year
+
+label var year "year"
+label var employee "FACTIVA SUBSET media hits for employee"
+
+merge 1:1 year using `d1', nogen
+tempfile d2
+save `d2'
+
+
+***	Customer
+import delimited "$media\FACTIVA-SUBSET-csr-customer-stakeholder-media-hits-by-year.csv", clear
+
+drop in 1/3
+drop in 30/43
+compress
+rename (v1 v2) (date customer)
+drop in 1
+
+destring customer, replace
+
+gen year = substr(date,23,4)
+destring year, replace
+
+drop date
+order year
+
+compress
+
+label var year "year"
+label var customer "FACTIVA SUBSET media hits for customer"
+
+merge 1:1 year using `d2', nogen
+tempfile d3
+save `d3'
+
+***	Supplier
+import delimited "$media\FACTIVA-SUBSET-csr-supplier-stakeholder-media-hits-by-year.csv", clear
+
+drop in 1/3
+drop in 29/43
+rename (v1 v2) (date supplier)
+compress
+drop in 1
+
+destring supplier, replace
+
+gen year = substr(date,23,4)
+destring year, replace
+
+drop date
+order year
+
+compress
+
+label var year "year"
+label var supplier "FACTIVA SUBSET media hits for supplier"
+
+merge 1:1 year using `d3', nogen
+tempfile d4
+save `d4'
+
+***	All CSR articles
+import delimited "$media/FACTIVA-SUBSET-csr-only-by-year.csv", clear
+
+drop in 1/3
+drop in 39/53
+rename (v1 v2) (date csr)
+drop in 1
+
+destring csr, replace
+
+gen year = substr(date,23,4)
+destring year, replace
+
+drop date
+order year
+
+compress
+
+label var year "year"
+label var csr "FACTIVA SUBSET media hits corporate social responsbility minus stakeholder terms"
+
+merge 1:1 year using `d4', nogen
+
+***	Save
+tsset year
+tsfill, full
+
+mark nomiss
+markout nomiss csr supplier customer employee enviro
+label var nomiss "=1 if no missing values of csr supplier customer employee enviro"
+
+foreach v in supplier customer employee enviro {
+	replace `v' = 0 if `v' == .
+}
+
+label data "Hits for Factiva search of media subset for stakeholders and CSR coverage"
+
+save data-csrhub/factiva-stakeholder-type-by-year-media-subset.dta, replace
 
 
 
