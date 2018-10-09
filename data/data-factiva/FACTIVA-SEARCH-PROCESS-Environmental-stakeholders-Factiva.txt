@@ -1,1 +1,0 @@
-I followed Flammer (2013) and searched the Factiva database for "corporate social responsibility" AND "environment". The search returned 937 hits (Duplicates set to "Off"), including publications and web content. I downloaded all hits using the "Download articles in RTF format" command with the "Article format" option.
