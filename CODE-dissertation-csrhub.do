@@ -15,12 +15,20 @@ OUTLINE
 					*******************************
 					***		  DATA CREATION		***
 					*******************************
+///		KLD
 
+
+///		COMPUSTAT
+
+
+///		MERGE KLD AND COMPUSTAT
+
+
+///		CSRHUB
 					
-					
-					
-***		Merge KLD/CSTAT with CSRHub
-use data/kld-cstat-bs2012.dta, clear
+///		MERGE KLD/CSTAT WITH CSRHUB
+
+*use data/kld-cstat-bs2012.dta, clear
 /*	firm:		firm name
 	year:		year
 	ticker:		ticker
@@ -41,6 +49,16 @@ tempfile csrh
 save `csrh'
 
 merge 1:1 ticker year using data/kld-cstat-bs2012.dta
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                        85,835
+        from master                    55,163  (_merge==1)
+        from using                     30,672  (_merge==2)
+
+    matched                            18,997  (_merge==3)
+    -----------------------------------------
+*/
+
 
 					***=======================***
 					*		  CHAPTER 1			*
@@ -56,19 +74,118 @@ merge 1:1 ticker year using data/kld-cstat-bs2012.dta
 					
 					***=======================***
 					*		  CHAPTER 3			*
-					*	 INDUSTRY HETEROGENEITY	*
+					*	INDUSTRY HETEROGENEITY	*
 					***=======================***
 ***	Load data
-use data-csrhub\kld-cstat-bs2012.dta, clear
+use data\kld-cstat-bs2012.dta, clear
 
 set scheme plotplainblind
 
-***	Industry descriptive statistics
-tab sic
+***	Merge SIC industry names
+*	4-digit SIC codes
+preserve
+capt n import excel "D:\Dropbox\papers\active\dissertation-csrhub\project\data\sic-codes.xlsx", sheet("codes") firstrow allstring clear
+capt n save data/sic-codes.dta
+restore
 
+merge m:1 sic using data/sic-codes.dta
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                        19,629
+        from master                    19,557  (_merge==1)
+        from using                         72  (_merge==2)
+
+    matched                            30,112  (_merge==3)
+    -----------------------------------------
+*/
+tab sic if _merge==1, miss
+/*
+    (CSTAT) |
+   Standard |
+   Industry |
+Classificat |
+   ion Code |      Freq.     Percent        Cum.
+------------+-----------------------------------
+            |     16,874       86.28       86.28
+       1044 |         25        0.13       86.41
+       2085 |         15        0.08       86.49
+       4888 |         87        0.44       86.93
+       5093 |         11        0.06       86.99
+       6020 |      2,060       10.53       97.52
+       6722 |         76        0.39       97.91
+       6726 |         89        0.46       98.36
+       6797 |        121        0.62       98.98
+       7323 |         61        0.31       99.29
+       7996 |         11        0.06       99.35
+       8721 |         64        0.33       99.68
+       9997 |         63        0.32      100.00
+------------+-----------------------------------
+      Total |     19,557      100.00
+*/
+
+*	Replace non-matched codes with codes from https://www.osha.gov/pls/imis/sicsearch.html?p_sic=1044&p_search=
+replace industry="Silver Ores" if sic=="1044"
+replace industry="Distilled and Blended Liquors" if sic=="2085"
+*replace industry="" if sic=="4888"
+replace industry="Scrap and Waste Materials" if sic=="5093"
+*replace industry="" if sic=="6020"
+replace industry="Management Investment Offices, Open-End" if sic=="6722"
+replace industry="Unit Investment Trusts, Face-Amount Certificate Offices, and Closed-End Management Investment Offices" if sic=="6726"
+*replace industry="" if sic=="6797"
+replace industry="Credit Reporting Services" if sic=="7323"
+replace industry="Amusement Parks" if sic=="7996"
+replace industry="Accounting, Auditing, and Bookkeeping Services" if sic=="8721"
+*replace industry="" if sic=="9997"
+
+replace _merge=2 if _merge==1 & industry!=""
+
+tab sic if _merge==1, miss
+/*    (CSTAT) |
+   Standard |
+   Industry |
+Classificat |
+   ion Code |      Freq.     Percent        Cum.
+------------+-----------------------------------
+            |     16,874       87.86       87.86
+       4888 |         87        0.45       88.32
+       6020 |      2,060       10.73       99.04
+       6797 |        121        0.63       99.67
+       9997 |         63        0.33      100.00
+------------+-----------------------------------
+      Total |     19,205      100.00
+*/
+
+rename industry industry_sic4
+label var industry_sic4 "4-digit SIC code industry description"
+
+drop _merge
+
+
+*	2-digit SIC codes
 gen sic2 = substr(sic,1,2)
 tab sic2						/*	Perrault & Quinn 2018 uses 2-digit SIC codes	*/
-drop if sic2==""
+
+preserve
+capt n import excel "D:\Dropbox\papers\active\dissertation-csrhub\project\data\sic_2_digit_codes.xlsx", sheet("SIC 2 Digit Code") firstrow allstring clear
+capt n save data/sic2.dta
+restore
+
+merge m:1 sic2 using data/sic2.dta
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                        16,882
+        from master                    16,874  (_merge==1)
+        from using                          8  (_merge==2)
+
+    matched                            32,867  (_merge==3)
+    -----------------------------------------
+*/
+
+
+
+
+
+
 
 *	Recreate Table 6 Perrault & Quinn 2018
 sort sic2
