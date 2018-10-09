@@ -76,6 +76,14 @@ merge 1:1 ticker year using data/kld-cstat-bs2012.dta
 					*		  CHAPTER 3			*
 					*	INDUSTRY HETEROGENEITY	*
 					***=======================***
+/*	Outline
+		1. Heterogeneity in KLD
+			-	Recreate Table 6 Perrault & Quinn 2018
+		2. Heterogeneity in CSTAT
+		3. Heterogeneity in performance
+*/
+
+///		1. Heterogeneity in KLD
 ***	Load data
 use data\kld-cstat-bs2012.dta, clear
 
@@ -137,7 +145,7 @@ replace industry="Amusement Parks" if sic=="7996"
 replace industry="Accounting, Auditing, and Bookkeeping Services" if sic=="8721"
 *replace industry="" if sic=="9997"
 
-replace _merge=2 if _merge==1 & industry!=""
+replace _merge=3 if _merge==1 & industry!=""
 
 tab sic if _merge==1, miss
 /*    (CSTAT) |
@@ -158,6 +166,7 @@ Classificat |
 rename industry industry_sic4
 label var industry_sic4 "4-digit SIC code industry description"
 
+drop if _merge==2
 drop _merge
 
 
@@ -173,51 +182,126 @@ restore
 merge m:1 sic2 using data/sic2.dta
 /*    Result                           # of obs.
     -----------------------------------------
-    not matched                        16,882
+    not matched                        16,889
         from master                    16,874  (_merge==1)
-        from using                          8  (_merge==2)
+        from using                         15  (_merge==2)
 
-    matched                            32,867  (_merge==3)
+    matched                            32,795  (_merge==3)
     -----------------------------------------
 */
 
+tab sic2 if _merge==1, miss
+/*
+2-digit SIC |
+   industry |
+       code |
+   (created |
+   from sic |
+  variable) |      Freq.     Percent        Cum.
+------------+-----------------------------------
+            |     16,874      100.00      100.00
+------------+-----------------------------------
+      Total |     16,874      100.00
+*/
+
+drop if _merge==2
+drop _merge
+
+label var sic2 "2-digit SIC industry code (created from sic variable)"
+label var industry_sic2 "2-digit SIC code industry description"
 
 
-
-
-
-
-*	Recreate Table 6 Perrault & Quinn 2018
+***		Recreate Table 6 Perrault & Quinn 2018
 sort sic2
 
-drop if year<1998
+preserve
+
+drop if year<1998 | year > 2010
+
+egen tag = tag(sic2 firm)
+egen firm_N = total(tag), by(sic2)
+drop tag
+tabdisp sic2, c(firm_N)
+label var firm_N "number of unique firm names in sic2"
 
 foreach v in cgov com div emp env hum pro {
 	by sic2: egen sic2_`v'_str = total(sum_`v'_str)
 	by sic2: egen sic2_`v'_con = total(sum_`v'_con)
 }
 
-by sic2: gen N=_N
+by sic2: gen sic2_N=_N
 foreach v in cgov com div emp env hum pro {
 	by sic2: egen sic2_`v'_str_st = total(sum_`v'_str)
-	replace sic2_`v'_str_st = sic2_`v'_str_st / N
+	replace sic2_`v'_str_st = sic2_`v'_str_st / sic2_N
 	by sic2: egen sic2_`v'_con_st = total(sum_`v'_con)
-	replace sic2_`v'_con_st = sic2_`v'_con_st / N
+	replace sic2_`v'_con_st = sic2_`v'_con_st / sic2_N
 }
-drop N
+label var sic2_N "number of observations in sic2 industry"
 
-preserve
 bysort sic2: gen n=_n
 keep if n==1
 drop n
 
-keep sic2*
-order sic2 *str *con
+keep sic2* sic2_N industry_sic2 firm_N
+order sic2 industry_sic2 sic2_N firm_N *str *con
+
+drop if sic2==""
+
 capt n export excel using "figures\kld-sic2-sum-strengths-concerns.xls", firstrow(variables)
 restore
 
-*	Tabstat
+***	Descriptive statistics
+
+drop if sic2==""
+egen tag = tag(sic2 firm)
+egen firm_N = total(tag), by(sic2)
+drop tag
+tabdisp sic2, c(firm_N)
+label var firm_N "number of unique firm names in sic2"
+
+*	Summary
+sum sum*str sum*con
+
+*	Correlations
+corr sum*str, means
+corr sum*con, means
+
+corr sum*, means
+
+*	Means and standard deviations
+foreach v in cgov com div emp env hum pro {
+	bysort sic2: egen mean_`v'_str = mean(sum_`v'_str)
+	bysort sic2: egen sd_`v'_str = sd(sum_`v'_str)
+	bysort sic2: egen mean_`v'_con = mean(sum_`v'_con)
+	bysort sic2: egen sd_`v'_con = sd(sum_`v'_con)
+}
+
+*	Product
+tabstat sum_pro_str, by(sic2) stat(mean p50 min max N)
+
+
+*	Corporate governance
+
+*	Diversity
+
+*	Community
+
+*	Employees
+
+*	Environment
 tabstat sum_env_str, by(sic2) stat(mean p50 min max N)
+
+tabstat sum_env_con, by(sic2) stat(mean p50 min max N)
+
+*	Human rights
+
+
+
+
+
+
+
+
 
 
 
