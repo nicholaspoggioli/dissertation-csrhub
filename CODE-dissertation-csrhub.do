@@ -9,6 +9,7 @@ OUTLINE
 	Chapter 2:	Replicating and Extending Barnett & Salomon (2012)
 	Chapter 3:	Identifying the Causal Effect of Social Performance on Financial Performance
 	Chapter 4:	The Relationship between CSR Reputation and Engaging in Collective Action to Manage Resource Scarcity
+	Appendix 1: Graphics and Figures
 */
 
 					*******************************
@@ -105,8 +106,6 @@ tabstat sum_env_str, by(sic2) stat(mean p50 min max N)
 
 
 
-
-
 					
 					***===========================***
 					*		  	CHAPTER 4			*
@@ -114,49 +113,11 @@ tabstat sum_env_str, by(sic2) stat(mean p50 min max N)
 					***===========================***
 
 					
-					
-					***===========================***
-					*		  	APPENDIX 1			*
-					*	 FACTIVA MEDIA SEARCH VIZ	*
-					***===========================***
-***	EXPLORATORY GRAPHICS
-
-use data-csrhub/factiva-stakeholder-type-by-year-media-all.dta, clear
-							
-***	Bar graphs
-
-*	Stacked
-graph bar (asis) supplier customer employee enviro, over(year, lab(angle(90))) stack ///
-	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") order(4 3 2 1)) ///
-	ti("Count of results from Factiva search of all media coverage") ///
-	note("Search term: 'corporate social responsibility' AND '<stakeholder name>'", size(vsmall)) ///
-	scheme(plotplain)
-
-graph bar (asis) supplier customer employee enviro csr, over(year, lab(angle(90))) stack ///
-	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") lab(5 "csr only") order(5 4 3 2 1)) ///
-	ti("Count of results from Factiva search of all media coverage") ///
-	note("Search terms:""(all except csr only): 'corporate social responsibility' AND '<stakeholder name>'""(csr only): 'corporate social responsibility' NOT 'environment*' NOT 'employee*' NOT 'customer*' NOT 'supplier*'", size(vsmall)) ///
-	scheme(plotplain)
-
-*	Percent
-graph bar (asis) supplier customer employee enviro, over(year, lab(angle(90))) percentages stack ///
-	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") order(4 3 2 1)) ///
-	ti("Percent of results from Factiva search of all media coverage") ///
-	note("Search term: 'corporate social responsibility' AND '<stakeholder name>'", size(vsmall)) ///
-	scheme(plotplain)
-
-graph bar (asis) supplier customer employee enviro csr, over(year, lab(angle(90))) percentages stack ///
-	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") lab(5 "csr only") order(5 4 3 2 1)) ///
-	ti("Percent of results from Factiva search of all media coverage") ///
-	note("Search terms:""(all except csr only): 'corporate social responsibility' AND '<stakeholder name>'""(csr only): 'corporate social responsibility' NOT 'environment*' NOT 'employee*' NOT 'customer*' NOT 'supplier*'", size(vsmall)) ///
-	scheme(plotplain)
-	
-	
-*	Environment	
-graph bar (asis) env, over(year, lab(angle(90))) blab(total) scale(.7) yti("")
+				
 					
 
 					***===========================***
+					*		  	APPENDIX 2			*
 					*	 GRAPHICS AND FIGURES		*
 					***===========================***
 ///		KLD data
@@ -270,6 +231,41 @@ twoway (qfit y x), xti("Social Performance", size(vlarge)) yti("Financial Perfor
 
 
 
+///		FACTIVA MEDIA SEARCH VIZ
+
+use data-csrhub/factiva-stakeholder-type-by-year-media-all.dta, clear
+							
+***	Bar graphs
+
+*	Stacked
+graph bar (asis) supplier customer employee enviro, over(year, lab(angle(90))) stack ///
+	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") order(4 3 2 1)) ///
+	ti("Count of results from Factiva search of all media coverage") ///
+	note("Search term: 'corporate social responsibility' AND '<stakeholder name>'", size(vsmall)) ///
+	scheme(plotplain)
+
+graph bar (asis) supplier customer employee enviro csr, over(year, lab(angle(90))) stack ///
+	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") lab(5 "csr only") order(5 4 3 2 1)) ///
+	ti("Count of results from Factiva search of all media coverage") ///
+	note("Search terms:""(all except csr only): 'corporate social responsibility' AND '<stakeholder name>'""(csr only): 'corporate social responsibility' NOT 'environment*' NOT 'employee*' NOT 'customer*' NOT 'supplier*'", size(vsmall)) ///
+	scheme(plotplain)
+
+*	Percent
+graph bar (asis) supplier customer employee enviro, over(year, lab(angle(90))) percentages stack ///
+	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") order(4 3 2 1)) ///
+	ti("Percent of results from Factiva search of all media coverage") ///
+	note("Search term: 'corporate social responsibility' AND '<stakeholder name>'", size(vsmall)) ///
+	scheme(plotplain)
+
+graph bar (asis) supplier customer employee enviro csr, over(year, lab(angle(90))) percentages stack ///
+	legend(lab(1 "suppliers") lab(2 "customers") lab(3 "employees") lab(4 "environment") lab(5 "csr only") order(5 4 3 2 1)) ///
+	ti("Percent of results from Factiva search of all media coverage") ///
+	note("Search terms:""(all except csr only): 'corporate social responsibility' AND '<stakeholder name>'""(csr only): 'corporate social responsibility' NOT 'environment*' NOT 'employee*' NOT 'customer*' NOT 'supplier*'", size(vsmall)) ///
+	scheme(plotplain)
+	
+	
+*	Environment	
+graph bar (asis) env, over(year, lab(angle(90))) blab(total) scale(.7) yti("")
 
 
 
