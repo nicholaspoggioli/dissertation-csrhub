@@ -12,53 +12,6 @@ OUTLINE
 	6)	Appendix 1: Graphics and Figures
 */
 
-					***=======================***
-					*	  SUMMARY STATISTICS	*
-					*	  		 KLD			*
-					***=======================***
-
-*	Summary
-asdoc sum sum*str sum*con, save(figures/summary-stats-kld-by-sic2)
-
-*	Correlations
-corr sum*str, means
-corr sum*con, means
-
-doc corr sum*str sum*con, means					
-					
-					
-					***=======================***
-					*		  CHAPTER 2			*
-					*	 REPLICATE B&S (2012)	*
-					***=======================***
-
-					***=======================***
-					*		  CHAPTER 3			*
-					*	  STAKEHOLDER GROUPS	*
-					***=======================***
-					
-					
-					
-					
-
-
-
-
-
-
-
-
-
-
-
-
-
-					
-					***===========================***
-					*		  	CHAPTER 4			*
-					*	 CSP AND COLLECTIVE ACTION	*
-					***===========================***
-
 					***===========================***
 					*		  	APPENDIX 1			*
 					*	 FACTIVA STAKEHOLDER DATA	*
