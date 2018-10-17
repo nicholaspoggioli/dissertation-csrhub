@@ -58,12 +58,19 @@ merge 1:1 ticker year using data/kld-cstat-bs2012.dta
     matched                            18,997  (_merge==3)
     -----------------------------------------
 */
-
-
 					***=======================***
-					*		  CHAPTER 1			*
-					*	  THE CSRHUB DATASET	*
+					*	  SUMMARY STATISTICS	*
+					*	  		 KLD			*
 					***=======================***
+
+*	Summary
+asdoc sum sum*str sum*con, save(figures/summary-stats-kld-by-sic2)
+
+*	Correlations
+corr sum*str, means
+corr sum*con, means
+
+doc corr sum*str sum*con, means					
 					
 					
 					***=======================***
@@ -71,19 +78,30 @@ merge 1:1 ticker year using data/kld-cstat-bs2012.dta
 					*	 REPLICATE B&S (2012)	*
 					***=======================***
 
-					
 					***=======================***
 					*		  CHAPTER 3			*
+					*	  STAKEHOLDER GROUPS	*
+					***=======================***
+					
+					
+					
+					
+					***=======================***
+					*		  CHAPTER 4			*
 					*	INDUSTRY HETEROGENEITY	*
 					***=======================***
 /*	Outline
-		1. Heterogeneity in KLD
+		1 Cluster into 5 - 6 interesting industries
+			-	Petrochemical
+			-	Automotive
+			-	Financial
+		2 Heterogeneity in KLD
 			-	Recreate Table 6 Perrault & Quinn 2018
-		2. Heterogeneity in CSTAT
-		3. Heterogeneity in performance
+		3 Heterogeneity in CSTAT
+		4 Heterogeneity in performance
 */
 
-///		1. Heterogeneity in KLD
+///		1 Clustering
 ***	Load data
 use data\kld-cstat-bs2012.dta, clear
 
@@ -210,7 +228,146 @@ drop _merge
 label var sic2 "2-digit SIC industry code (created from sic variable)"
 label var industry_sic2 "2-digit SIC code industry description"
 
+***	Flag 6 industries by most numerous in the data
+tab industry_sic2, sort
+/*  2-digit SIC code industry description |      Freq.     Percent        Cum.
+----------------------------------------+-----------------------------------
+          Chemicals and Allied Products |      2,886        8.80        8.80
+                      Business Services |      2,857        8.71       17.51
+                Depository Institutions |      2,515        7.67       25.18
+   Holding and Other Investment Offices |      2,175        6.63       31.81
+Electronic & Other Electrical Equipme.. |      2,074        6.32       38.14
+Industrial and Commercial Machinery a.. |      1,782        5.43       43.57
+Measuring, Photographic, Medical, & O.. |      1,592        4.85       48.43
+    Electric, Gas and Sanitary Services |      1,472        4.49       52.91
+                     Insurance Carriers |      1,300        3.96       56.88
+                 Oil and Gas Extraction |      1,168        3.56       60.44
+*/
 
+tab sic2, sort
+/*2-digit SIC |
+   industry |
+       code |
+   (created |
+   from sic |
+  variable) |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         28 |      2,886        8.80        8.80
+         73 |      2,857        8.71       17.51
+         60 |      2,515        7.67       25.18
+         67 |      2,175        6.63       31.81
+         36 |      2,074        6.32       38.14
+         35 |      1,782        5.43       43.57
+         38 |      1,592        4.85       48.43
+         49 |      1,472        4.49       52.91
+         63 |      1,300        3.96       56.88
+         13 |      1,168        3.56       60.44
+*/
+
+gen sic2_f = .
+label var sic2_f "=1 if top 10 sic2 industry by number of observations"
+foreach v in "28" "73" "60" "67" "36" "35" "38" "49" "63" "13" {
+	replace sic2_f = 1 if sic2=="`v'"
+}
+
+***	SIC 1-digit Division classification
+/*
+Division	Code	Industry Title
+A			01-09	Agriculture, Forestry, And Fishing
+B			10-14	Mining
+C			15-17	Construction
+D			20-39	Manufacturing
+E			40-49	Transportation, Communications, Electric, Gas, And Sanitary Services
+F			50-51	Wholesale Trade
+G			52-59	Retail Trade
+H			60-67	Finance, Insurance, And Real Estate
+I			70-89	Services
+J			90-99	Public Administration
+*/
+
+gen sic1=""
+destring sic2, gen(sic2num)
+replace sic1="A" if sic2num>0 & sic2num<=9
+replace sic1="B" if sic2num>=10 & sic2num<=14
+replace sic1="C" if sic2num>=15 & sic2num<=17
+replace sic1="D" if sic2num>=20 & sic2num<=39
+replace sic1="E" if sic2num>=40 & sic2num<=49
+replace sic1="F" if sic2num>=50 & sic2num<=51
+replace sic1="G" if sic2num>=52 & sic2num<=59
+replace sic1="H" if sic2num>=60 & sic2num<=67
+replace sic1="I" if sic2num>=70 & sic2num<=89
+replace sic1="J" if sic2num>=90 & sic2num<=99
+
+tab sic1, miss
+/*
+       sic1 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+            |     16,874       33.97       33.97
+          A |         86        0.17       34.15
+          B |      1,498        3.02       37.16
+          C |        404        0.81       37.98
+          D |     12,912       26.00       63.97
+          E |      3,125        6.29       70.26
+          F |        901        1.81       72.08
+          G |      2,080        4.19       76.26
+          H |      7,159       14.41       90.68
+          I |      4,546        9.15       99.83
+          J |         84        0.17      100.00
+------------+-----------------------------------
+      Total |     49,669      100.00
+*/
+
+merge m:1 sic1 using data\sic-codes-division-level.dta, keepusing(division_sic2)
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                        16,874
+        from master                    16,874  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            32,795  (_merge==3)
+    -----------------------------------------
+*/
+drop _merge
+
+tab division_sic2, miss
+/*
+                         Industry Title |      Freq.     Percent        Cum.
+----------------------------------------+-----------------------------------
+                                        |     16,874       33.97       33.97
+     Agriculture, Forestry, And Fishing |         86        0.17       34.15
+                           Construction |        404        0.81       34.96
+    Finance, Insurance, And Real Estate |      7,159       14.41       49.37
+                          Manufacturing |     12,912       26.00       75.37
+                                 Mining |      1,498        3.02       78.38
+                  Public Administration |         84        0.17       78.55
+                           Retail Trade |      2,080        4.19       82.74
+                               Services |      4,546        9.15       91.89
+Transportation, Communications, Elect.. |      3,125        6.29       98.19
+                        Wholesale Trade |        901        1.81      100.00
+----------------------------------------+-----------------------------------
+                                  Total |     49,669      100.00
+*/
+graph hbar (count), over(division_sic2)
+
+tab sic1_f
+
+*	Marginal effects plots
+reg roa net_kld_str net_kld_con sic1num
+qui margins, at(net_kld_str=(0 2 4 6 8 10 12 14 16 18 20 22) sic1num=(4 5 7 8 9))
+marginsplot
+
+qui margins, at(net_kld_con=(0 2 4 6 8 10 12 14 16 18) sic1num=(4 5 7 8 9))
+marginsplot, scheme(s1mono) recastci(rarea)
+
+*	Relationship shape by SIC divison
+binscatter roa net_kld, by(division_sic2) line(qfit) scheme(s1mono) legend(tstyle(size(vsmall)))
+binscatter roa net_kld_str, by(division_sic2) line(qfit) scheme(s1mono) legend(tstyle(size(vsmall)))
+binscatter roa net_kld_con, by(division_sic2) line(qfit) scheme(s1mono) legend(tstyle(size(vsmall)))
+
+binscatter ni net_kld, by(division_sic2) line(qfit) scheme(s1mono) legend(tstyle(size(vsmall)))
+
+
+///		2 Heterogeneity in KLD
 ***		Recreate Table 6 Perrault & Quinn 2018
 sort sic2
 
@@ -250,23 +407,16 @@ drop if sic2==""
 capt n export excel using "figures\kld-sic2-sum-strengths-concerns.xls", firstrow(variables)
 restore
 
+
 ***	Descriptive statistics
 
-drop if sic2==""
 egen tag = tag(sic2 firm)
 egen firm_N = total(tag), by(sic2)
 drop tag
 tabdisp sic2, c(firm_N)
 label var firm_N "number of unique firm names in sic2"
 
-*	Summary
-sum sum*str sum*con
 
-*	Correlations
-corr sum*str, means
-corr sum*con, means
-
-corr sum*, means
 
 *	Means and standard deviations
 foreach v in cgov com div emp env hum pro {
@@ -276,11 +426,16 @@ foreach v in cgov com div emp env hum pro {
 	bysort sic2: egen sd_`v'_con = sd(sum_`v'_con)
 }
 
-*	Product
-tabstat sum_pro_str, by(sic2) stat(mean p50 min max N)
 
+*	Product
+asdoc tabstat sum_pro_str, by(sic2) stat(mean p50 min max N) ///
+	title(Summary stats, sum of KLD product strengths, by SIC2 industry code across 1991 - 2015) ///
+	save(figures/kld-by-sic2-product-strengths), replace
 
 *	Corporate governance
+asdoc tabstat sum_cgov_str, by(sic2) stat(mean p50 min max N) ///
+	title(Summary stats, sum of KLD corporate governance strengths, by SIC2 industry code across 1991 - 2015) ///
+	save(figures/kld-by-sic2-cgov-strengths), replace
 
 *	Diversity
 
@@ -289,10 +444,20 @@ tabstat sum_pro_str, by(sic2) stat(mean p50 min max N)
 *	Employees
 
 *	Environment
-tabstat sum_env_str, by(sic2) stat(mean p50 min max N)
+asdoc tabstat sum_env_str, by(sic2) stat(mean p50 min max N) ///
+	title(Summary stats, sum of KLD environment strengths, by SIC2 industry code across 1991 - 2015) ///
+	save(figures/kld-by-sic2-env-strengths), replace
 
-tabstat sum_env_con, by(sic2) stat(mean p50 min max N)
+asdoc tabstat sum_env_con, by(sic2) stat(mean p50 min max N) ///
+	title(Summary stats, sum of KLD environment concerns, by SIC2 industry code across 1991 - 2015) ///
+	save(figures/kld-by-sic2-env-concerns), replace
 
+	
+	
+asdoc tabdisp industry_sic2, c(mean_env_str sd_env_str mean_env_con sd_env_con) format(%9.3f), ///
+	save(figures/kld-mean-by-sic2), replace
+	
+	
 *	Human rights
 
 
@@ -871,16 +1036,56 @@ graph box over_rtg, over(ym, label(angle(vertical))) ti("CSRHub overall rating, 
 
 
 
+///	U-shaped graphic
 
-///		GRAPHICS
-***	U-shaped graphic
+*	U-shaped
+set scheme plotplainblind
+
 clear
 
 set obs 2000
 gen x = rnormal()
 gen y = x^2 + 4
+gen sic=(x>0)
+label define hilo 1 "High SIC" 0 "Low SIC"
+label values sic hilo
 
-twoway (qfit y x), xti("Social Performance", size(vlarge)) yti("Financial Performance", size(vlarge)) ytick(0(20)20) xtick(-5(10)5) ylab("") xlab("")
+tw qfit y x if sic==0, xti("CSR", size(vlarge)) ///
+	yti("Financial Performance", size(vlarge)) ///
+	ytick(0(20)20) ///
+	xtick(-5(10)5) ///
+	ylab("") xlab("")
+
+tw qfit y x if sic==1, xti("CSR", size(vlarge)) ///
+	yti("Financial Performance", size(vlarge)) ///
+	ytick(0(20)20) ///
+	xtick(-5(10)5) ///
+	ylab("") xlab("")
+
+twoway (qfit y x), xti("CSR") ///
+	yti("Financial Performance") ///
+	ytick(0(20)20) ///
+	xtick(-5(10)5) ///
+	by(sic, note("") noiytick noixtick)
+
+twoway (qfit y x), ///
+	xti("CSR") ///
+	yti("Financial Performance") ///
+	ytick(0(25)25) ///
+	xtick(-5(10)5) ///
+	ylab("") ///
+	xlab("")
+
+
+
+
+
+
+
+
+
+
+
 
 
 
