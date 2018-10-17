@@ -4,60 +4,14 @@ Email:	poggi005@umn.edu
 Stata version 15.1
 
 OUTLINE
-	Data creation
-	Chapter 1:	Improved CSR Measurement Using Metaratings and the CSRHub Dataset
-	Chapter 2:	Replicating and Extending Barnett & Salomon (2012)
-	Chapter 3:	Identifying the Causal Effect of Social Performance on Financial Performance
-	Chapter 4:	The Relationship between CSR Reputation and Engaging in Collective Action to Manage Resource Scarcity
-	Appendix 1: Graphics and Figures
+	1)	Data creation
+	2)	Chapter 1:	Improved CSR Measurement Using Metaratings and the CSRHub Dataset
+	3)	Chapter 2:	Exploratory data analysis of the KLD and CSRHub
+	4)	Chapter 3: 	Replicating and Extending Barnett & Salomon (2012)
+	5)	Chapter 4:	Identifying the Causal Effect of Social Performance on Financial Performance
+	6)	Appendix 1: Graphics and Figures
 */
 
-					*******************************
-					***		  DATA CREATION		***
-					*******************************
-///		KLD
-
-
-///		COMPUSTAT
-
-
-///		MERGE KLD AND COMPUSTAT
-
-
-///		CSRHUB
-					
-///		MERGE KLD/CSTAT WITH CSRHUB
-
-*use data/kld-cstat-bs2012.dta, clear
-/*	firm:		firm name
-	year:		year
-	ticker:		ticker
-*/
-
-use data/csrhub-all.dta, clear
-/*	firm:		firm name
-	year:		year
-	ticker:	ticker
-*/
-
-bysort ticker year: gen n=_n
-keep if n==1
-
-keep firm year ticker tic_csrhub in_csrhub
-
-tempfile csrh
-save `csrh'
-
-merge 1:1 ticker year using data/kld-cstat-bs2012.dta
-/*    Result                           # of obs.
-    -----------------------------------------
-    not matched                        85,835
-        from master                    55,163  (_merge==1)
-        from using                     30,672  (_merge==2)
-
-    matched                            18,997  (_merge==3)
-    -----------------------------------------
-*/
 					***=======================***
 					*	  SUMMARY STATISTICS	*
 					*	  		 KLD			*
