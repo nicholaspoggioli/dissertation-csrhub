@@ -15,6 +15,9 @@
 */
 ********************************************************************************
 
+***=============================***
+*	CREATE INDUSTRY VARIABLES	***
+***=============================***
 ///		1 Clustering
 ***	Load data
 use data\kld-cstat-bs2012.dta, clear
@@ -243,6 +246,8 @@ merge m:1 sic1 using data\sic-codes-division-level.dta, keepusing(division_sic2)
 */
 drop _merge
 
+replace division_sic2="Transport, Comm, Electric, Gas, Sanitary" if division_sic2=="Transportation, Communications, Electric, Gas, And Sanitary Services"
+
 tab division_sic2, miss
 /*
                          Industry Title |      Freq.     Percent        Cum.
@@ -261,6 +266,61 @@ Transportation, Communications, Elect.. |      3,125        6.29       98.19
 ----------------------------------------+-----------------------------------
                                   Total |     49,669      100.00
 */
+
+
+***===========================================***
+*		  STATISTICAL & GRAPHCIAL ANALYSIS		*
+***===========================================***
+
+///	KLD across SIC Divisions
+
+***	Summary statistics
+tabstat net_kld net_kld_str net_kld_con, by(division_sic2) stat(mean sd p50 min max N) columns(statistics) longstub
+tabstat *agg, by(division_sic2) stat(mean sd p50 min max N) columns(statistics) longstub
+
+
+
+***	Histograms
+*	Overall KLD
+
+histogram net_kld, d ///
+	percent ///
+	by(division_sic2, ti("Percentage of Observations by SIC Division, 1991-2015, `v'") note("")) ///
+	xline(0) ///
+	xti("")
+	graph export "figures\industry-variation\histogram-`v'-by-sic-division-percent.tif", as(tif) replace
+
+foreach v in net_kld net_kld_str net_kld_con {
+	qui histogram `v', d ///
+		percent ///
+		by(division_sic2, ti("Percentage of Observations by SIC Division, 1991-2015, `v'") note("")) ///
+		xline(0) ///
+		xti("")
+	graph export "figures\industry-variation\histogram-`v'-by-sic-division-percent.tif", as(tif) replace
+
+	qui histogram `v', d ///
+		freq ///
+		by(division_sic2, ti("Frequency of Observations by SIC Division, 1991-2015, `v'") note("")) ///
+		xline(0) ///
+		xti("")
+	graph export "figures\industry-variation\histogram-`v'-by-sic-division-freq.tif", as(tif) replace
+}
+
+***	Binscatters
+replace net_kld_con=net_kld_con*-1
+foreach v in net_kld net_kld_str net_kld_con {
+	binscatter ni `v', by(division_sic2) line(qfit) legend(pos(6) cols(3) size(vsmall))
+	graph export "figures\industry-variation\binscatter-ni-by-`v'.tif", as(tif) replace
+}
+
+foreach v in cgov_agg com_agg div_agg emp_agg env_agg hum_agg pro_agg alc_agg gam_agg mil_agg nuc_agg tob_agg {
+	binscatter ni `v', by(division_sic2) line(qfit) legend(pos(6) cols(3) size(vsmall))
+	graph export "figures\industry-variation\binscatter-ni-by-`v'.tif", as(tif) replace
+}
+
+
+
+
 graph hbar (count), over(division_sic2)
 
 tab sic1_f
@@ -319,6 +379,12 @@ order sic2 industry_sic2 sic2_N firm_N *str *con
 drop if sic2==""
 
 capt n export excel using "figures\kld-sic2-sum-strengths-concerns.xls", firstrow(variables)
+
+keep if sic2_N>500
+capt n export excel using "figures\kld-sic2-sum-strengths-concerns-more-than-500-industry-obs.xls", firstrow(variables)
+
+corr *_st, means
+
 restore
 
 
