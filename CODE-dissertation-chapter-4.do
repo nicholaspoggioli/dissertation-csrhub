@@ -268,19 +268,15 @@ Transportation, Communications, Elect.. |      3,125        6.29       98.19
 */
 
 
-***===========================================***
-*		  STATISTICAL & GRAPHCIAL ANALYSIS		*
-***===========================================***
+			***===========================================***
+			*		  EXPLORATORY STATISTICS 				*
+			***===========================================***
 
 ///	KLD across SIC Divisions
 
 ***	Summary statistics
 tabstat net_kld net_kld_str net_kld_con, by(division_sic2) stat(mean sd p50 min max N) columns(statistics) longstub
 tabstat *agg, by(division_sic2) stat(mean sd p50 min max N) columns(statistics) longstub
-
-
-
-
 
 
 ///		2 Heterogeneity in KLD
