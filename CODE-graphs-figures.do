@@ -21,7 +21,7 @@ binscatter over_rtg net_kld, nquantiles(30) ///
 	nodraw ///
 	ti("MEAN CSRHub Overall Rating") ///
 	xti("Net KLD Score") ///
-	saving(overnetmean.gph, replace)
+	saving(figures\overnetmean.gph, replace)
 
 binscatter over_rtg net_kld, nquantiles(30) ///
 	xlab(-20(5)20) ylab(0(10)100, angle(0)) ///
@@ -29,7 +29,7 @@ binscatter over_rtg net_kld, nquantiles(30) ///
 	nodraw ///
 	ti("MEDIAN CSRHub Overall Rating") ///
 	xti("Net KLD Score") ///
-	saving(overnetmedian.gph, replace)
+	saving(figures\overnetmedian.gph, replace)
 
 graph combine overnetmean.gph overnetmedian.gph, col(1)
 
@@ -664,44 +664,51 @@ graph box over_rtg, over(ym, label(angle(vertical))) ti("CSRHub overall rating, 
 *	U-shaped
 set scheme plotplainblind
 
+graph set window fontface "Arial"
+
 clear
 
 set obs 2000
 gen x = rnormal()
-gen y = x^2 + 4
+gen y = 3*x^2 + 4
 gen sic=(x>0)
 label define hilo 1 "High SIC" 0 "Low SIC"
 label values sic hilo
 
-tw qfit y x if sic==0, xti("CSR", size(vlarge)) ///
-	yti("Financial Performance", size(vlarge)) ///
-	ytick(0(20)20) ///
-	xtick(-5(10)5) ///
-	ylab("") xlab("")
+drop if y>40
 
-tw qfit y x if sic==1, xti("CSR", size(vlarge)) ///
-	yti("Financial Performance", size(vlarge)) ///
-	ytick(0(20)20) ///
+tw qfit y x if sic==0, xti("Social influence capacity") ///
+	yti("Financial Performance of Responsibility") ///
+	ytick(0(40)40) ///
+	ylab(0(40)40 0 "( - )" 40 "( + )") ///
 	xtick(-5(10)5) ///
-	ylab("") xlab("")
+	xlab(-5(5)5 -5 "( - )" 5 "( + )")
 
-twoway (qfit y x), xti("CSR") ///
-	yti("Financial Performance") ///
-	ytick(0(20)20) ///
+tw qfit y x if sic==1, xti("Stakeholder influence capacity", size(vlarge)) ///
+	yti("Financial Performance of Responsibility", size(vlarge)) ///
+	ytick(0(40)40) ///
+	ylab(0(40)40 0 "( - )" 40 "( + )") ///
 	xtick(-5(10)5) ///
+	xlab(-5(5)5 -5 "( - )" 5 "( + )")
+
+twoway (qfit y x), xti("Stakeholder influence capacity") ///
+	yti("Financial Performance of Responsibility") ///
+	ytick(0(40)40) ///
+	ylab(0(40)40 0 "( - )" 40 "( + )") ///
+	xtick(-5(10)5) ///
+	xlab(-5(5)5 -5 "( - )" 5 "( + )") ///
 	by(sic, note("") noiytick noixtick)
 
 twoway (qfit y x), ///
-	xti("CSR") ///
-	yti("Financial Performance") ///
-	ytick(0(25)25) ///
+	xti("Stakeholder influence capacity") ///
+	yti("Financial Performance of Responsibility") ///
+	ytick(0(40)40) ///
+	ylab(0(40)40 0 "( - )" 40 "( + )") ///
 	xtick(-5(10)5) ///
-	ylab("") ///
-	xlab("")
+	xlab(-5(5)5 -5 "( - )" 5 "( + )")
 
 
-
-
+graph set window fontface default
 
 
 
