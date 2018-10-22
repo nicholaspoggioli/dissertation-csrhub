@@ -280,65 +280,7 @@ tabstat *agg, by(division_sic2) stat(mean sd p50 min max N) columns(statistics) 
 
 
 
-***	Histograms
-*	Overall KLD
 
-histogram net_kld, d ///
-	percent ///
-	by(division_sic2, ti("Percentage of Observations by SIC Division, 1991-2015, `v'") note("")) ///
-	xline(0) ///
-	xti("")
-	graph export "figures\industry-variation\histogram-`v'-by-sic-division-percent.tif", as(tif) replace
-
-foreach v in net_kld net_kld_str net_kld_con {
-	qui histogram `v', d ///
-		percent ///
-		by(division_sic2, ti("Percentage of Observations by SIC Division, 1991-2015, `v'") note("")) ///
-		xline(0) ///
-		xti("")
-	graph export "figures\industry-variation\histogram-`v'-by-sic-division-percent.tif", as(tif) replace
-
-	qui histogram `v', d ///
-		freq ///
-		by(division_sic2, ti("Frequency of Observations by SIC Division, 1991-2015, `v'") note("")) ///
-		xline(0) ///
-		xti("")
-	graph export "figures\industry-variation\histogram-`v'-by-sic-division-freq.tif", as(tif) replace
-}
-
-***	Binscatters
-replace net_kld_con=net_kld_con*-1
-foreach v in net_kld net_kld_str net_kld_con {
-	binscatter ni `v', by(division_sic2) line(qfit) legend(pos(6) cols(3) size(vsmall))
-	graph export "figures\industry-variation\binscatter-ni-by-`v'.tif", as(tif) replace
-}
-
-foreach v in cgov_agg com_agg div_agg emp_agg env_agg hum_agg pro_agg alc_agg gam_agg mil_agg nuc_agg tob_agg {
-	binscatter ni `v', by(division_sic2) line(qfit) legend(pos(6) cols(3) size(vsmall))
-	graph export "figures\industry-variation\binscatter-ni-by-`v'.tif", as(tif) replace
-}
-
-
-
-
-graph hbar (count), over(division_sic2)
-
-tab sic1_f
-
-*	Marginal effects plots
-reg roa net_kld_str net_kld_con sic1num
-qui margins, at(net_kld_str=(0 2 4 6 8 10 12 14 16 18 20 22) sic1num=(4 5 7 8 9))
-marginsplot
-
-qui margins, at(net_kld_con=(0 2 4 6 8 10 12 14 16 18) sic1num=(4 5 7 8 9))
-marginsplot, scheme(s1mono) recastci(rarea)
-
-*	Relationship shape by SIC divison
-binscatter roa net_kld, by(division_sic2) line(qfit) scheme(s1mono) legend(tstyle(size(vsmall)))
-binscatter roa net_kld_str, by(division_sic2) line(qfit) scheme(s1mono) legend(tstyle(size(vsmall)))
-binscatter roa net_kld_con, by(division_sic2) line(qfit) scheme(s1mono) legend(tstyle(size(vsmall)))
-
-binscatter ni net_kld, by(division_sic2) line(qfit) scheme(s1mono) legend(tstyle(size(vsmall)))
 
 
 ///		2 Heterogeneity in KLD
