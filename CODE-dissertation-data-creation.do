@@ -11,9 +11,6 @@
 
 ********************************************************************************
 
-
-
-
 						***=================================***
 						*	Recreate Barnett & Salomon 2012   *
 						***=================================***
@@ -300,9 +297,12 @@ label var net_kld_adj_sq "(KLD) net_kld_adj squared, replicating measure in Barn
 ***	SAVE
 compress
 save data/kld-cstat-bs2012.dta, replace
-					
-///		MERGE KLD/CSTAT WITH CSRHUB
-
+				
+				
+							***===========================***
+							*	MERGE KLD/CSTAT WITH CSRHUB *
+							***===========================***
+							
 *use data/kld-cstat-bs2012.dta, clear
 /*	firm:		firm name
 	year:		year
@@ -323,7 +323,7 @@ keep firm year ticker tic_csrhub in_csrhub
 tempfile csrh
 save `csrh'
 
-merge 1:1 ticker year using data/kld-cstat-bs2012.dta
+merge 1:1 ticker year using data/kld-cstat-bs2012.dta, gen(csrhub2kldcstat)							/// Match KLD/CSTAT to CSRHub on ticker year
 /*    Result                           # of obs.
     -----------------------------------------
     not matched                        85,835
@@ -333,3 +333,28 @@ merge 1:1 ticker year using data/kld-cstat-bs2012.dta
     matched                            18,997  (_merge==3)
     -----------------------------------------
 */
+
+*	Merge matches back to full CSRHub data on firm year
+keep if csrhub2kldcstat==3
+merge 1:m firm year using data/csrhub-all.dta, gen(csrhubkldcstat2csrhub)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       760,397
+        from master                         0  (_merge==1)
+        from using                    760,397  (_merge==2)
+
+    matched                           205,480  (_merge==3)
+    -----------------------------------------
+*/
+
+order ym, after(year)
+sort firm ym
+
+* Gen firm name variable for deduplication in OpenRefine
+gen firm_dedup=upper(firm)
+label var firm_dedup "Copy of 'firm' used for OpenRefine deduplication on firm name"
+
+***	Save
+compress
+capt n save data/csrhub-kld-cstat-bs2012.dta, replace
