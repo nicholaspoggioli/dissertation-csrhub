@@ -62,7 +62,7 @@ set more off
 ***===========================================================***
 
 *** IMPORT DATA
-use all-available-kld-data-from-wrds-downloaded-20180212.dta, clear
+use data\all-available-kld-data-from-wrds-downloaded-20180212.dta, clear
 
 ***	ORDER AND SORT
 rename companyname firm
@@ -214,6 +214,53 @@ tab N
           4 |          4        0.01      100.00
 ------------+-----------------------------------
       Total |     50,790      100.00
+*/
+
+list firm year ticker cusip if N>1, sepby(firm)
+/*
+       +------------------------------------------------------------+
+       |                            firm   year   ticker      cusip |
+       |------------------------------------------------------------|
+ 6107. |                    BENIHANA INC   2010            82047200 |
+ 6108. |                    BENIHANA INC   2010    BNHNA   82047101 |
+       |------------------------------------------------------------|
+ 7293. |           BROADWING CORPORATION   2005     BWNG   62878610 |
+ 7294. |           BROADWING CORPORATION   2005     BWNG   11161E10 |
+       |------------------------------------------------------------|
+ 9180. |    CENTRAL GARDEN & PET COMPANY   2010     CENT   15352720 |
+ 9181. |    CENTRAL GARDEN & PET COMPANY   2010     CENT   15352710 |
+       |------------------------------------------------------------|
+17466. |                   FIRST BANCORP   2014     FBNC   31891010 |
+17467. |                   FIRST BANCORP   2014      FBP   31867270 |
+17468. |                   FIRST BANCORP   2015     FBNC   31891010 |
+17469. |                   FIRST BANCORP   2015      FBP   31867270 |
+       |------------------------------------------------------------|
+21580. |              HEICO CORP. (CL A)   2010      HEI   42280620 |
+21581. |              HEICO CORP. (CL A)   2010      HEI   42280610 |
+       |------------------------------------------------------------|
+24346. |                     INVESCO LTD   2007   IVZ_LN     128269 |
+24347. |                     INVESCO LTD   2007   IVZ_LN   46127U10 |
+       |------------------------------------------------------------|
+25515. |            KCAP FINANCIAL, INC.   2012     KCAP   50023310 |
+25516. |            KCAP FINANCIAL, INC.   2012     KCAP   48668E10 |
+       |------------------------------------------------------------|
+37893. |             REALOGY CORPORATION   2006        H   36935210 |
+37894. |             REALOGY CORPORATION   2006        H   41163G10 |
+       |------------------------------------------------------------|
+45900. |    TRANSOCEAN SEDCO FOREX, INC.   2000      RIG   G9007810 |
+45901. |    TRANSOCEAN SEDCO FOREX, INC.   2000      RIG   CH011117 |
+45902. |    TRANSOCEAN SEDCO FOREX, INC.   2000      RIG   H8817H10 |
+45903. |    TRANSOCEAN SEDCO FOREX, INC.   2000      RIG   G9007310 |
+       |------------------------------------------------------------|
+47276. |         UNIVERSAL AMERICAN CORP   2012      UAM   91338E10 |
+47277. |         UNIVERSAL AMERICAN CORP   2012      UAM   91337710 |
+       |------------------------------------------------------------|
+47541. | URSTADT BIDDLE PROPERTIES, INC.   2010      UBA   91728620 |
+47542. | URSTADT BIDDLE PROPERTIES, INC.   2010      UBA   91728610 |
+       |------------------------------------------------------------|
+48216. |                     VIACOM INC.   2010     VIAB   92553P20 |
+48217. |                     VIACOM INC.   2010    VIA/B   92553P10 |
+       +------------------------------------------------------------+
 */
 drop if N>1
 drop N
