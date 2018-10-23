@@ -133,7 +133,7 @@ label var naics_n "(CSTAT) NAICS encoded as numeric"
 
 ***	SAVE
 compress
-capt n save data/unique-ticker-years-in-cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, replace
+save data/unique-ticker-years-in-cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta
 
 ***	CREATE LIST OF UNIQUE TICKER-YEARS IN KLD DATA TO IMPROVE MERGE WITH CSTAT ON TICKER-YEAR
 use data/kld-all-clean.dta, clear
@@ -170,7 +170,7 @@ gen firm_kld=firm
 
 *	Save
 compress
-capt n save data/unique-ticker-years-in-kld-all.dta, replace
+save data/unique-ticker-years-in-kld-all.dta
 
 
 ***	MERGE KLD WITH CSTAT
@@ -235,7 +235,7 @@ drop N
 
 ***	SAVE
 compress
-capt n save data/mergefile-kld-cstat-barnett-salomon-tickers.dta, replace
+save data/mergefile-kld-cstat-barnett-salomon-tickers.dta
 
 
 
@@ -284,7 +284,7 @@ label var net_kld_adj_sq "(KLD) net_kld_adj squared, replicating measure in Barn
 
 ***	SAVE
 compress
-save data/kld-cstat-bs2012.dta, replace
+save data/kld-cstat-bs2012.dta
 
 
 
@@ -785,7 +785,7 @@ list firm year roa ni at in 1/5
      +--------------------------------------------------+
 */
 compress
-save data/mergefile-csrhub-kld-random-sample, replace
+save data/mergefile-csrhub-kld-random-sample
 
 
 
