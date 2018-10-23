@@ -133,7 +133,7 @@ label var naics_n "(CSTAT) NAICS encoded as numeric"
 
 ***	SAVE
 compress
-save data/unique-ticker-years-in-cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta
+save data/unique-ticker-years-in-cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, replace
 
 ***	CREATE LIST OF UNIQUE TICKER-YEARS IN KLD DATA TO IMPROVE MERGE WITH CSTAT ON TICKER-YEAR
 use data/kld-all-clean.dta, clear
@@ -170,7 +170,7 @@ gen firm_kld=firm
 
 *	Save
 compress
-save data/unique-ticker-years-in-kld-all.dta
+save data/unique-ticker-years-in-kld-all.dta, replace
 
 
 ***	MERGE KLD WITH CSTAT
@@ -235,7 +235,7 @@ drop N
 
 ***	SAVE
 compress
-save data/mergefile-kld-cstat-barnett-salomon-tickers.dta
+save data/mergefile-kld-cstat-barnett-salomon-tickers.dta, replace
 
 
 
@@ -284,14 +284,7 @@ label var net_kld_adj_sq "(KLD) net_kld_adj squared, replicating measure in Barn
 
 ***	SAVE
 compress
-save data/kld-cstat-bs2012.dta
-
-
-
-
-
-
-
+save data/kld-cstat-bs2012.dta, replace
 
 
 
@@ -445,16 +438,37 @@ margins net_kld_adj, cont
 	
 	Is that what they did, simply drop one of the independent variables?!
 */
+
+*	Set net_kld_adj base to 11, which is 0 prior to adjustment
+fvset base 11 net_kld_adj
+
 reg ni i.net_kld_adj lni emp debt rd ad i.year
-margins net_kld_adj
+
+margins net_kld_adj																
+*see https://www.ssc.wisc.edu/sscc/pubs/stata_margins.htm
 marginsplot, xti("Adjusted Net KLD Score") yti("Net Income Impact") ///
 	xlab(0(1)26) ///
 	scheme(s1mono) ///
 	scale(.8) ///
 	yline(0,lp(dot)) ///
 	xline(11,lp(dot)) ///
-	note("Vertical line at x = 11 indicates unadjusted net KLD score of 0")
+	note("Vertical line at x = 11 indicates unadjusted net KLD score of 0") ///
+	plotopts(connect(none)) ///
+	saving(predictive-margins-net_kld_adj, replace)
 
+
+margins, dydx(net_kld_adj) base
+marginsplot, xti("Adjusted Net KLD Score") yti("Net Income Impact") ///
+	xlab(,angle(90)) ///
+	scheme(s1mono) ///
+	scale(.8) ///
+	yline(0,lp(dot)) ///
+	xline(11,lp(dot)) ///
+	note("Vertical line at x = 11 indicates unadjusted net KLD score of 0") ///
+	plotopts(connect(none)) ///
+	saving(marginal-effects-net_kld_adj, replace)
+
+graph combine predictive-margins-net_kld_adj.gph marginal-effects-net_kld_adj.gph, cols(1) ycommon xcommon
 
 
 
