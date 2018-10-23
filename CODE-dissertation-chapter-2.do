@@ -48,35 +48,8 @@ VARIABLES
 		- R&D intensity = R&D expenditures / sales
 		- Advertising intensity = Advertising expenditures / sales
 */
+
 set more off
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	***=======================================================================***
 	*	MERGE CSTAT AND KLD USING ONLY UNIQUE TICKER-YEARS FROM EACH DATASET	*
@@ -201,9 +174,15 @@ save data/unique-ticker-years-in-kld-all.dta, replace
 
 
 ***	MERGE KLD WITH CSTAT
+use data/unique-ticker-years-in-cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
+
+
+tempfile d2
+save `d2'
+
 use data/unique-ticker-years-in-kld-all.dta, clear
 
-merge 1:1 ticker year using data/unique-ticker-years-in-cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta
+merge 1:1 ticker year using `d2'
 /*    Result                           # of obs.
     -----------------------------------------
     not matched                        74,874
@@ -285,16 +264,17 @@ sum net_kld if in_bs==1
 -------------+---------------------------------------------------------
      net_kld |     16,166   -.3785723    2.171536        -11         14
 
-Compare B&S2012 		-->		My data:
-Obs: 	not reported  	-->		16,166
-Mean:	-0.43			-->		-0.38
-Min:	-12				-->		-11
-Max:	 15				-->		 14
+Compare the above to B&S2012 description of their net_kld variable:
+Obs: 	not reported  	-->		Here = 16,166
+Mean:	-0.43			-->		Here = -0.38
+Min:	-12				-->		Here = -11
+Max:	 15				-->		Here = 14
 */
 
-gen net_kld_adj = net_kld + 12
-/*	Barnett & Salomon add 12, but my data minimum value for their data window
-	is -11, suggesting I am missing a -12 that they had in their data	*/
+gen net_kld_adj = net_kld + 11 if in_bs2012==1
+replace net_kld_adj = net_kld +12 if in_bs2012!=1
+/*	Barnett & Salomon add an integer to net_kld to bring minimum to 0,
+	but their minimum value is -12, not -11 as I have	*/
 
 gen net_kld_adj_sq = net_kld_adj^2 
 
