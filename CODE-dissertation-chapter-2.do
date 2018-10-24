@@ -1251,9 +1251,216 @@ bysort ticker year: gen N=_N
 keep if N==1
 drop N
 
+***	STANDARDIZE FIRM NAME
+capt n ssc install stnd_compname												/* Install user program, but need
+																					to use search stnd_compname to find it, not ssc	*/
+stnd_compname firm, gen(stnd_firm entity_type)
+label var stnd_firm "KLD firm name standardized with stnd_compname user program"
+
+bysort stnd_firm year: gen N=_N
+tab N
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     49,660       99.98       99.98
+          2 |          6        0.01       99.99
+          3 |          3        0.01      100.00
+------------+-----------------------------------
+      Total |     49,669      100.00
+*/
+
+list stnd_firm ticker year net_kld N firm if N>1, sepby(stnd_firm year)
+/*
+       +---------------------------------------------------------------------------------------------+
+       |                  stnd_firm   ticker   year   net_kld   N                               firm |
+       |---------------------------------------------------------------------------------------------|
+   57. |                1ST BANCORP     FBNC   2012         2   3                  FIRST BANCORP INC |
+   58. |                1ST BANCORP      FBP   2012         0   3                      FIRST BANCORP |
+   59. |                1ST BANCORP     FNLC   2012         0   3            THE FIRST BANCORP, INC. |
+       |---------------------------------------------------------------------------------------------|
+   60. |                1ST BANCORP      FBP   2013         2   2                      FIRST BANCORP |
+   61. |                1ST BANCORP     FBNC   2013         0   2                  FIRST BANCORP INC |
+       |---------------------------------------------------------------------------------------------|
+17921. |                        FNB      FNB   2003        -1   2                 F.N.B. CORPORATION |
+17922. |                        FNB     FNBN   2003        -1   2                          FNB CORP. |
+       |---------------------------------------------------------------------------------------------|
+45948. | UNITED SECURITY BANCSHARES     UBFO   2003         0   2         UNITED SECURITY BANCSHARES |
+45949. | UNITED SECURITY BANCSHARES     USBI   2003         1   2   UNITED SECURITY BANCSHARES, INC. |
+       +---------------------------------------------------------------------------------------------+
+
+FNB is FNB Corporation
+FBP is a bank holding company for FirstBank Puerto Rico
+FBNC is a bank holding company for First Bank in North Carolina
+FNBN is a private firm named FNBNY Bancorp
+FNLC is a holding company for First National Bank
+UBFO is United Security Bancshares, a holding company for United Security Bank
+USBI appears to be an old Ticker for USB, US Bancshares, the holding company for First US Bank
+*/
+
+foreach ticker in FNB FBP FBNC FNBN FNLC UBFO USBI {
+	list stnd_firm ticker year firm if ticker=="`ticker'"
+}
+/*
+      +---------------------------------------------------------+
+       |   stnd_firm   ticker   year                        firm |
+       |---------------------------------------------------------|
+  113. | 1ST CHICAGO      FNB   1991   FIRST CHICAGO CORPORATION |
+  114. | 1ST CHICAGO      FNB   1992   FIRST CHICAGO CORPORATION |
+  115. | 1ST CHICAGO      FNB   1993   FIRST CHICAGO CORPORATION |
+  116. | 1ST CHICAGO      FNB   1994   FIRST CHICAGO CORPORATION |
+  117. | 1ST CHICAGO      FNB   1995   FIRST CHICAGO CORPORATION |
+       |---------------------------------------------------------|
+17921. |         FNB      FNB   2003          F.N.B. CORPORATION |
+17923. |         FNB      FNB   2004          F.N.B. CORPORATION |
+17924. |         FNB      FNB   2005          F.N.B. CORPORATION |
+17925. |         FNB      FNB   2006          F.N.B. CORPORATION |
+17926. |         FNB      FNB   2007          F.N.B. CORPORATION |
+       |---------------------------------------------------------|
+17927. |         FNB      FNB   2008          F.N.B. CORPORATION |
+17928. |         FNB      FNB   2009          F.N.B. CORPORATION |
+17929. |         FNB      FNB   2010          F.N.B. CORPORATION |
+17930. |         FNB      FNB   2011          F.N.B. CORPORATION |
+17931. |         FNB      FNB   2012          F.N.B. CORPORATION |
+       |---------------------------------------------------------|
+17932. |         FNB      FNB   2013          F.N.B. CORPORATION |
+17933. |         FNB      FNB   2014          F.N.B. CORPORATION |
+17934. |         FNB      FNB   2015          F.N.B. CORPORATION |
+       +---------------------------------------------------------+
+
+       +----------------------------------------------------------------------+
+       |               stnd_firm   ticker   year                         firm |
+       |----------------------------------------------------------------------|
+   58. |             1ST BANCORP      FBP   2012                FIRST BANCORP |
+   60. |             1ST BANCORP      FBP   2013                FIRST BANCORP |
+   71. | 1ST BANCORP PUERTO RICO      FBP   2003   FIRST BANCORP. PUERTO RICO |
+   72. | 1ST BANCORP PUERTO RICO      FBP   2004   FIRST BANCORP. PUERTO RICO |
+   73. | 1ST BANCORP PUERTO RICO      FBP   2005   FIRST BANCORP. PUERTO RICO |
+       |----------------------------------------------------------------------|
+   74. | 1ST BANCORP PUERTO RICO      FBP   2006   FIRST BANCORP. PUERTO RICO |
+   75. | 1ST BANCORP PUERTO RICO      FBP   2007   FIRST BANCORP. PUERTO RICO |
+   76. | 1ST BANCORP PUERTO RICO      FBP   2008   FIRST BANCORP. PUERTO RICO |
+   77. | 1ST BANCORP PUERTO RICO      FBP   2009   FIRST BANCORP. PUERTO RICO |
+   78. | 1ST BANCORP PUERTO RICO      FBP   2010   FIRST BANCORP. PUERTO RICO |
+       |----------------------------------------------------------------------|
+   79. | 1ST BANCORP PUERTO RICO      FBP   2011   FIRST BANCORP. PUERTO RICO |
+       +----------------------------------------------------------------------+
+
+       +-----------------------------------------------------------------------+
+       |              stnd_firm   ticker   year                           firm |
+       |-----------------------------------------------------------------------|
+   57. |            1ST BANCORP     FBNC   2012              FIRST BANCORP INC |
+   61. |            1ST BANCORP     FBNC   2013              FIRST BANCORP INC |
+   62. | 1ST BANCORP N CAROLINA     FBNC   2003   FIRST BANCORP NORTH CAROLINA |
+   63. | 1ST BANCORP N CAROLINA     FBNC   2004   FIRST BANCORP NORTH CAROLINA |
+   64. | 1ST BANCORP N CAROLINA     FBNC   2005   FIRST BANCORP NORTH CAROLINA |
+       |-----------------------------------------------------------------------|
+   65. | 1ST BANCORP N CAROLINA     FBNC   2006   FIRST BANCORP NORTH CAROLINA |
+   66. | 1ST BANCORP N CAROLINA     FBNC   2007   FIRST BANCORP NORTH CAROLINA |
+   67. | 1ST BANCORP N CAROLINA     FBNC   2008   FIRST BANCORP NORTH CAROLINA |
+   68. | 1ST BANCORP N CAROLINA     FBNC   2009   FIRST BANCORP NORTH CAROLINA |
+   69. | 1ST BANCORP N CAROLINA     FBNC   2010   FIRST BANCORP NORTH CAROLINA |
+       |-----------------------------------------------------------------------|
+   70. | 1ST BANCORP N CAROLINA     FBNC   2011   FIRST BANCORP NORTH CAROLINA |
+       +-----------------------------------------------------------------------+
+
+       +--------------------------------------+
+       | stnd_f~m   ticker   year        firm |
+       |--------------------------------------|
+17922. |      FNB     FNBN   2003   FNB CORP. |
+       +--------------------------------------+
+
+       +-------------------------------------------------------+
+       |   stnd_firm   ticker   year                      firm |
+       |-------------------------------------------------------|
+   53. | 1ST BANCORP     FNLC   2008   THE FIRST BANCORP, INC. |
+   54. | 1ST BANCORP     FNLC   2009   THE FIRST BANCORP, INC. |
+   55. | 1ST BANCORP     FNLC   2010   THE FIRST BANCORP, INC. |
+   56. | 1ST BANCORP     FNLC   2011   THE FIRST BANCORP, INC. |
+   59. | 1ST BANCORP     FNLC   2012   THE FIRST BANCORP, INC. |
+       +-------------------------------------------------------+
+
+       +-------------------------------------------------------------------------+
+       |                  stnd_firm   ticker   year                         firm |
+       |-------------------------------------------------------------------------|
+45948. | UNITED SECURITY BANCSHARES     UBFO   2003   UNITED SECURITY BANCSHARES |
+45951. | UNITED SECURITY BANCSHARES     UBFO   2006   UNITED SECURITY BANCSHARES |
+45952. | UNITED SECURITY BANCSHARES     UBFO   2007   UNITED SECURITY BANCSHARES |
+45953. | UNITED SECURITY BANCSHARES     UBFO   2008   UNITED SECURITY BANCSHARES |
+45954. | UNITED SECURITY BANCSHARES     UBFO   2009   UNITED SECURITY BANCSHARES |
+       |-------------------------------------------------------------------------|
+45955. | UNITED SECURITY BANCSHARES     UBFO   2010   UNITED SECURITY BANCSHARES |
+       +-------------------------------------------------------------------------+
+
+       +-------------------------------------------------------------------------------+
+       |                  stnd_firm   ticker   year                               firm |
+       |-------------------------------------------------------------------------------|
+45949. | UNITED SECURITY BANCSHARES     USBI   2003   UNITED SECURITY BANCSHARES, INC. |
+45950. | UNITED SECURITY BANCSHARES     USBI   2005   UNITED SECURITY BANCSHARES, INC. |
+       +-------------------------------------------------------------------------------+
+*/
+replace stnd_firm = "1ST BANCORP PUERTO RICO" if ticker=="FBP"
+replace stnd_firm = "1ST BANCORP N CAROLINA" if ticker=="FBNC"
+replace stnd_firm = "FNBNY BANCORP" if ticker=="FNBN"
+replace stnd_firm = "THE 1ST BANCORP" if ticker=="FNLC"
+replace stnd_firm = "UNITED SECURITY BANCSHARES (CALIFORNIA)" if ticker=="UBFO"
+
+drop N
+bysort stnd_firm year: gen N=_N
+tab N
+/*
+
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     49,669      100.00      100.00
+------------+-----------------------------------
+      Total |     49,669      100.00
+*/
+drop N
+
 ***	SAVE
 compress
 save data/mergefile-kld-cstat-barnett-salomon-tickers.dta, replace
+
+
+
+
+***===================================***
+*										*
+*		Merge KLD-CSTAT with CSRHUB		*
+*										*
+***===================================***
+
+*use data/mergefile-kld-cstat-barnett-salomon-tickers.dta, clear
+/*	Merge variables
+		- firm:		stnd_firm		--> created using stnd_compname user program
+		- year: 	year
+*/
+
+use data/csrhub-all.dta, clear
+/*	Merge variables
+		- firm:		stnd_firm		--> created using stnd_compname user program
+		- year: 	year
+*/
+
+merge m:1 stnd_firm year using data/mergefile-kld-cstat-barnett-salomon-tickers.dta, gen(csrhub2kldcstat)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       803,010
+        from master                   771,399  (_merge==1)
+        from using                     31,611  (_merge==2)
+
+    matched                           194,478  (_merge==3)
+    -----------------------------------------
+*/
+
+***	SAVE
+compress
+save data/mergefile-kld-cstat-csrhub.dta, replace
+
+
+
+
 
 
 
@@ -1290,6 +1497,16 @@ drop _merge
 
 compress
 save data/CSRHub-CSTAT-KLD-FACTIVA.dta, replace
+
+
+
+
+
+
+
+
+
+
 
 
 
