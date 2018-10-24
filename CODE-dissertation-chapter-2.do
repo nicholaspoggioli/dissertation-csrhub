@@ -1259,23 +1259,11 @@ save data/mergefile-kld-cstat-barnett-salomon-tickers.dta, replace
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-						***===================================***
-						*										*
-						*		Merge with FACTIVA media		*
-						*										*
-						***===================================***
+***===================================***
+*										*
+*		Merge with FACTIVA media		*
+*										*
+***===================================***
 set more off
 
 use data/csrhub-all.dta, clear
@@ -1307,9 +1295,9 @@ save data/CSRHub-CSTAT-KLD-FACTIVA.dta, replace
 
 
 
-							***===================***
-							*	CLEAN MERGED DATA	*
-							***===================***
+***===================***
+*	CLEAN MERGED DATA	*
+***===================***
 ***	LOAD DATA
 use data/mergefile-kld-cstat-barnett-salomon-tickers.dta, clear
 
