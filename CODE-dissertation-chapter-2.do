@@ -1074,35 +1074,10 @@ save data/csrhub-all.dta, replace
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	***=======================================================================***
-	*	MERGE CSTAT AND KLD USING ONLY UNIQUE TICKER-YEARS FROM EACH DATASET	*
-	***=======================================================================***
+***=======================================================================***
+*	MERGE CSTAT AND KLD USING ONLY UNIQUE TICKER-YEARS FROM EACH DATASET	*
+*	By: Nicholas Poggioli poggi005@umn.edu									*
+***=======================================================================***
 
 ***	CREATE LIST OF UNIQUE TICKER-YEARS IN CSTAT TO IMPROVE MERGE WITH KLD
 capt n use data/cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
@@ -1326,29 +1301,7 @@ drop if _merge!=3
 drop _merge
 
 compress
-save data/CSRHub-CSTAT-KLD-FACTIVA.dta
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+save data/CSRHub-CSTAT-KLD-FACTIVA.dta, replace
 
 
 
