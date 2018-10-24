@@ -7,6 +7,27 @@
 
 
 					***===========================***
+					*	 	CSRHub and KLD			*
+					***===========================***	
+use data/mergefile-kld-cstat-csrhub.dta, clear
+
+*** Scatterplots
+graph matrix net_kld net_kld_str net_kld_con over_rtg, half scheme(plotplain) m(o) msize(small)
+
+
+*** Binscatters
+binscatter over_rtg net_kld, nquantiles(31) xlab(-20(5)20) ylab(0(5)100) scheme(plotplainblind)
+binscatter over_rtg net_kld, nquantiles(31) xlab(-20(5)20) ylab(0(5)100) scheme(plotplainblind) median
+
+*** Box plots
+graph box over_rtg, over(net_kld) scheme(plotplainblind)
+
+*** Violin plots
+capt n ssc install vioplot
+
+vioplot over_rtg, over(net_kld)
+
+					***===========================***
 					*	CHAPTER 2: B&S REPLICATION	*
 					***===========================***
 ///	LOAD DATA
@@ -32,6 +53,10 @@ binscatter over_rtg net_kld, nquantiles(30) ///
 	saving(figures\overnetmedian.gph, replace)
 
 graph combine overnetmean.gph overnetmedian.gph, col(1)
+
+
+
+
 
 					***===================================***
 					*	CHAPTER 4: INDUSTRY HETEROGENEITY	*
@@ -97,7 +122,6 @@ marginsplot
 
 qui margins, at(net_kld_con=(0 2 4 6 8 10 12 14 16 18) sic1num=(4 5 7 8 9))
 marginsplot, scheme(s1mono) recastci(rarea)
-
 
 
 
