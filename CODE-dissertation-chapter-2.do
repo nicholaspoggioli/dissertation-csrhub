@@ -290,10 +290,12 @@ save data\kld-all-clean.dta, replace
 *	Data saved as 														*
 *     cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta 	*
 ***===================================================================***
-
+/*	No data creation needed because the data were simply downloaded from
+	WRDS
+*/
 
 ***===================================================================***
-*	Create CSRHub Data												*
+*	Create CSRHub Data													*
 *	By: Nicholas Poggioli poggi005@umn.edu								*
 *	Compustat Annual Data with variables used in						*
 *		Barnett & Salomon 2012 downloaded from 							*
@@ -301,8 +303,6 @@ save data\kld-all-clean.dta, replace
 *	Data saved as 														*
 *     cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta 	*
 ***===================================================================***
-
-
 
 /*	CODE TO CONVERT RAW .CSVS TO STATSETS, LAST RUN MARCH 2, 2018 (LINES 39 - 474)
 
@@ -315,7 +315,7 @@ save data\kld-all-clean.dta, replace
 set more off
 
 * 	a)	Load file
-import delimited "data-csrhub/csrhub-raw/CSRHub+Dashboard+CSR_ESG+Research--2017-04-26 -OVERALL-ENVIRONMENT-RESOURCEMGMT-RANDOM-FIRMS-ALL.csv", ///
+import delimited "data/data-csrhub/csrhub-raw/CSRHub+Dashboard+CSR_ESG+Research--2017-04-26 -OVERALL-ENVIRONMENT-RESOURCEMGMT-RANDOM-FIRMS-ALL.csv", ///
 	varnames(13) rowrange(14) colrange(3) clear
 gen row=_n+13
 keep if getresultsinthesecells!=""
@@ -413,7 +413,7 @@ replace country="United States" if country=="USA"
 *	d)	Save as .dta
 gen in_ovrl_enviro=1
 compress
-save "OVERALL-ENVIRO.dta", replace
+save "data/data-csrhub/csrhub-raw/OVERALL-ENVIRO.dta", replace
 
 
 
@@ -421,13 +421,14 @@ save "OVERALL-ENVIRO.dta", replace
 
 *	a) 	Load data
 set more off
-local files : dir "" files "*all-other*.csv"
+local files : dir "data/data-csrhub/csrhub-raw" files "*all-other*.csv"
+display `files'
 
 local n=1
 
 foreach file of local files {
 	display("`file'")
-	import delimited `file', clear ///
+	import delimited "data/data-csrhub/csrhub-raw/`file'", clear ///
 	varnames(13) rowrange(14) colrange(3)
 	drop if getresultsinthesecells==""
 
@@ -605,7 +606,7 @@ drop n N
 *	e)	Save
 gen in_other_vars=1
 compress
-save "OTHER-VARIABLES-ALL.dta", replace
+save "data/data-csrhub/csrhub-raw/OTHER-VARIABLES-ALL.dta", replace
 
 
 ***	CSRHub+Dashboard+CSR_ESG+Research--2017-06-12-updating data from march 2017 to sept 2017-________.csv
@@ -823,7 +824,7 @@ save "UPDATE-2017.dta", replace
 						
 set more off
 ***	OVERALL RATINGS
-use data-csrhub/csrhub-raw/OVERALL-ENVIRO.DTA, clear
+use data/data-csrhub/csrhub-raw/OVERALL-ENVIRO.DTA, clear
 bysort firm date: gen N=_N
 tab N
 /*
@@ -836,7 +837,7 @@ tab N
 drop N
 
 *	Merge other variables file
-merge 1:1 firm date using "data-csrhub/csrhub-raw/OTHER-VARIABLES-ALL.dta", nogen
+merge 1:1 firm date using "data/data-csrhub/csrhub-raw/OTHER-VARIABLES-ALL.dta", nogen
 /*    Result                           # of obs.
     -----------------------------------------
     not matched                       348,985
@@ -848,7 +849,7 @@ merge 1:1 firm date using "data-csrhub/csrhub-raw/OTHER-VARIABLES-ALL.dta", noge
 */
 
 *	Merge data update
-append using "data-csrhub/csrhub-raw/UPDATE-2017.dta"
+append using "data/data-csrhub/csrhub-raw/UPDATE-2017.dta"
 
 bysort firm date: gen N=_N
 tab N
