@@ -1056,6 +1056,7 @@ stnd_compname firm, gen(stnd_firm entity_type)
 tempfile d1
 save `d1'
 restore
+
 merge m:1 firm using `d1', nogen
 /*    Result                           # of obs.
     -----------------------------------------
@@ -1070,41 +1071,6 @@ save data/csrhub-all.dta, replace
 */
 
 
-
-
-
-
-						***===================================***
-						*										*
-						*		Merge with FACTIVA media		*
-						*										*
-						***===================================***
-set more off
-
-use data-csrhub/CSRHub-CSTAT-KLD.dta, clear
-
-rename year year_csrhub
-gen year=year_all
-
-merge m:1 year using C:\Dropbox\Projects\Papers-Working\dissertation-csrhub\project\data-csrhub\factiva-stakeholder-type-by-year-media-subset.dta
-/*    Result                           # of obs.
-    -----------------------------------------
-    not matched                            68
-        from master                        57  (_merge==1)
-        from using                         11  (_merge==2)
-
-    matched                         1,292,028  (_merge==3)
-    -----------------------------------------
-*/
-drop if _merge!=3
-drop _merge
-
-compress
-save data-csrhub/CSRHub-CSTAT-KLD-FACTIVA.dta, replace
-
-
-
-capt log close
 
 
 
@@ -1313,6 +1279,77 @@ drop N
 ***	SAVE
 compress
 save data/mergefile-kld-cstat-barnett-salomon-tickers.dta, replace
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+						***===================================***
+						*										*
+						*		Merge with FACTIVA media		*
+						*										*
+						***===================================***
+set more off
+
+use data/csrhub-all.dta, clear
+
+rename year year_csrhub
+
+gen csrdate=dofm(ym)
+gen year_all = year(csrdate)
+gen year=year_all
+
+merge m:1 year using data/factiva-stakeholder-type-by-year-media-subset.dta
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                            29
+        from master                         0  (_merge==1)
+        from using                         29  (_merge==2)
+
+    matched                           965,877  (_merge==3)
+    -----------------------------------------
+*/
+drop if _merge!=3
+drop _merge
+
+compress
+save data/CSRHub-CSTAT-KLD-FACTIVA.dta
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
