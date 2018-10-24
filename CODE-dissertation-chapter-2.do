@@ -611,13 +611,13 @@ save "data/data-csrhub/csrhub-raw/OTHER-VARIABLES-ALL.dta", replace
 
 ***	CSRHub+Dashboard+CSR_ESG+Research--2017-06-12-updating data from march 2017 to sept 2017-________.csv
 set more off
-local files : dir "" files "*updating data*.csv"
+local files : dir "data/data-csrhub/csrhub-raw/" files "*updating data*.csv"
 
 local n=1
 
 foreach file of local files {
 	display("`file'")
-	import delimited "`file'", clear ///
+	import delimited "data/data-csrhub/csrhub-raw/`file'", clear ///
 	varnames(13)
 	
 	* 	b)	Rename and label variables with variable names from first row
@@ -811,8 +811,7 @@ rename (isin ticker) (ISIN Ticker)
 gen in_2017_update=1
 label var in_2017_update "(CSRHub) =1 if in 2017 data downloaded in early 2018"
 compress
-save "UPDATE-2017.dta", replace
-
+save "data/data-csrhub/csrhub-raw/UPDATE-2017.dta", replace
 */
 
 						***=========================*
@@ -1025,7 +1024,7 @@ replace country="Syrian Arab Republic" if country=="Syria"
 replace country="Trinidad and Tobago" if country=="Trinidad & Tobago"
 replace country="Viet Nam" if country=="Vietnam"
 
-merge m:1 country using "data-csrhub/country-codes-iso3-conversion.dta", ///
+merge m:1 country using "data/data-csrhub/country-codes-iso3-conversion.dta", ///
 	keepusing(A3UN)
 /* 
     Result                           # of obs.
@@ -1052,17 +1051,26 @@ keep firm
 bysort firm: gen n=_n
 keep if n==1
 drop n
+capt n ssc install stnd_compname												/*	Installing user-created package	*/
 stnd_compname firm, gen(stnd_firm entity_type)
 tempfile d1
 save `d1'
 restore
 merge m:1 firm using `d1', nogen
-
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                           965,877  
+    -----------------------------------------
+*/
 
 *	Save
 compress
-save data-csrhub/csrhub-all.dta, replace
+save data/csrhub-all.dta, replace
 */
+
+
+
 
 
 		***=======================================================***
