@@ -4,7 +4,7 @@
 *Created on: October 2018
 *Purpose: Analyze KLD and CSRHub data
 ********************************************************************************
-
+/*
 
 /***
 DATA CREATION AND CLEANING
@@ -55,6 +55,7 @@ VARIABLES
 */
 
 set more off
+
 
 
 
@@ -1068,6 +1069,23 @@ merge m:1 firm using `d1', nogen
 *	Save
 compress
 save data/csrhub-all.dta, replace
+
+* 	Create CSRHub year-level datasets aggregating by mean and median
+preserve
+foreach variable of varlist *_rtg {
+	rename `variable' `variable'_mean
+}
+collapse (mean) *_rtg_mean, by(stnd_firm year) fast
+save data\csrhub-all-mean-year-level.dta, replace
+restore
+
+preserve
+foreach variable of varlist *_rtg {
+	rename `variable' `variable'_p50
+}
+collapse (median) *_rtg_p50, by(stnd_firm year) fast
+save data\csrhub-all-p50-year-level.dta, replace
+restore
 */
 
 
@@ -1422,6 +1440,9 @@ compress
 save data/mergefile-kld-cstat-barnett-salomon-tickers.dta, replace
 
 
+																				STOP POINT OCTOBER 26, 2018
+*/		
+
 
 
 ***===================================***
@@ -1430,7 +1451,7 @@ save data/mergefile-kld-cstat-barnett-salomon-tickers.dta, replace
 *										*
 ***===================================***
 
-*use data/mergefile-kld-cstat-barnett-salomon-tickers.dta, clear
+use data/mergefile-kld-cstat-barnett-salomon-tickers.dta, clear
 /*	Merge variables
 		- firm:		stnd_firm		--> created using stnd_compname user program
 		- year: 	year
@@ -1441,6 +1462,8 @@ use data/csrhub-all.dta, clear
 		- firm:		stnd_firm		--> created using stnd_compname user program
 		- year: 	year
 */
+
+
 
 merge m:1 stnd_firm year using data/mergefile-kld-cstat-barnett-salomon-tickers.dta, gen(csrhub2kldcstat)
 /*
