@@ -131,6 +131,9 @@ drop firm_n
 codebook stnd_firm
 *	2,875 unique stnd_firm names that are matched across all three datasets
 
+gen stnd_firm_ind=1
+label var stnd_firm_ind "=1 if stnd_firm matched across kld, cstat, and csrhub"
+
 *	Save
 compress
 save data\unique-stnd_firm-kld-cstat-csrhub-match.dta, replace
@@ -144,75 +147,111 @@ save data\unique-stnd_firm-kld-cstat-csrhub-match.dta, replace
 */
 
 ***	KLD
+use data\kld-all-clean.dta, clear
+merge m:1 stnd_firm using data\unique-stnd_firm-kld-cstat-csrhub-match.dta, ///
+	keepusing(stnd_firm_ind)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        24,848
+        from master                    24,848  (_merge==1)
+        from using                          0  (_merge==2)
 
+    matched                            25,914  (_merge==3)
+    -----------------------------------------
+*/
+
+keep if stnd_firm_ind==1
+
+tempfile d1
+save `d1'
+	
+	
 ***	CSTAT
+use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
+merge m:1 stnd_firm using data\unique-stnd_firm-kld-cstat-csrhub-match.dta, ///
+	keepusing(stnd_firm_ind)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        41,245
+        from master                    41,245  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            64,225  (_merge==3)
+    -----------------------------------------
+*/
+
+keep if stnd_firm_ind==1
+
+tempfile d2
+save `d2'
+
 
 ***	CSRHUB
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-***	MERGE BACK INTO PARENT DATASETS
-use data\unique-stnd_firm-kld-cstat-csrhub-match.dta, clear
-
-*	KLD
-merge 1:m stnd_firm using data\kld-all-clean.dta, gen(stnd_firm2kld_all)
-label var stnd_firm2kld "merge indicator for stnd_firm to kld on stnd_firm"
+use data\csrhub-all.dta, clear
+merge m:1 stnd_firm using data\unique-stnd_firm-kld-cstat-csrhub-match.dta, ///
+	keepusing(stnd_firm_ind)
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                         9,567
-        from master                       796  (stnd_firm2kld==1)
-        from using                      8,771  (stnd_firm2kld==2)
+    not matched                       739,177
+        from master                   739,177  (_merge==1)
+        from using                          0  (_merge==2)
 
-    matched                            41,991  (stnd_firm2kld==3)
+    matched                           226,700  (_merge==3)
     -----------------------------------------
 */
 
-*	CSTAT
-merge m:m stnd_firm using data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, gen(kld2cstat_all)
+keep if stnd_firm_ind==1
+
+
+***	Create single dataset: tricky because CSTAT and KLD are year-level and CSRHub is monthly
+
+
+
+
+keep if stnd_firm_ind==1
+
+codebook stnd_firm
 /*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        44,080
-        from master                    22,977  (_merge==1)
-        from using                     21,103  (_merge==2)
+------------------------------------------------------------------------------------------------------------------------------------
+stnd_firm                                                                                                              official name
+------------------------------------------------------------------------------------------------------------------------------------
 
-    matched                            84,443  (_merge==3)
-    -----------------------------------------
+                  type:  string (str85), but longest is str28
+
+         unique values:  2,875                    missing "":  0/316,839
+
+              examples:  "CHART IND"
+                         "GNC HOLDINGS"
+                         "MIDDLESEX WATER"
+                         "SCHOLASTIC"
+
+               warning:  variable has embedded blanks
 */
 
-*	CSRHub
-merge m:m stnd_firm using data\csrhub-all.dta, gen(kldcstat2csrhub_all)
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                       485,468
-        from master                    37,716  (_merge==1)
-        from using                    447,752  (_merge==2)
+*	2,875 unique firms, which matches the number above. IT WORKS!
 
-    matched                           521,390  (_merge==3)
-    -----------------------------------------
-*/
+compress
+
+
+
+
+
+
+
+***	CLEAN DATA
+order stnd_firm firm_csrhub firm_kld firm_cstat
+order firm_csrhub firm_kld firm_cstat, after(firm
+
+
+
+
+
+
+
+
 
 
 
