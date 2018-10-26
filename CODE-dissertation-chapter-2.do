@@ -1451,7 +1451,8 @@ save data/mergefile-kld-cstat-barnett-salomon-tickers.dta, replace
 *										*
 ***===================================***
 
-use data/mergefile-kld-cstat-barnett-salomon-tickers.dta, clear
+***	PREPARE DATA
+*use data/mergefile-kld-cstat-barnett-salomon-tickers.dta, clear
 /*	Merge variables
 		- firm:		stnd_firm		--> created using stnd_compname user program
 		- year: 	year
@@ -1463,8 +1464,7 @@ use data/csrhub-all.dta, clear
 		- year: 	year
 */
 
-
-
+***	MERGE
 merge m:1 stnd_firm year using data/mergefile-kld-cstat-barnett-salomon-tickers.dta, gen(csrhub2kldcstat)
 /*
     Result                           # of obs.
@@ -1478,13 +1478,11 @@ merge m:1 stnd_firm year using data/mergefile-kld-cstat-barnett-salomon-tickers.
 */
 
 ***	SAVE
-compress
 save data/mergefile-kld-cstat-csrhub.dta, replace
 
-
-
-
-
+*	Export for OpenRefine cleaning
+export delimited stnd_firm year firm firm_kld firm_cstat ticker tic_csrhub tic_kld ///
+	using "D:\Dropbox\papers\active\dissertation-csrhub\project\data\openrefine-cleaning-kld-cstat-csrhub.csv", replace
 
 
 
