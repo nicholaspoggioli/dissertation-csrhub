@@ -1052,7 +1052,7 @@ keep firm
 bysort firm: gen n=_n
 keep if n==1
 drop n
-capt n ssc install stnd_compname												/*	Installing user-created package	*/
+capt n search stnd_compname												/*	Installing user-created package	*/
 stnd_compname firm, gen(stnd_firm entity_type)
 tempfile d1
 save `d1'
@@ -1440,7 +1440,7 @@ compress
 save data/mergefile-kld-cstat-barnett-salomon-tickers.dta, replace
 
 
-																				STOP POINT OCTOBER 26, 2018
+																				
 */		
 
 
@@ -1481,10 +1481,8 @@ merge m:1 stnd_firm year using data/mergefile-kld-cstat-barnett-salomon-tickers.
 save data/mergefile-kld-cstat-csrhub.dta, replace
 
 *	Export for OpenRefine cleaning
-export delimited stnd_firm year firm firm_kld firm_cstat ticker tic_csrhub tic_kld ///
-	using "D:\Dropbox\papers\active\dissertation-csrhub\project\data\openrefine-cleaning-kld-cstat-csrhub.csv", replace
-
-
+*export delimited stnd_firm year firm firm_kld firm_cstat ticker tic_csrhub tic_kld ///
+*	using "D:\Dropbox\papers\active\dissertation-csrhub\project\data\openrefine-cleaning-kld-cstat-csrhub.csv", replace
 
 
 ***===================================***
