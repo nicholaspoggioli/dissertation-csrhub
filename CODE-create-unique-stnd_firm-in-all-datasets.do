@@ -1,4 +1,4 @@
-***	UNIQUE STND_FIRM IN KLD
+/***	UNIQUE STND_FIRM IN KLD
 use data\kld-all-clean.dta, clear
 
 *	Create stnd_firm standardized firm name using stnd_compname user package
@@ -19,10 +19,10 @@ drop n
 *	Save
 compress
 save data\unique-stnd_firm-kld.dta, replace
+*/
 
 
-
-***	UNIQUE STND_FIRM IN CSTAT
+/***	UNIQUE STND_FIRM IN CSTAT
 use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
 
 *	Create stnd_firm standardized firm name using stnd_compname user package
@@ -32,7 +32,7 @@ stnd_compname conm, gen(stnd_firm entity_type)
 gen firm_cstat=conm
 label var firm_cstat "firm name in cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta"
 
-gen year=fyear
+gen year=year(datadate)
 
 compress
 save data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, replace
@@ -45,10 +45,10 @@ drop n
 *	Save
 compress
 save data\unique-stnd_firm-cstat.dta, replace
+*/
 
 
-
-***	UNIQUE STND_FIRM IN CSRHUB
+/***	UNIQUE STND_FIRM IN CSRHUB
 use data/csrhub-all.dta, clear
 
 *	Create stnd_firm standardized firm name using stnd_compname user package
@@ -69,7 +69,7 @@ drop n
 *	Save
 compress
 save data\unique-stnd_firm-csrhub.dta, replace
-
+*/
 
 
 
@@ -162,9 +162,10 @@ merge m:1 stnd_firm using data\unique-stnd_firm-kld-cstat-csrhub-match.dta, ///
 */
 
 keep if stnd_firm_ind==1
+drop _merge
 
-tempfile d1
-save `d1'
+tempfile 1
+save `1'
 	
 	
 ***	CSTAT
@@ -183,10 +184,46 @@ merge m:1 stnd_firm using data\unique-stnd_firm-kld-cstat-csrhub-match.dta, ///
 */
 
 keep if stnd_firm_ind==1
+drop if indfmt=="FS" /*	DROP FINANCIAL SERVICE FIRMS	*/
 
-tempfile d2
-save `d2'
+bysort stnd_firm year: gen N=_N
+tab N
+/*
 
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     55,453       99.55       99.55
+          2 |        250        0.45      100.00
+------------+-----------------------------------
+      Total |     55,703      100.00
+*/
+drop if N>1
+drop N
+
+drop _merge
+
+***	Merge KLD and CSTAT on stnd_firm year
+
+merge 1:1 stnd_firm year using `1'
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        29,997
+        from master                    29,768  (_merge==1)
+        from using                        229  (_merge==2)
+
+    matched                            25,685  (_merge==3)
+    -----------------------------------------
+*/
+
+keep if _merge==3
+*(29,997 observations deleted)
+drop _merge
+
+gen month=month(datadate)
+
+tempfile A
+save `A'
 
 ***	CSRHUB
 use data\csrhub-all.dta, clear
@@ -202,31 +239,42 @@ merge m:1 stnd_firm using data\unique-stnd_firm-kld-cstat-csrhub-match.dta, ///
     matched                           226,700  (_merge==3)
     -----------------------------------------
 */
+keep if _merge==3
+drop _merge
 
-keep if stnd_firm_ind==1
-
-
-***	Create single dataset: tricky because CSTAT and KLD are year-level and CSRHub is monthly
-
-
-
-
-keep if stnd_firm_ind==1
-
-codebook stnd_firm
+bysort stnd_firm year month: gen N=_N											/*	Could do better here	*/
+tab N
 /*
-------------------------------------------------------------------------------------------------------------------------------------
-stnd_firm                                                                                                              official name
-------------------------------------------------------------------------------------------------------------------------------------
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    737,803       99.81       99.81
+          2 |      1,374        0.19      100.00
+------------+-----------------------------------
+      Total |    739,177      100.00
 
-                  type:  string (str85), but longest is str28
+*/
+drop if N>1
+drop N
 
-         unique values:  2,875                    missing "":  0/316,839
+compress
 
-              examples:  "CHART IND"
-                         "GNC HOLDINGS"
-                         "MIDDLESEX WATER"
-                         "SCHOLASTIC"
+***	Merge all three
+merge 1:1 stnd_firm year month using `A'
+
+
+/*
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+stnd_firm                                                                                                                                          official name
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+                  type:  string (str67), but longest is str28
+
+         unique values:  2,875                    missing "":  0/226,700
+
+              examples:  "CHARTER COMMUNICATIONS"
+                         "GOGO"
+                         "MIDDLEBY"
+                         "SCHERING PLOUGH"
 
                warning:  variable has embedded blanks
 */
@@ -234,11 +282,6 @@ stnd_firm                                                                       
 *	2,875 unique firms, which matches the number above. IT WORKS!
 
 compress
-
-
-
-
-
 
 
 ***	CLEAN DATA
