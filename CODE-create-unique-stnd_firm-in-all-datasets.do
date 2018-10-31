@@ -286,7 +286,10 @@ compress
 
 ***	CLEAN DATA
 order stnd_firm firm_csrhub firm_kld firm_cstat
-order firm_csrhub firm_kld firm_cstat, after(firm
+order firm_csrhub firm_kld firm_cstat, after(firm)
+
+***	SAVE
+save data\subset-stnd_firm-in-all-three-datasets.dta
 
 
 
