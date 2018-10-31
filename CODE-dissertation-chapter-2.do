@@ -3243,10 +3243,13 @@ doc corr sum*str sum*con, means
 					***=======================***
 					*	  MEDIATION ANALYSIS	*
 					***=======================***
+capt log close
+log using logs\mediation-analysis.txt, text replace
 
 ***	Load subset of stnd_firm matched across all three of KLD, CSTAT, and CSRHUB
 use data\subset-stnd_firm-in-all-three-datasets.dta, clear
 
+replace ym=ym(year(datadate),month(datadate)) if ym==.
 
 ***	generate random effects within between variables
 foreach variable in net_kld over_rtg {
@@ -3254,36 +3257,50 @@ foreach variable in net_kld over_rtg {
 	bysort firm_n: gen `variable'_dm=`variable'-`variable'_m
 }
 
-///	BARON AND KENNEY STYLE MEDIATION ANALYSIS
-***	ALL INDUSTRIES
-*	Main relationship
-xtreg ni net_kld , fe cluster(firm_n)
+///	ALL INDUSTRIES
+***	Baron and Kinny method
+*Main relationship
+xtreg ni net_kld i.year, fe cluster(firm_n)
 
-*	Mediator predicting independent variable
-xtreg net_kld over_rtg, fe cluster(firm_n)
+*Mediator predicting independent variable
+xtreg net_kld over_rtg i.year, fe cluster(firm_n)
 
-*	Mediation analysis
-xtreg ni net_kld over_rtg, fe cluster(firm_n)
+*Mediation analysis
+xtreg ni net_kld over_rtg i.year, fe cluster(firm_n)
 
 
-***	BANKING
+***	 Within between random effects
+xtreg ni net_kld_dm net_kld_m i.year, re cluster(firm_n)
+
+xtreg net_kld over_rtg_dm over_rtg_m i.year, re cluster(firm_n)
+
+xtreg ni net_kld_dm over_rtg_dm net_kld_m over_rtg_m i.year, re cluster(firm_n)
+
+
+///	BANKING
+preserve
+
 keep if industry=="Manufacturing"
 
-sum net_kld
-gen net_kld_adj=net_kld+6
+***	Baron and Kinny method
+*Main relationship
+xtreg ni net_kld i.year, fe cluster(firm_n)
 
-fvset base 6 net_kld_adj
+*Mediator predicting independent variable
+xtreg net_kld over_rtg i.year, fe cluster(firm_n)
 
-*	Main relationship
-xtreg ni i.net_kld_adj##i.net_kld_adj, fe cluster(firm_n) base
-
-*	Mediator predicting independent variable
-xtreg net_kld over_rtg, fe cluster(firm_n) base
-
-*	Mediation analysis
-xtreg ni i.net_kld_adj##i.net_kld_adj over_rtg, fe cluster(firm_n) base
+*Mediation analysis
+xtreg ni net_kld over_rtg i.year, fe cluster(firm_n)
 
 
+***	 Within between random effects
+xtreg ni net_kld_dm net_kld_m i.year, re cluster(firm_n)
 
-///	Within between random effects
-xtreg ni net_kld_m net_kld_dm, re cluster(firm_n)
+xtreg net_kld over_rtg_dm over_rtg_m i.year, re cluster(firm_n)
+
+xtreg ni net_kld_dm over_rtg_dm net_kld_m over_rtg_m i.year, re cluster(firm_n)
+
+restore
+
+
+capt n log close
