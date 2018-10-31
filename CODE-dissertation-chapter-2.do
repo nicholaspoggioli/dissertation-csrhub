@@ -3244,13 +3244,17 @@ doc corr sum*str sum*con, means
 					*	  MEDIATION ANALYSIS	*
 					***=======================***
 
-***	Mediation analysis of subset of firms in all three data sources
-
+***	Load subset of stnd_firm matched across all three of KLD, CSTAT, and CSRHUB
 use data\subset-stnd_firm-in-all-three-datasets.dta, clear
 
 
-///	BARON AND KENNEY STYLE MEDIATION ANALYSIS
+***	generate random effects within between variables
+foreach variable in net_kld over_rtg {
+	bysort firm_n: egen `variable'_m=mean(`variable')
+	bysort firm_n: gen `variable'_dm=`variable'-`variable'_m
+}
 
+///	BARON AND KENNEY STYLE MEDIATION ANALYSIS
 ***	ALL INDUSTRIES
 *	Main relationship
 xtreg ni net_kld , fe cluster(firm_n)
@@ -3278,3 +3282,8 @@ xtreg net_kld over_rtg, fe cluster(firm_n) base
 
 *	Mediation analysis
 xtreg ni i.net_kld_adj##i.net_kld_adj over_rtg, fe cluster(firm_n) base
+
+
+
+///	Within between random effects
+xtreg ni net_kld_m net_kld_dm, re cluster(firm_n)
