@@ -3260,45 +3260,45 @@ foreach variable in net_kld over_rtg {
 ///	ALL INDUSTRIES
 ***	Baron and Kinny method
 *Main relationship
-xtreg ni net_kld i.year, fe cluster(firm_n)
+xtreg ni over_rtg i.year, fe cluster(firm_n)
 
 *Mediator predicting independent variable
-xtreg net_kld over_rtg i.year, fe cluster(firm_n)
+xtreg over_rtg net_kld i.year, fe cluster(firm_n)
 
 *Mediation analysis
-xtreg ni net_kld over_rtg i.year, fe cluster(firm_n)
+xtreg ni over_rtg net_kld i.year, fe cluster(firm_n)
 
 
 ***	 Within between random effects
-xtreg ni net_kld_dm net_kld_m i.year, re cluster(firm_n)
+xtreg ni over_rtg_dm over_rtg_m i.year, re cluster(firm_n)
 
-xtreg net_kld over_rtg_dm over_rtg_m i.year, re cluster(firm_n)
+xtreg over_rtg net_kld_dm net_kld_m i.year, re cluster(firm_n)
 
-xtreg ni net_kld_dm over_rtg_dm net_kld_m over_rtg_m i.year, re cluster(firm_n)
+xtreg ni over_rtg_dm over_rtg_m net_kld_dm net_kld_m i.year, re cluster(firm_n)
 
 
-///	BANKING
+///	MANUFACTURING
 preserve
 
 keep if industry=="Manufacturing"
 
 ***	Baron and Kinny method
 *Main relationship
-xtreg ni net_kld i.year, fe cluster(firm_n)
+xtreg ni over_rtg i.year, fe cluster(firm_n)
 
 *Mediator predicting independent variable
-xtreg net_kld over_rtg i.year, fe cluster(firm_n)
+xtreg over_rtg net_kld i.year, fe cluster(firm_n)
 
 *Mediation analysis
-xtreg ni net_kld over_rtg i.year, fe cluster(firm_n)
+xtreg ni over_rtg net_kld i.year, fe cluster(firm_n)
 
 
 ***	 Within between random effects
-xtreg ni net_kld_dm net_kld_m i.year, re cluster(firm_n)
+xtreg ni over_rtg_dm over_rtg_m i.year, re cluster(firm_n)
 
-xtreg net_kld over_rtg_dm over_rtg_m i.year, re cluster(firm_n)
+xtreg over_rtg net_kld_dm net_kld_m i.year, re cluster(firm_n)
 
-xtreg ni net_kld_dm over_rtg_dm net_kld_m over_rtg_m i.year, re cluster(firm_n)
+xtreg ni over_rtg_dm over_rtg_m net_kld_dm net_kld_m i.year, re cluster(firm_n)
 
 restore
 
