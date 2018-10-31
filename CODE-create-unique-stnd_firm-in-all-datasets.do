@@ -292,6 +292,8 @@ compress
 order stnd_firm firm_csrhub firm_kld firm_cstat
 order firm_csrhub firm_kld firm_cstat, after(firm)
 
+label data "unique stnd_firm that match across kld, cstat, and csrhub data"
+
 ***	SAVE
 save data\subset-stnd_firm-in-all-three-datasets.dta, replace
 
