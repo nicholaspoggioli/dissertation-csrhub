@@ -1,4 +1,4 @@
-/***	UNIQUE STND_FIRM IN KLD
+***	UNIQUE STND_FIRM IN KLD
 use data\kld-all-clean.dta, clear
 
 *	Create stnd_firm standardized firm name using stnd_compname user package
@@ -19,10 +19,12 @@ drop n
 *	Save
 compress
 save data\unique-stnd_firm-kld.dta, replace
-*/
+keep stnd_firm firm
+export delimited using data\unique-stnd_firm-kld.csv, replace
 
 
-/***	UNIQUE STND_FIRM IN CSTAT
+
+***	UNIQUE STND_FIRM IN CSTAT
 use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
 
 *	Create stnd_firm standardized firm name using stnd_compname user package
@@ -45,10 +47,11 @@ drop n
 *	Save
 compress
 save data\unique-stnd_firm-cstat.dta, replace
-*/
+keep stnd_firm conm
+export delimited using data\unique-stnd_firm-cstat.csv, replace
 
 
-/***	UNIQUE STND_FIRM IN CSRHUB
+***	UNIQUE STND_FIRM IN CSRHUB
 use data/csrhub-all.dta, clear
 
 *	Create stnd_firm standardized firm name using stnd_compname user package
@@ -69,7 +72,9 @@ drop n
 *	Save
 compress
 save data\unique-stnd_firm-csrhub.dta, replace
-*/
+keep stnd_firm firm
+export delimited using data\unique-stnd_firm-csrhub.csv, replace
+
 
 
 
