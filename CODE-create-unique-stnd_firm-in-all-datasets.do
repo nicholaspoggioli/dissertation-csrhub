@@ -261,6 +261,10 @@ compress
 ***	Merge all three
 merge 1:1 stnd_firm year month using `A'
 
+*	correct firm_n
+drop firm_n
+encode stnd_firm, gen(firm_n)
+
 
 /*
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -289,7 +293,7 @@ order stnd_firm firm_csrhub firm_kld firm_cstat
 order firm_csrhub firm_kld firm_cstat, after(firm)
 
 ***	SAVE
-save data\subset-stnd_firm-in-all-three-datasets.dta
+save data\subset-stnd_firm-in-all-three-datasets.dta, replace
 
 
 
