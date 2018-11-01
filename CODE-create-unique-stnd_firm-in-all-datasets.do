@@ -20,6 +20,10 @@ drop n
 compress
 save data\unique-stnd_firm-kld.dta, replace
 keep stnd_firm firm
+gen idkld=_n
+label var idkld "unique row variable"
+compress
+save data\unique-stnd_firm-kld-stnd_firm-only.dta, replace
 export delimited using data\unique-stnd_firm-kld.csv, replace
 
 
@@ -48,6 +52,10 @@ drop n
 compress
 save data\unique-stnd_firm-cstat.dta, replace
 keep stnd_firm conm
+gen idcstat=_n
+label var idcstat "unique row identifier"
+compress
+save data\unique-stnd_firm-cstat-stnd_firm-only.dta, replace
 export delimited using data\unique-stnd_firm-cstat.csv, replace
 
 
@@ -73,6 +81,10 @@ drop n
 compress
 save data\unique-stnd_firm-csrhub.dta, replace
 keep stnd_firm firm
+gen idcsrhub=_n
+label var idcsrhub "unique row identifier"
+compress
+save data\unique-stnd_firm-csrhub-stnd_firm-only.dta, replace
 export delimited using data\unique-stnd_firm-csrhub.csv, replace
 
 
