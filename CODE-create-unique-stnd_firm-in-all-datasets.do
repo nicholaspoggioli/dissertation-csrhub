@@ -1219,6 +1219,8 @@ merge 1:1 stnd_firm using data\unique-stnd_firm-cstat-stnd_firm-only.dta
 */
 drop _merge
 
+replace stnd_firm=matchitcsrhub if fuzmtchhub2stat==1
+
 compress
 save data\unique-stnd_firm-cstat-stnd_firm-only-including-csrhub-fuzzmatch.dta, replace
 
@@ -1239,11 +1241,24 @@ drop if simmax==1 & n!=1
 drop simmax n
 
 compress
-save data\matchit-csrhub-2-cstat-2.dta
+save data\matchit-csrhub-2-cstat-2.dta, replace
 
+preserve
+keep if similscore==1
+compress
+save data\matchit-csrhub-2-cstat-exact-matches-2.dta, replace
+restore
 
+**	Assess likely matches:
+use data\matchit-csrhub-2-cstat-2.dta, clear
+drop if similscore==1
+set seed 61047
+bysort stnd_firm: gen rando=rnormal()
+by stnd_firm: replace rando=rando[_n-1] if _n!=1
 
-
+gsort rando stnd_firm -similscore
+gen row=_n
+br idcsrhub stnd_firm idcstat stnd_firm1 row
 
 
 
