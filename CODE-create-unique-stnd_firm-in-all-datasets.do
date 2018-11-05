@@ -327,16 +327,15 @@ save data\subset-stnd_firm-in-all-three-datasets.dta, replace
 				***=============================***
 				***		COMBINE WITH MATCHIT	***
 				***=============================***
-***	fuzzy string matching csrhub to cstat
-/*
+***	CSRHub to CSTAT
 use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 
 capt n ssc install matchit
 capt n ssc install freqindex
 
 matchit idcsrhub stnd_firm using data\unique-stnd_firm-cstat-stnd_firm-only.dta, ///
-	idu(idcstat) txtu(stnd_firm) similmethod(ngram,3) time threshold(.75)
-	
+	idu(idcstat) txtu(stnd_firm) similmethod(ngram,3) time threshold(.75) diagnose
+																						/*	This drops all CSRHub firms with 0 ngram matches	*/
 gsort stnd_firm -similscore
 
 by stnd_firm: egen simmax=max(similscore)
@@ -1224,6 +1223,7 @@ replace stnd_firm=matchitcsrhub if fuzmtchhub2stat==1
 compress
 save data\unique-stnd_firm-cstat-stnd_firm-only-including-csrhub-fuzzmatch.dta, replace
 
+
 ***	Re-run fuzzy match
 use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 
@@ -1238,13 +1238,17 @@ gsort stnd_firm -similscore
 by stnd_firm: egen simmax=max(similscore)
 by stnd_firm: gen n=_n
 drop if simmax==1 & n!=1
+*(2,496 observations deleted)
 drop simmax n
+
+codebook stnd_firm
 
 compress
 save data\matchit-csrhub-2-cstat-2.dta, replace
 
 preserve
 keep if similscore==1
+*(2,075 observations deleted)
 compress
 save data\matchit-csrhub-2-cstat-exact-matches-2.dta, replace
 restore
@@ -1276,29 +1280,30 @@ br idcsrhub stnd_firm idcstat stnd_firm1 row
 
 
 
-***	fuzzy string matching csrhub to kld
+***	CSRHub to KLD
 use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 
 capt n ssc install matchit
 capt n ssc install freqindex
 
 matchit idcsrhub stnd_firm using data\unique-stnd_firm-kld-stnd_firm-only.dta, ///
-	idu(idkld) txtu(stnd_firm) similmethod(ngram,3) time threshold(.75)
+	idu(idkld) txtu(stnd_firm) similmethod(ngram,3) time threshold(.75) diagnose
 	
 gsort stnd_firm -similscore
 
 by stnd_firm: egen simmax=max(similscore)
 by stnd_firm: gen n=_n
 drop if simmax==1 & n!=1
+*(4,604 observations deleted)
 drop simmax n
 
 compress
-save data\matchit-csrhub-2-kld.dta
+save data\matchit-csrhub-2-kld.dta, replace
 
 preserve
 keep if similscore==1
 compress
-save data\matchit-csrhub-2-kld-exact-matches.dta
+save data\matchit-csrhub-2-kld-exact-matches.dta, replace
 restore
 
 keep if similscore!=1
