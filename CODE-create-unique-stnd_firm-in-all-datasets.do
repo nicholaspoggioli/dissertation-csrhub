@@ -1771,45 +1771,7 @@ tab N
 */
 list matchitkld matchitcsrhub row if N>1, sepby(stnd_firm)
 /*
-     +-------------------------------------------------------------------------+
-     |                 matchitkld                         matchitcsrhub    row |
-     |-------------------------------------------------------------------------|
- 49. |       ANHEUSER BUSCH INBEV               ANHEUSER BUSCH INBEV NV     69 |
- 50. |       ANHEUSER BUSCH INBEV                        ANHEUSER BUSCH   1393 |
-     |-------------------------------------------------------------------------|
- 58. |              ARCELORMITTAL                     ARCELORMITTAL USA   1318 |
- 59. |              ARCELORMITTAL                  ARCELORMITTAL BRASIL   1511 |
-     |-------------------------------------------------------------------------|
- 72. |         BANCO SANTANDER SA             BANCO SANTANDER BRAZIL SA   1169 |
- 73. |         BANCO SANTANDER SA              BANCO SANTANDER CHILE SA   2351 |
-     |-------------------------------------------------------------------------|
- 93. |  BROOKFIELD PROPERTY PRTRS          BROOKFIELD PROPERTY PARTNERS   1756 |
- 94. |  BROOKFIELD PROPERTY PRTRS                 BROOKFIELD PROPERTIES   1237 |
-     |-------------------------------------------------------------------------|
- 95. |  CABLE & WIRELESS COMM PLC   CABLE & WIRELESS COMMUNICATIONS PLC   1079 |
- 96. |  CABLE & WIRELESS COMM PLC                      CABLE & WIRELESS   2458 |
-     |-------------------------------------------------------------------------|
-150. |              DOMINOS PIZZA                     DOMINOS PIZZA ENT    214 |
-151. |              DOMINOS PIZZA                     DOMINOS PIZZA GRP   1550 |
-     |-------------------------------------------------------------------------|
-190. |           GLOBAL INDEMNITY                            GLOBAL IND    569 |
-191. |           GLOBAL INDEMNITY                  GLOBAL INDEMNITY PLC   1373 |
-     |-------------------------------------------------------------------------|
-276. |      MINAS BUENAVENTURA SA                    MINAS BUENAVENTURA   1859 |
-277. |      MINAS BUENAVENTURA SA     COMPANIA DE MINAS BUENAVENTURA SA    955 |
-     |-------------------------------------------------------------------------|
-392. | STERLING FINANCIAL CORP WA                    STERLING FINANCIAL    712 |
-393. | STERLING FINANCIAL CORP WA    STERLING FINANCIAL CORP OF SPOKANE     59 |
-     |-------------------------------------------------------------------------|
-403. |       TALLGRASS ENERGY PTR             TALLGRASS ENERGY PARTNERS   1374 |
-404. |       TALLGRASS ENERGY PTR                      TALLGRASS ENERGY    208 |
-     |-------------------------------------------------------------------------|
-412. |         TELECOM ITALIA SPA                        TELECOM ITALIA   1394 |
-413. |         TELECOM ITALIA SPA                  TELECOM ITALIA MEDIA   2118 |
-     |-------------------------------------------------------------------------|
-437. |  VILLAGE BANK & TRUST FINL                  VILLAGE BANK & TRUST   1668 |
-438. |  VILLAGE BANK & TRUST FINL        VILLAGE BANK & TRUST FINANCIAL   1818 |
-     +-------------------------------------------------------------------------+
+
 */
 
 drop if N>1
@@ -1818,21 +1780,9 @@ drop N
 *	Merge the csrhub stnd_firm into the unique stnd_firm in cstat
 merge 1:1 stnd_firm using data\unique-stnd_firm-kld-stnd_firm-only.dta
 /*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                         9,922
-        from master                       337  (_merge==1)
-        from using                      9,585  (_merge==2)
-
-    matched                                95  (_merge==3)
-    -----------------------------------------
 */
 drop _merge
 
-replace stnd_firm=matchitcsrhub if fuzmtchhub2stat==1
-
-compress
-save data\unique-stnd_firm-cstat-stnd_firm-only-including-csrhub-fuzzmatch.dta, replace
 
 
 
