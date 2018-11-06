@@ -4,7 +4,7 @@
 *Created on: October 2018
 *Purpose: Analyze KLD and CSRHub data
 ********************************************************************************
-/*
+
 
 /***
 DATA CREATION AND CLEANING
@@ -305,7 +305,7 @@ save data\kld-all-clean.dta, replace
 *     cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta 	*
 ***===================================================================***
 
-/*	CODE TO CONVERT RAW .CSVS TO STATSETS, LAST RUN MARCH 2, 2018 (LINES 39 - 474)
+*	CODE TO CONVERT RAW .CSVS TO STATSETS, LAST RUN MARCH 2, 2018 (LINES 39 - 474)
 
 			***===========================================***
 			*												*
@@ -820,7 +820,7 @@ save "data/data-csrhub/csrhub-raw/UPDATE-2017.dta", replace
 						*	Merge CSRHub datasets	*
 						*							*
 						***=========================*
-/*	LAST RUN MARCH 9 2018 (LINES 553-794)
+*	LAST RUN MARCH 9 2018 (LINES 553-794)
 						
 set more off
 ***	OVERALL RATINGS
@@ -2928,25 +2928,7 @@ outreg2 [hybc_roa hybc_ni] using "tables-and-figures/rep6-hybrid-models-clustere
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+/*	BLOCK BELOW NOT IN FLOWCHART
 	
 	
 	
@@ -3230,7 +3212,9 @@ doc corr sum*str sum*con, means
 
 
 
+BLOCK ABOVE NOT IN FLOWCHART 
 
+*/
 
 
 
