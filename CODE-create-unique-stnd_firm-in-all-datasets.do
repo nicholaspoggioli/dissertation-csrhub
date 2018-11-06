@@ -328,7 +328,7 @@ save data\subset-stnd_firm-in-all-three-datasets.dta, replace
 				***		COMBINE WITH MATCHIT	***
 				***=============================***
 ***	CSRHub to CSTAT
-/*use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
+use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 
 capt n ssc install matchit
 capt n ssc install freqindex
@@ -343,15 +343,15 @@ by stnd_firm: gen n=_n
 drop if simmax==1 & n!=1
 drop simmax n
 compress
-save data\matchit-csrhub-2-cstat.dta
+save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-all.dta, replace
 
 *Save exact matches
 preserve
 keep if similscore==1
 compress
-save data\matchit-csrhub-2-cstat-exact-matches.dta
+save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-exact.dta, replace
 restore
-*/
+
 
 ***	Assess likely matches:
 use data\matchit-csrhub-2-cstat.dta, clear
@@ -1134,42 +1134,65 @@ import excel "data\data-matchit\matchit-csrhub-2-cstat-nonexact-matches.xlsx", /
 	sheet("Sheet1") clear firstrow
 	
 rename (stnd_firm stnd_firm1) (matchitcsrhub matchitcstat)
-gen stnd_firm=matchitcstat
 
-bysort stnd_firm: gen N=_N
+*Check duplicate CSRHub matches
+bysort matchitcsrhub: gen N=_N
 tab N
-/*
-
-          N |      Freq.     Percent        Cum.
+/*          N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |        450       93.56       93.56
-          2 |         28        5.82       99.38
-          3 |          3        0.62      100.00
+          1 |        479       99.58       99.58
+          2 |          2        0.42      100.00
 ------------+-----------------------------------
       Total |        481      100.00
 */
-list matchitcstat matchitcsrhub if N>1, sepby(stnd_firm)
+list matchitcsrhub matchitcstat if N>1, sepby(matchitcsrhub)
 /*
- +----------------------------------------------------------------------+
+     +--------------------------------------------------+
+     |           matchitcsrhub             matchitcstat |
+     |--------------------------------------------------|
+280. | MARRONE BIO INNOVATIONS   MARRONE BIO INNOVTIONS |
+281. | MARRONE BIO INNOVATIONS   MARRONE BIO INNOVTIONS |
+     +--------------------------------------------------+
+*/
+
+drop if N>1
+*(2 observations deleted)
+drop N
+
+*Check duplicate CSTAT matches
+bysort matchitcstat: gen N=_N
+tab N
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        450       93.95       93.95
+          2 |         26        5.43       99.37
+          3 |          3        0.63      100.00
+------------+-----------------------------------
+      Total |        479      100.00
+*/
+list matchitcstat matchitcsrhub if N>1, sepby(matchitcstat)
+/*
+     +----------------------------------------------------------------------+
      |                   matchitcstat                         matchitcsrhub |
      |----------------------------------------------------------------------|
  52. |           ANHEUSER BUSCH INBEV                        ANHEUSER BUSCH |
  53. |           ANHEUSER BUSCH INBEV               ANHEUSER BUSCH INBEV NV |
      |----------------------------------------------------------------------|
- 61. |                  ARCELORMITTAL                  ARCELORMITTAL BRASIL |
- 62. |                  ARCELORMITTAL                     ARCELORMITTAL USA |
+ 61. |                  ARCELORMITTAL                     ARCELORMITTAL USA |
+ 62. |                  ARCELORMITTAL                  ARCELORMITTAL BRASIL |
      |----------------------------------------------------------------------|
- 95. |      BROOKFIELD PROPERTY PRTRS                 BROOKFIELD PROPERTIES |
- 96. |      BROOKFIELD PROPERTY PRTRS          BROOKFIELD PROPERTY PARTNERS |
+ 95. |      BROOKFIELD PROPERTY PRTRS          BROOKFIELD PROPERTY PARTNERS |
+ 96. |      BROOKFIELD PROPERTY PRTRS                 BROOKFIELD PROPERTIES |
      |----------------------------------------------------------------------|
- 97. |      CABLE & WIRELESS COMM PLC   CABLE & WIRELESS COMMUNICATIONS PLC |
- 98. |      CABLE & WIRELESS COMM PLC                      CABLE & WIRELESS |
+ 97. |      CABLE & WIRELESS COMM PLC                      CABLE & WIRELESS |
+ 98. |      CABLE & WIRELESS COMM PLC   CABLE & WIRELESS COMMUNICATIONS PLC |
      |----------------------------------------------------------------------|
-154. |                  DOMINOS PIZZA                     DOMINOS PIZZA GRP |
-155. |                  DOMINOS PIZZA                     DOMINOS PIZZA ENT |
+154. |                  DOMINOS PIZZA                     DOMINOS PIZZA ENT |
+155. |                  DOMINOS PIZZA                     DOMINOS PIZZA GRP |
      |----------------------------------------------------------------------|
-163. |         EMPIRE STATE REALTY TR             EMPIRE STATE REALTY TRUST |
-164. |         EMPIRE STATE REALTY TR                EMPIRE STATE REALTY OP |
+163. |         EMPIRE STATE REALTY TR                EMPIRE STATE REALTY OP |
+164. |         EMPIRE STATE REALTY TR             EMPIRE STATE REALTY TRUST |
      |----------------------------------------------------------------------|
 182. |     FRANKLIN FINANCIAL CORP VA                    FRANKLIN FINANCIAL |
 183. |     FRANKLIN FINANCIAL CORP VA                FRANKLIN FINANCIAL SVC |
@@ -1177,34 +1200,33 @@ list matchitcstat matchitcsrhub if N>1, sepby(stnd_firm)
 185. | FRESENIUS MEDICAL CARE AG & CO                FRESENIUS MEDICAL CARE |
 186. | FRESENIUS MEDICAL CARE AG & CO      FRESENIUS MEDICAL CARE ARGENTINA |
      |----------------------------------------------------------------------|
-198. |               GLOBAL INDEMNITY                  GLOBAL INDEMNITY PLC |
-199. |               GLOBAL INDEMNITY                            GLOBAL IND |
+198. |               GLOBAL INDEMNITY                            GLOBAL IND |
+199. |               GLOBAL INDEMNITY                  GLOBAL INDEMNITY PLC |
      |----------------------------------------------------------------------|
-278. |         MARRONE BIO INNOVTIONS               MARRONE BIO INNOVATIONS |
-279. |         MARRONE BIO INNOVTIONS               MARRONE BIO INNOVATIONS |
+407. |     STERLING FINANCIAL CORP WA                    STERLING FINANCIAL |
+408. |     STERLING FINANCIAL CORP WA    STERLING FINANCIAL CORP OF SPOKANE |
      |----------------------------------------------------------------------|
-409. |     STERLING FINANCIAL CORP WA    STERLING FINANCIAL CORP OF SPOKANE |
-410. |     STERLING FINANCIAL CORP WA                    STERLING FINANCIAL |
+419. |           TALLGRASS ENERGY PTR             TALLGRASS ENERGY PARTNERS |
+420. |           TALLGRASS ENERGY PTR                      TALLGRASS ENERGY |
      |----------------------------------------------------------------------|
-421. |           TALLGRASS ENERGY PTR                      TALLGRASS ENERGY |
-422. |           TALLGRASS ENERGY PTR             TALLGRASS ENERGY PARTNERS |
+428. |             TELECOM ITALIA SPA                  TELECOM ITALIA MEDIA |
+429. |             TELECOM ITALIA SPA                        TELECOM ITALIA |
      |----------------------------------------------------------------------|
-430. |             TELECOM ITALIA SPA                  TELECOM ITALIA MEDIA |
-431. |             TELECOM ITALIA SPA                        TELECOM ITALIA |
-     |----------------------------------------------------------------------|
+438. |      TRANSPORTADORA DE GAS SUR    TRANSPORTADORA DE GAS DEL NORTE SA |
+439. |      TRANSPORTADORA DE GAS SUR    TRANSPORTADORA DE GAS DEL INTERIOR |
 440. |      TRANSPORTADORA DE GAS SUR      TRANSPORTADORA DE GAS DEL SUR SA |
-441. |      TRANSPORTADORA DE GAS SUR    TRANSPORTADORA DE GAS DEL INTERIOR |
-442. |      TRANSPORTADORA DE GAS SUR    TRANSPORTADORA DE GAS DEL NORTE SA |
      |----------------------------------------------------------------------|
-460. |      VILLAGE BANK & TRUST FINL                  VILLAGE BANK & TRUST |
-461. |      VILLAGE BANK & TRUST FINL        VILLAGE BANK & TRUST FINANCIAL |
+458. |      VILLAGE BANK & TRUST FINL                  VILLAGE BANK & TRUST |
+459. |      VILLAGE BANK & TRUST FINL        VILLAGE BANK & TRUST FINANCIAL |
      +----------------------------------------------------------------------+
-*/
 
+*/
 drop if N>1
+*(29 observations deleted)
 drop N
 
 *	Merge the csrhub stnd_firm into the unique stnd_firm in cstat
+gen stnd_firm=matchitcstat
 merge 1:1 stnd_firm using data\unique-stnd_firm-cstat-stnd_firm-only.dta
 /*
     Result                           # of obs.
@@ -1216,12 +1238,14 @@ merge 1:1 stnd_firm using data\unique-stnd_firm-cstat-stnd_firm-only.dta
     matched                               450  (_merge==3)
     -----------------------------------------
 */
+keep if _merge==3
+gen matchitcsrhub2cstat=1
 drop _merge
 
-replace stnd_firm=matchitcsrhub if fuzmtchhub2stat==1
+replace stnd_firm=matchitcsrhub
 
 compress
-save data\unique-stnd_firm-cstat-stnd_firm-only-including-csrhub-fuzzmatch.dta, replace
+save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-nonexact.dta, replace
 
 
 ***	Re-run fuzzy match
@@ -1230,7 +1254,7 @@ use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 capt n ssc install matchit
 capt n ssc install freqindex
 
-matchit idcsrhub stnd_firm using data\unique-stnd_firm-cstat-stnd_firm-only-including-csrhub-fuzzmatch.dta, ///
+matchit idcsrhub stnd_firm using data\stnd_firm-cstat-2-stnd_firm-csrhub-matchit-nonexact.dta, ///
 	idu(idcstat) txtu(stnd_firm) similmethod(ngram,3) time threshold(.75)
 	
 gsort stnd_firm -similscore
@@ -1281,7 +1305,7 @@ br idcsrhub stnd_firm idcstat stnd_firm1 row
 
 
 ***	CSRHub to KLD
-/*use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
+use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 
 capt n ssc install matchit
 capt n ssc install freqindex
@@ -1299,18 +1323,18 @@ drop if simmax==1 & n!=1
 drop simmax n
 
 compress
-save data\matchit-csrhub-2-kld.dta, replace
+save data\stnd_firm-csrhub-2-stnd_firm-kld-matchit-all.dta, replace
 
 *Save dataset of exact matches
 preserve
 keep if similscore==1
 *(3,321 observations deleted)
 compress
-save data\matchit-csrhub-2-kld-exact-matches.dta, replace
+save data\stnd_firm-csrhub-2-stnd_firm-kld-matchit-exact.dta, replace
 restore
 */
 *Assess likely matches:
-use data\matchit-csrhub-2-kld.dta, clear
+use data\stnd_firm-csrhub-2-stnd_firm-kld-matchit-all.dta, clear
 drop if similscore==1
 set seed 61047
 bysort stnd_firm: gen rando=rnormal()
@@ -1748,8 +1772,420 @@ idcsrhub	stnd_firm	idkld	stnd_firm1	row
 idcsrhub	stnd_firm	idkld	stnd_firm1	row
 4510	DAEWOO SHIPBUILDING & MARINE ENGR	2567	DAEWOO SHIPBUILDING & MARINE ENGR CO	1887
 4510	DAEWOO SHIPBUILDING & MARINE ENGR	2568	DAEWOO SHIPBUILDING & MARINE ENGR CO LT	1888
-
-
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+15299	TAYLOR WIMPEY	8463	TAYLOR WIMPEY PLC	1918
+16510	VEOLIA ENVIRONNEMENT	9161	VEOLIA ENVIRONNEMENT SA	1919
+16510	VEOLIA ENVIRONNEMENT	9162	VEOLIA ENVIRONNEMENT VE SA	1920
+8165	INGENICO	4499	INGENICO SA	1921
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+8319	INTESA SANPAOLO	4614	INTESA SANPAOLO S	1926
+8319	INTESA SANPAOLO	4615	INTESA SANPAOLO SPA	1927
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+11899	OVERSEAS CHINESE BANKING CORP	6548	OVERSEA CHINESE BANKING CORP	1945
+2906	CANADIAN OIL SANDS TRUST	1627	CANADIAN OIL SANDS	1946
+5720	ESURE GRP	3219	ESURE GRP PLC	1947
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+16240	UNITED COMMUNITY BANK	8984	UNITED COMMUNITY BANKS	1950
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+785	ALLIED WORLD ASSURANCE CO LTD AWAC	477	ALLIED WORLD ASSURANCE CO HOLDINGS	1955
+4867	DIRECT LINE INS GRP	2766	DIRECT LINE INS GRP PLC	1956
+8712	JOHNSON MATTHEY	4819	JOHNSON MATTHEY PLC	1957
+14896	SULZER	8235	SULZER AG	1958
+7853	HYUNDAI ENGR & CONSTRUCTION	4335	HYUNDAI ENGR & CONSTRUCTION CO	1959
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+799	ALM BRAND	493	ALM BRAND AS	1961
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+10647	MONTE DEI PASCHI DI SIENA	1078	BANCA MONTE DEI PASCHI DI SIENA S	1970
+8836	KALBE FARMA	7090	PT KALBE FARMA TBK	1971
+3989	COMPANIA DE BANCO DE CREDITO E INVERSIONES	1091	BANCO DE CREDITO E INVERSIONES	1972
+6256	FOXCONN TECHNOLOGY	3497	FOXCONN TECHNOLOGY CO	1973
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+2580	BRAIT SA	1447	BRAIT SE	1977
+9077	KLEPIERRE	4994	KLEPIERRE SA	1978
+9684	LONDON STOCK EXCHANGE	5295	LONDON STOCK EXCHANGE GRP PLC	1979
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+3217	CENTERSTATE BANK	1818	CENTERSTATE BANKS	1981
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+7658	HONG LEONG BANK BHD	4230	HONG LEONG BANK BERHAD	1991
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+12577	PREMIER OIL	6981	PREMIER OIL PLC	1995
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+16036	TULLETT PREBON GRP	8862	TULLETT PREBON PLC	1996
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+15461	TENARIS	8543	TENARIS SA	2002
+15354	TECO ELEC & MACHINERY	8491	TECO ELEC & MACHINERY CO	2003
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+14643	SPORT SUPPLY GRP	8074	SPORT SUPPLY GRP INC DEL	2006
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+3233	CENTURY BANK	1828	CENTURY BANCORP	2033
+16060	TURKIYE SISE VE CAM FABRIKALARI AS	8880	TURKIYE SISE VE CAM FABRIKALARI ANONIM SIRKETI	2034
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+14454	SODEXO	7965	SODEXO SA	2037
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+11440	NOVATEK MICROELECTRONICS CORP	6278	NOVATEK MICROELECTRONICS	2039
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+16252	UNITED INTERNET AG & CO	8995	UNITED INTERNET AG	2044
+8037	IMPERIAL TOBACCO GRP	4442	IMPERIAL TOBACCO GRP PLC	2045
+3400	CHINA ARCHITECTURAL ENGR	1930	CHINA ARCHITECTURAL ENG	2046
+8267	INTERCONTINENTAL HOTELS GRP	4576	INTERCONTINENTAL HOTELS GRP PLC	2047
+3724	CLARIANT	2092	CLARIANT AG	2048
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+4070	CONSOLIDATED COMMUNICATIONS	2322	CONSOLIDATED COMMUNICATIONS HOLDINGS	2052
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+2635	BRITISH AMERICAN TOBACCO UGANDA	1474	BRITISH AMERICAN TOBACCO PLC	2056
+10355	METTLER TOLEDO	5700	METTLER TOLEDO INTL	2057
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+3378	CHICAGO BRIDGE & IRON	1918	CHICAGO BRIDGE & IRON CO NV	2059
+17281	YUANTA FINANCIAL HOLDING CO	9625	YUANTA FINANCIAL HOLDINGS CO	2060
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+13797	SCHNEIDER ELEC	7657	SCHNEIDER ELEC SA	2069
+13797	SCHNEIDER ELEC	7658	SCHNEIDER ELEC SE	2070
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+11881	OTSUKA HOLDING CO	6535	OTSUKA HOLDINGS CO	2073
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+16804	WANT WANT HOLDINGS	9315	WANT WANT CHINA HOLDINGS	2078
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+11258	NIPPON TELEGRAPH & TELEPHONE CORPORATI	6198	NIPPON TELEGRAPH & TELEPHONE	2080
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+15086	SWISSCOM	8341	SWISSCOM AG	2088
+14634	SPIRENT COMMUNICATIONS	8064	SPIRENT COMMUNICATIONS PLC	2089
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+15972	TRISTATE HOLDINGS	8822	TRISTATE CAPITAL HOLDINGS	2093
+6269	FRANKLIN FINANCIAL SVC	3507	FRANKLIN FINANCIAL	2094
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+2242	BERJAYA SPORTS TOTO BHD	1266	BERJAYA SPORTS TOTO BERHAD	2095
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+12503	PORTUGAL TELECOM SGPS	6925	PORTUGAL TELECOM SGPS SA	2097
+15349	TECNICOLOR SA	8482	TECHNICOLOR SA	2098
+7017	GRUPO FINANCIERO BANORTE SA DE CV	3908	GRUPO FINANCIERO BANORTE SAB DE CV	2099
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+17378	ZHUZHOU CSR TIMES ELEC	9652	ZHUZHOU CSR TIMES ELEC CO	2103
+3604	CIA HERING SA	2031	CIA HERING	2104
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+996	AMERIS BANK	633	AMERIS BANCORP	2118
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+4086	CONSTELLATION ENERGY PARTNERS	2336	CONSTELLATION ENERGY GRP	2122
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1802	BAKKAFROST	6791	PF BAKKAFROST	2129
+11404	NORTHSTAR REALTY FINANANCE	6265	NORTHSTAR REALTY FINANCE	2130
+13581	SAIPEM SPA	7565	SAIPEM S	2131
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+14420	SNC LAVALIN	7958	SNC LAVALIN GRP	2144
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+9705	LOREAL	5315	LOREAL SA	2146
+7018	GRUPO FINANCIERO INBURSA SA	3909	GRUPO FINANCIERO INBURSA SA DE CV	2147
+7018	GRUPO FINANCIERO INBURSA SA	3910	GRUPO FINANCIERO INBURSA SAB DE CV	2148
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+12268	PETRONAS GAS BHD	6785	PETRONAS GAS BERHAD	2153
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+3985	COMPANHIA PARANAENSE DE ENERGIA PRF B	2261	COMPANHIA PARANAENSE DE ENERGIA	2161
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+4771	DEUTSCHE WOHNEN	2696	DEUTSCHE WOHNEN AG	2163
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+11213	NIGHTHAWK RADIOLOGY SVC	6183	NIGHTHAWK RADIOLOGY HOLDINGS	2164
+6809	GOME ELECTRICAL APPLIANCES HOLDINGS	3798	GOME ELECTRICAL APPLIANCES HOLDING	2165
+3662	CITIZEN HOLDINGS	2066	CITIZEN HOLDINGS CO	2166
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+12223	PERNOD RICARD USA	6758	PERNOD RICARD SA	2184
+13446	ROYAL MAIL GRP PLC	7482	ROYAL MAIL PLC	2185
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+4005	COMPELLENT TECHNOLOGIES	2271	COMPELLENT TECH	2199
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+14189	SIEMENS AG	7832	SIEMENS	2201
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+11029	NESTLE	6074	NESTLE SA	2248
+15641	TINGYI CAYMAN ISLANDS HOLDINGS	8649	TINGYI CAYMAN ISLANDS HOLDING	2249
+16760	W COAST BANK	9286	W COAST BANCORP	2250
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1093	ANGLO AMERICAN	691	ANGLO AMERICAN PLC	2252
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+6168	FONCIERE DES REGIONS GFR	3454	FONCIERE DES REGIONS	2254
+6168	FONCIERE DES REGIONS GFR	3455	FONCIERE DES REGIONS SA	2255
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+12316	PHILIP MORRIS CR AS	6820	PHILIP MORRIS	2259
+2358	BIOSANTE PHARMACEUTICAL	1326	BIOSANTE PHARMACEUTICALS	2260
+14616	SPECTRIS	8053	SPECTRIS PLC	2261
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+13219	RESOLUTION PLC	7344	RESOLUTION	2269
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+3306	CHARLOTTE RUSSE	1869	CHARLOTTE RUSSE HOLDING	2281
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+6545	GENERAL MOTORS CORP GM	3650	GENERAL MOTORS	2286
+15530	TF1 TELEVISION FRANCAISE 1	8527	TELEVISION FRANCAISE 1SA	2287
+15530	TF1 TELEVISION FRANCAISE 1	8526	TELEVISION FRANCAISE 1 SA	2288
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+4539	DAINIPPON SUMITOMO PHARMA	2580	DAINIPPON SUMITOMO PHARMA CO	2291
+4539	DAINIPPON SUMITOMO PHARMA	8239	SUMITOMO DAINIPPON PHARMA CO	2292
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1095	ANGLO AMERICAN PLATINUM CORP	690	ANGLO AMERICAN PLATINUM	2294
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1853	BANCO COMERCIAL PORTUGUES	1088	BANCO COMERCIAL PORTUGUES SA	2295
+15924	TRELLEBORG	8784	TRELLEBORG AB	2296
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+16698	VODAFONE GRP	9263	VODAFONE GRP PLC	2316
+14544	SORIN S	8002	SORIN SPA	2317
+4288	CREDIT SUISSE GRP	2447	CREDIT SUISSE GRP AG	2318
+13996	SEVERSTAL	7762	SEVERSTAL PAO	2319
+13996	SEVERSTAL	7761	SEVERSTAL OAO	2320
+15219	TALAAT MOUSTAFA GRP HOLDING	8422	TALAAT MOSTAFA GRP HOLDING CO SAE	2321
+12389	PIRELLI & CO	6863	PIRELLI & CS	2322
+3530	CHINA TELECOM USA	1993	CHINA TELECOM CORP	2323
+6598	GEORG FISCHER	3694	GEORG FISCHER AG	2324
+6268	FRANKLIN FINANCIAL NETWORK	3507	FRANKLIN FINANCIAL	2325
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+16334	UNIVERSAL TRUCKLOAD SVC INC UTSI	9039	UNIVERSAL TRUCKLOAD SVC	2333
+15200	TAIWAN MOBILE	8415	TAIWAN MOBILE CO	2334
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+15222	TALECRIS BIOTHERAPEUTICS	8424	TALECRIS BIOTHERAPEUTICS HOLDINGS	2359
+8580	JAPAN AIRLINES	4764	JAPAN AIRLINES CO	2360
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+7032	GRUPO MEXICO SA	3913	GRUPO MEXICO SAB DE CV	2362
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+15407	TELEFONICA O2 CZECH REPUBLIC AS	8515	TELEFONICA CZECH REPUBLIC AS	2374
+15407	TELEFONICA O2 CZECH REPUBLIC AS	6347	O2 CZECH REPUBLIC AS	2375
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+8936	KENNEDY WILSON	4924	KENNEDY WILSON HOLDINGS	2388
+12574	PREMIER FOODS	6977	PREMIER FOODS PLC	2389
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+4913	DOHA BANK QSC	2796	DOHA BANK Q	2392
+9006	KIMBERLY CLARK DE MEXICO SAB DE CV	4964	KIMBERLY CLARK DE MEXICO SA DE CV	2393
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1867	BANCO DEL ESTADO DE CHILE	1090	BANCO DE CHILE	2439
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+9298	KYOWA HAKKO KIRIN	5081	KYOWA HAKKO KIRIN CO	2453
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1642	AUTOMATIC DATA PROCESSING INC ADP	992	AUTOMATIC DATA PROCESSING	2473
+8418	IOI PROPERTIES BHD	4679	IOI PROPERTIES GRP BHD	2474
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+2039	BARCLAYS	1170	BARCLAYS PLC	2477
+3525	CHINA STEEL CHEM	1991	CHINA STEEL	2478
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+5134	E NIPPON EXPRESSWAY CO	6192	NIPPON EXPRESS CO	2487
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+5172	EASYLINK SVC INTL	2950	EASYLINK SVC INTL CORP CL A	2490
+7047	GRUPO TELEVISA SA	3914	GRUPO TELEVISA SAB	2491
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1540	ATLAS COPCO A	948	ATLAS COPCO AB	2516
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+14350	SKILLED HEALTHCARE	7915	SKILLED HEALTHCARE GRP	2521
+10844	NAGOYA RAILROAD	5963	NAGOYA RAILROAD CO	2522
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+12261	PETROLEUM GEO SVC	6780	PETROLEUM GEO SVC ASA	2561
+8265	INTERCONEXION ELECTRICA SA	4574	INTERCONEXION ELECTRICA SAESP	2562
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1531	ATKINS WS PLC	9549	WS ATKINS PLC	2567
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+3629	CINEDIGM DIGITAL CINEMA	2045	CINEDIGM DIGITAL CINEMA CORP CL A	2569
+16948	WETHERSPOON JD PLC	4789	JD WETHERSPOON PLC	2570
+12074	PARTY CITY HOLDCO	6658	PARTY CITY	2571
+15812	TOYO SUISAN	8724	TOYO SUISAN KAISHA	2572
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+3040	CARNIVAL CORP & PLC	1709	CARNIVAL CORP	2586
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+9477	LEGRAND	5174	LEGRAND SA	2591
+9470	LEGACYTEXAS FINANCIAL GRP	5170	LEGACY TEXAS FINANCIAL GRP	2592
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1379	ASAHI HOLDINGS	855	ASAHI GRP HOLDINGS	2613
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+15951	TRILOGY ENERGY TRUST	8805	TRILOGY ENERGY	2614
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+16277	UNITED TRACTORS	7100	PT UNITED TRACTORS TBK	2624
+9550	LIBERTY MEDIA STARZ	5217	LIBERTY MEDIA	2625
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+14800	STERLING FINANCIAL CORP OF SPOKANE	8182	STERLING FINANCIAL CORP	2631
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+8257	INTER PIPELINE FUND	4563	INTER PIPELINE	2633
+1964	BANK OF MONTREAL QUEBEC	1137	BANK OF MONTREAL	2634
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+6068	FINGERPRINT CARDS	3389	FINGERPRINT CARDS AB	2640
+7858	HYUNDAI MARINE & FIRE INS	4339	HYUNDAI MARINE & FIRE INS CO	2641
+11324	NOKIAN RENKAAT OY	6227	NOKIAN RENKAAT OYJ	2642
+11244	NIPPON PAINT	6194	NIPPON PAINT CO	2643
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+10034	MASRAF AL RAYAN Q	5494	MASRAF AL RAYAN QSC	2664
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+2057	BARRATT DEVELOPMENTS	1182	BARRATT DEVELOPMENTS PLC	2673
+6251	FOUNTAINHEAD PROPERTY TRUST	3493	FOUNTAINHEAD PROPERTY TRUST MGT	2674
+12542	POWSZECHNA KASA OSZCZEDNOSCI BANK POLSKI SA	6950	POWSZECHNA KASA OSZCZEDNOSCI BANK POLSKI SPOLKA	2675
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+3049	CARREFOUR	1716	CARREFOUR SA	2677
+1320	ARKEMA	821	ARKEMA SA	2678
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+6342	FUCHS PETROLUB AG	3553	FUCHS PETROLUB SE	2686
+5495	ENEL S	3094	ENEL SPA	2687
+9285	KVAERNER	5078	KVAERNER ASA	2688
+14433	SOCIEDAD QUIMICA Y MINERA CHILE SA	7960	SOCIEDAD QUIMICA Y MINERA DE CHILE SA	2689
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+12799	PTT EXPLORATION & PRODUCTION PCL	7105	PTT EXPLORATION & PRODUCTION PUBLIC CO	2692
+12799	PTT EXPLORATION & PRODUCTION PCL	7106	PTT EXPLORATION & PRODUCTION PUBLIC CO LI	2693
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1925	BANK DANAMON INDONESIA	7077	PT BANK DANAMON INDONESIA TBK	2709
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+246	ACACIA RESEARCH CORP ACACIA TECHNOLOGIES	160	ACACIA RESEARCH ACACIA TECHNOLOGIES	2711
+7562	HITACHI CONSTRUCTION MACHINERY CO L	4175	HITACHI CONSTRUCTION MACHINERY CO	2712
+16789	WAL MART DE MEXICO SA	9301	WAL MART DE MEXICO SAB DE CV	2713
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+2313	BIM BIRLESIK MAGAZALAR AS	1304	BIM BIRLESIK MAGAZALAR ANONIM SIRKETI	2717
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1597	AURIGA IND	973	AURIGA IND AS	2718
+3753	CLEVELAND CLINIC	2108	CLEVELAND CLIFFS	2719
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+133	5TH 3RD BANK	102	5TH 3RD BANCORP	2723
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+12798	PTT CHEM PUBLIC CO	7107	PTT GLOBAL CHEM PUBLIC CO	2739
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+15398	TELEFONICA BRASIL SA ADR	8514	TELEFONICA BRASIL SA	2741
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+5605	ENVISION HEALTHCARE	3156	ENVISION HEALTHCARE HOLDINGS	2745
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+13455	RR DONNELLEY	7383	RH DONNELLEY	2747
+13455	RR DONNELLEY	7490	RR DONNELLEY & SONS	2748
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+14595	SPAREBANK 1 SR BANK	8037	SPAREBANK 1 SMN	2750
+4015	COMPUTER SCIENCES CORP CSC	2281	COMPUTER SCIENCES	2751
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+15427	TELEPERFORMANCE	8523	TELEPERFORMANCE SA	2754
+10799	MUTUALFIRST FINANCIAL	5939	MUTUALFIRST FINL	2755
+10683	MOSKOVSKAYA FONDOVAYA BIRZHA OAO	5886	MOSKOVSKAYA BIRZHA OAO	2756
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+15460	TENAGA NASIONAL BHD	8542	TENAGA NASIONAL BERHAD	2758
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+11925	PACIFIC	6579	PACIFICORP	2769
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+11325	NOLATO	6229	NOLATO AB	2793
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+16557	VESUVIUS	9191	VESUVIUS PLC	2799
+2461	BNP PARIBAS	1377	BNP PARIBAS SA	2800
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+16897	WENDEL	9386	WENDEL SA	2811
+8588	JAPAN PETROLEUM EXPLORATION	4767	JAPAN PETROLEUM EXPLORATION CO	2812
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+14918	SUMITOMO REALTY & DEVELOPMENT CO LI	8245	SUMITOMO REALTY & DEVELOPMENT CO	2814
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1080	ANDRITZ	685	ANDRITZ AG	2823
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+9657	LOBLAW	5281	LOBLAW CO	2827
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+3576	CHRISTIAN DIOR	2017	CHRISTIAN DIOR SA	2834
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+11898	OVERSEA CHINESE BANKING	6548	OVERSEA CHINESE BANKING CORP	2837
+14292	SINOPEC SHANGHAI PETROCHEMICAL	7887	SINOPEC SHANGHAI PETROCHEMICAL CO	2838
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+7262	HANNAFORD	3996	HANNAFORD BROS	2846
+16051	TURK TELEKOMUNIKASYON AS	8854	TUERK TELEKOMUENIKASYON AS	2847
+16051	TURK TELEKOMUNIKASYON AS	8872	TURK TELEKOMUNIKASYON ANONIM SIRKETI	2848
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+10096	MAYNE PHARMA	5530	MAYNE PHARMA GRP	2852
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+8878	KAYNE ANDERSON ENERGY DEVELOPMENT	4891	KAYNE ANDERSON ENERGY DEV	2854
+5347	ELEMENTIS	3024	ELEMENTIS PLC	2855
+15436	TELIGENT AB	8530	TELIGENT	2856
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+6189	FORD OTOMOTIV SANAYI AS	3461	FORD OTOMOTIV SANAYI ANONIM SIRKETI	2862
+9143	KONINKLIJKE DSM	5029	KONINKLIJKE DSM NV	2863
+12295	PHARMACEUTICAL PRODUCT DEVELOPMENT INC PPD	6800	PHARMACEUTICAL PRODUCT DEVELOPMENT	2864
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+14614	SPECTRA ENERGY PARTNERS	8049	SPECTRA ENERGY	2866
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+5130	E JAPAN RAILWAY CO	2925	E JAPAN RAILWAY	2867
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+9316	LA JOLLA PHARMACEUTICAL	5089	LA JOLLA PHARMACEUTICAL CO LJPC	2870
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+17279	YTL POWER INTL BHD	9624	YTL POWER INTL BERHAD	2923
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+605	AIRPORTS OF THAILAND PCL	364	AIRPORTS OF THAILAND PUBLIC CO	2924
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+12760	PT INDOFOOD CBP SUKSES MAKMUR	4469	INDOFOOD CBP SUKSES MAKMUR TBK PT	2926
+12760	PT INDOFOOD CBP SUKSES MAKMUR	7088	PT INDOFOOD SUKSES MAKMUR TBK	2927
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+15390	TELECOM ITALIA MEDIA	8506	TELECOM ITALIA SPA	2928
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1672	AVENTINE RENEWABLE ENERGY	1008	AVENTINE RENEWABLE ENERGY HOLDINGS	2931
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+14162	SHUTTERFLYDOTCOM	7823	SHUTTERFLY	2933
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+14305	SIRF TECHNOLOGY	7891	SIRF TECHNOLOGY HOLDINGS	2935
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+14400	SMITH & NEPHEW	7942	SMITH & NEPHEW PLC	2938
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+12485	PORSCHE AUTOMOBIL HOLDING PREFERENCE SE	6918	PORSCHE AUTOMOBIL HOLDING SE	2955
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+4933	DOMINOS PIZZA GRP	2814	DOMINOS PIZZA GRP PLC	2970
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+4933	DOMINOS PIZZA GRP	2812	DOMINOS PIZZA	2971
+4933	DOMINOS PIZZA GRP	2813	DOMINOS PIZZA ENT	2972
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+6509	GECINA	3620	GECINA SA	2973
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+9145	KONINKLIJKE PHILIPS ELEC	5031	KONINKLIJKE PHILIPS NV	2974
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+8392	INVESTMENT AB KINNEVIK B	4663	INVESTMENT AB KINNEVIK	2978
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+2633	BRITISH AMERICAN TOBACCO MALAYSIA BHD	1473	BRITISH AMERICAN TOBACCO MALAYSIA BERHAD	2979
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+9783	LYONDELLBASELL IND	5359	LYONDELLBASELL IND NV	2999
+9783	LYONDELLBASELL IND	5360	LYONDELLBASELL IND NV CL A	3000
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+8104	INDOCEMENT TUNGGAL PRAKARSA	7087	PT INDOCEMENT TUNGGAL PRAKARSA TBK	3028
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+16435	VALLOUREC	9122	VALLOUREC SA	3031
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+6826	GORMAN RUPP IND	3810	GORMAN RUPP	3033
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+12222	PERNOD RICARD ITALIA	6758	PERNOD RICARD SA	3040
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+10775	MULTIPLAN EMPREENDIMENT IMOBILIARIOS SA	5932	MULTIPLAN EMPREENDIMENTOS IMOBILIARIOS SA	3041
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+14072	SHAW IND GRP	7782	SHAW IND	3049
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+13443	ROYAL DUTCH SHELL	7479	ROYAL DUTCH SHELL PLC	3059
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1643	AUTOMOTIVE GRP HOLDINGS	993	AUTOMOTIVE HOLDINGS GRP	3061
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+525	AGEAS SA NV	322	AGEAS SA	3063
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+15730	TONENGENERAL SEKIYU	8687	TONENGENERAL SEKIYU KK	3071
+4652	DEBENHAMS	2631	DEBENHAMS PLC	3072
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+12266	PETRONAS CHEM GRP BHD	6782	PETRONAS CHEM GRP BERHAD	3076
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+16675	VIVENDI	9254	VIVENDI SA	3100
+9855	MAGNUM HUNTER RESOURCE	5402	MAGNUM HUNTER RESOURCES	3101
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+957	AMERICAN MEDICAL SYS	594	AMERICAN MEDICAL SYS HOLDINGS	3136
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+8107	INDORAMA VENTURES PCL	4470	INDORAMA VENTURES PUBLIC CO	3138
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+13263	REZIDOR HOTEL GRP	7380	REZIDOR HOTEL GRP AB	3140
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+6166	FOMENTO ECONOMICO MEXICANO SA	3453	FOMENTO ECONOMICO MEXICANO SAB DE CV	3147
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+10628	MONEYSUPERMARKETDOTCOM	5848	MONEYSUPERMARKETDOTCOM GRP PLC	3150
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+10537	MITSUBISHI UFJ LEASE & FINANCE	5805	MITSUBISHI UFJ LEASE & FINANCE CO	3156
+14814	STMICROELECTRONICS	8191	STMICROELECTRONICS NV	3157
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+8103	INDO TAMBANGRAYA MEGAH	4468	INDO TAMBANGRAYA MEGAH TBK PT	3259
+15308	TD AMERITRADE	8469	TD AMERITRADE HOLDING	3260
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+15021	SURGUTNEFTEGAZ	8310	SURGUTNEFTEGAZ OAO	3266
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+1463	ASSICURAZIONI GENERALI	899	ASSICURAZIONI GENERALI S	3270
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+6036	FIDELITY NATL FINANCIAL VENTURES	3376	FIDELITY NATL FINANCIAL	3294
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+2932	CAP GEMINI	1644	CAP GEMINI SA	3297
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+16279	UNITED UTILITIES PLC	9019	UNITED UTILITIES GRP PLC	3302
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+3455	CHINA INTL MARINE CONTAINERS GRP CO	1959	CHINA INTL MARINE CONTAINERS GRP	3309
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+3455	CHINA INTL MARINE CONTAINERS GRP CO	1960	CHINA INTL MARINE CONTAINERS GRP LT	3310
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+3978	COMPANHIA DE SANEAMENTO BASICO DO ESTADO DE SAO PAULO SABESP	2257	COMPANHIA DE SANEAMENTO BASICO DO ESTADO DE SAO PAULO	3316
+3978	COMPANHIA DE SANEAMENTO BASICO DO ESTADO DE SAO PAULO SABESP	2256	COMPANHIA DE SANEAMENTO BASICO DO ESTADO DE SAO	3317
+idcsrhub	stnd_firm	idkld	stnd_firm1	row
+2106	BAYTEX ENERGY TRUST	1202	BAYTEX ENERGY	3320
 */
 
 ***	Create dataset of nonexact matches
@@ -1757,32 +2193,188 @@ import excel "data\data-matchit\matchit-csrhub-2-kld-nonexact-matches.xlsx", ///
 	sheet("Sheet1") clear firstrow
 	
 rename (stnd_firm stnd_firm1) (matchitcsrhub matchitkld)
-gen stnd_firm=matchitkld
 
-bysort stnd_firm: gen N=_N
+*Duplicate csrhub names
+bysort matchitcsrhub: gen N=_N
 tab N
 /*
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |        432       94.74       94.74
-          2 |         24        5.26      100.00
+          1 |        448       88.02       88.02
+          2 |         58       11.39       99.41
+          3 |          3        0.59      100.00
 ------------+-----------------------------------
-      Total |        456      100.00
+      Total |        509      100.00
 */
-list matchitkld matchitcsrhub row if N>1, sepby(stnd_firm)
+
+list matchitcsrhub matchitkld if N>1, sepby(matchitcsrhub)
 /*
+     +---------------------------------------------------------------------------------------------------------------------------+
+     |                                                matchitcsrhub                                                   matchitkld |
+     |---------------------------------------------------------------------------------------------------------------------------|
+ 25. |                     ANADOLU EFES BIRACILIK VE MALT SANAYI AS             ANADOLU EFES BIRACILIK VE MALT SANAYII ANONIM SI |
+ 26. |                     ANADOLU EFES BIRACILIK VE MALT SANAYI AS                    ANADOLU EFES BIRACILIK VE MALT SANAYII AS |
+     |---------------------------------------------------------------------------------------------------------------------------|
+ 60. |                                BANGKOK DUSIT MEDICAL SVC PCL                       BANGKOK DUSIT MEDICAL SVC PUBLIC CO LI |
+ 61. |                                BANGKOK DUSIT MEDICAL SVC PCL                          BANGKOK DUSIT MEDICAL SVC PUBLIC CO |
+     |---------------------------------------------------------------------------------------------------------------------------|
+ 77. |                     BM & F BOVESPA SA BOLSA VALORES MERCADOR                BM & F BOVESPA SA BOLSA DE VALORES MERCADORIA |
+ 78. |                     BM & F BOVESPA SA BOLSA VALORES MERCADOR     BM & F BOVESPA SA BOLSA DE VALORES MERCADORIAS E FUTUROS |
+     |---------------------------------------------------------------------------------------------------------------------------|
+ 85. |                     CANADIAN APARTMENT PROPERTIES REAL ESTAT   CANADIAN APARTMENT PROPERTIES REAL ESTATE INVESTMENT TRUST |
+ 86. |                     CANADIAN APARTMENT PROPERTIES REAL ESTAT             CANADIAN APARTMENT PROPERTIES REAL ESTATE INVEST |
+     |---------------------------------------------------------------------------------------------------------------------------|
+ 94. |                             CENTRAIS ELETRICAS BRASILEIRA SA                 CENTRAIS ELETRICAS BRASILEIRAS SA ELETROBRAS |
+ 95. |                             CENTRAIS ELETRICAS BRASILEIRA SA                            CENTRAIS ELETRICAS BRASILEIRAS SA |
+     |---------------------------------------------------------------------------------------------------------------------------|
+103. |                          CHINA INTL MARINE CONTAINERS GRP CO                          CHINA INTL MARINE CONTAINERS GRP LT |
+104. |                          CHINA INTL MARINE CONTAINERS GRP CO                             CHINA INTL MARINE CONTAINERS GRP |
+     |---------------------------------------------------------------------------------------------------------------------------|
+122. | COMPANHIA DE SANEAMENTO BASICO DO ESTADO DE SAO PAULO SABESP              COMPANHIA DE SANEAMENTO BASICO DO ESTADO DE SAO |
+123. | COMPANHIA DE SANEAMENTO BASICO DO ESTADO DE SAO PAULO SABESP        COMPANHIA DE SANEAMENTO BASICO DO ESTADO DE SAO PAULO |
+     |---------------------------------------------------------------------------------------------------------------------------|
+137. |                            DAEWOO SHIPBUILDING & MARINE ENGR                         DAEWOO SHIPBUILDING & MARINE ENGR CO |
+138. |                            DAEWOO SHIPBUILDING & MARINE ENGR                      DAEWOO SHIPBUILDING & MARINE ENGR CO LT |
+     |---------------------------------------------------------------------------------------------------------------------------|
+139. |                                    DAINIPPON SUMITOMO PHARMA                                 DAINIPPON SUMITOMO PHARMA CO |
+140. |                                    DAINIPPON SUMITOMO PHARMA                                 SUMITOMO DAINIPPON PHARMA CO |
+     |---------------------------------------------------------------------------------------------------------------------------|
+149. |                                            DOMINOS PIZZA GRP                                            DOMINOS PIZZA ENT |
+150. |                                            DOMINOS PIZZA GRP                                        DOMINOS PIZZA GRP PLC |
+151. |                                            DOMINOS PIZZA GRP                                                DOMINOS PIZZA |
+     |---------------------------------------------------------------------------------------------------------------------------|
+161. |                                    EI DUPONT DE NEMOURS & CO                                   EI DU PONT DE NEMOURS & CO |
+162. |                                    EI DUPONT DE NEMOURS & CO                                    DUPONT EI DE NEMOURS & CO |
+     |---------------------------------------------------------------------------------------------------------------------------|
+178. |                        EREGLI DEMIR VE CELIK FABRIKALARI TAS             EREGLI DEMIR VE CELIK FABRIKALARI TURK ANONIM SI |
+179. |                        EREGLI DEMIR VE CELIK FABRIKALARI TAS        EREGLI DEMIR VE CELIK FABRIKALARI TURK ANONIM SIRKETI |
+     |---------------------------------------------------------------------------------------------------------------------------|
+189. |                                     FONCIERE DES REGIONS GFR                                      FONCIERE DES REGIONS SA |
+190. |                                     FONCIERE DES REGIONS GFR                                         FONCIERE DES REGIONS |
+     |---------------------------------------------------------------------------------------------------------------------------|
+211. |                                  GRUPO FINANCIERO INBURSA SA                            GRUPO FINANCIERO INBURSA SA DE CV |
+212. |                                  GRUPO FINANCIERO INBURSA SA                           GRUPO FINANCIERO INBURSA SAB DE CV |
+     |---------------------------------------------------------------------------------------------------------------------------|
+248. |                                              INTESA SANPAOLO                                            INTESA SANPAOLO S |
+249. |                                              INTESA SANPAOLO                                          INTESA SANPAOLO SPA |
+     |---------------------------------------------------------------------------------------------------------------------------|
+285. |                                           LYONDELLBASELL IND                                   LYONDELLBASELL IND NV CL A |
+286. |                                           LYONDELLBASELL IND                                        LYONDELLBASELL IND NV |
+     |---------------------------------------------------------------------------------------------------------------------------|
+348. |                                PT INDOFOOD CBP SUKSES MAKMUR                            INDOFOOD CBP SUKSES MAKMUR TBK PT |
+349. |                                PT INDOFOOD CBP SUKSES MAKMUR                                PT INDOFOOD SUKSES MAKMUR TBK |
+     |---------------------------------------------------------------------------------------------------------------------------|
+352. |                             PTT EXPLORATION & PRODUCTION PCL                    PTT EXPLORATION & PRODUCTION PUBLIC CO LI |
+353. |                             PTT EXPLORATION & PRODUCTION PCL                       PTT EXPLORATION & PRODUCTION PUBLIC CO |
+     |---------------------------------------------------------------------------------------------------------------------------|
+357. |                                                REED ELSEVIER                                             REED ELSEVIER NV |
+358. |                                                REED ELSEVIER                                            REED ELSEVIER PLC |
+     |---------------------------------------------------------------------------------------------------------------------------|
+367. |                                   ROYAL BANK OF SCOTLAND GRP                               ROYAL BANK OF SCOTLAND GRP PLC |
+368. |                                   ROYAL BANK OF SCOTLAND GRP                            ROYAL BANK OF SCOTLAND GRP PUBLIC |
+     |---------------------------------------------------------------------------------------------------------------------------|
+371. |                                                 RR DONNELLEY                                                 RH DONNELLEY |
+372. |                                                 RR DONNELLEY                                          RR DONNELLEY & SONS |
+     |---------------------------------------------------------------------------------------------------------------------------|
+378. |                                               SCHNEIDER ELEC                                            SCHNEIDER ELEC SE |
+379. |                                               SCHNEIDER ELEC                                            SCHNEIDER ELEC SA |
+     |---------------------------------------------------------------------------------------------------------------------------|
+381. |                                                    SEVERSTAL                                                SEVERSTAL OAO |
+382. |                                                    SEVERSTAL                                                SEVERSTAL PAO |
+     |---------------------------------------------------------------------------------------------------------------------------|
+384. |                            SHOPPING CTR AUSTRALASIA PROPERTY                     SHOPPING CTR AUSTRALASIA PROPERTY GRP RE |
+385. |                            SHOPPING CTR AUSTRALASIA PROPERTY                   SHOPPING CTR AUSTRALASIA PROPERTY GRP RE L |
+     |---------------------------------------------------------------------------------------------------------------------------|
+435. |                              TELEFONICA O2 CZECH REPUBLIC AS                                         O2 CZECH REPUBLIC AS |
+436. |                              TELEFONICA O2 CZECH REPUBLIC AS                                 TELEFONICA CZECH REPUBLIC AS |
+     |---------------------------------------------------------------------------------------------------------------------------|
+444. |                                   TF1 TELEVISION FRANCAISE 1                                    TELEVISION FRANCAISE 1 SA |
+445. |                                   TF1 TELEVISION FRANCAISE 1                                     TELEVISION FRANCAISE 1SA |
+     |---------------------------------------------------------------------------------------------------------------------------|
+459. |                                     TURK TELEKOMUNIKASYON AS                         TURK TELEKOMUNIKASYON ANONIM SIRKETI |
+460. |                                     TURK TELEKOMUNIKASYON AS                                   TUERK TELEKOMUENIKASYON AS |
+     |---------------------------------------------------------------------------------------------------------------------------|
+461. |                                   TURKIYE GARANTI BANKASI AS                       TURKIYE GARANTI BANKASI ANONIM SIRKETI |
+462. |                                   TURKIYE GARANTI BANKASI AS                                  TUERKIYE GARANTI BANKASI AS |
+     |---------------------------------------------------------------------------------------------------------------------------|
+478. |                                         VEOLIA ENVIRONNEMENT                                      VEOLIA ENVIRONNEMENT SA |
+479. |                                         VEOLIA ENVIRONNEMENT                                   VEOLIA ENVIRONNEMENT VE SA |
+     |---------------------------------------------------------------------------------------------------------------------------|
+506. |                                        YULON NISSAN MOTOR CO                                              NISSAN MOTOR CO |
+507. |                                        YULON NISSAN MOTOR CO                                               YULON MOTOR CO |
+     +---------------------------------------------------------------------------------------------------------------------------+
+*/
+drop if N>1
+*(61 observations deleted)
+drop N
 
+*Duplicate kld names
+bysort matchitkld: gen N=_N
+tab N
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        432       96.43       96.43
+          2 |         16        3.57      100.00
+------------+-----------------------------------
+      Total |        448      100.00
 */
 
+list matchitkld matchitcsrhub row if N>1, sepby(matchitkld)
+/*
+     +---------------------------------------------------------------------------+
+     |                        matchitkld                    matchitcsrhub    row |
+     |---------------------------------------------------------------------------|
+ 31. |                  ARCELORMITTAL SA             ARCELORMITTAL BRASIL   1083 |
+ 32. |                  ARCELORMITTAL SA                    ARCELORMITTAL   1802 |
+     |---------------------------------------------------------------------------|
+ 48. | BANCA MONTE DEI PASCHI DI SIENA S        MONTE DEI PASCHI DI SIENA   1970 |
+ 49. | BANCA MONTE DEI PASCHI DI SIENA S   BANCA MONTE DEI PASCHI DI SIEN   1085 |
+     |---------------------------------------------------------------------------|
+187. |                FRANKLIN FINANCIAL       FRANKLIN FINANCIAL NETWORK   2325 |
+188. |                FRANKLIN FINANCIAL           FRANKLIN FINANCIAL SVC   2094 |
+     |---------------------------------------------------------------------------|
+221. |            HONG LEONG BANK BERHAD              HONG LEONG BANK BHD   1991 |
+222. |            HONG LEONG BANK BERHAD            HONG LEONG IND BERHAD    886 |
+     |---------------------------------------------------------------------------|
+305. |                 NIPPON EXPRESS CO           W NIPPON EXPRESSWAY CO    678 |
+306. |                 NIPPON EXPRESS CO           E NIPPON EXPRESSWAY CO   2487 |
+     |---------------------------------------------------------------------------|
+323. |      OVERSEA CHINESE BANKING CORP          OVERSEA CHINESE BANKING   2837 |
+324. |      OVERSEA CHINESE BANKING CORP    OVERSEAS CHINESE BANKING CORP   1945 |
+     |---------------------------------------------------------------------------|
+327. |                  PERNOD RICARD SA             PERNOD RICARD ITALIA   3040 |
+328. |                  PERNOD RICARD SA                PERNOD RICARD USA   2184 |
+     |---------------------------------------------------------------------------|
+436. |                TELECOM ITALIA SPA                   TELECOM ITALIA    784 |
+437. |                TELECOM ITALIA SPA             TELECOM ITALIA MEDIA   2928 |
+     +---------------------------------------------------------------------------+
+*/
 drop if N>1
+*(16 observations deleted)
 drop N
 
 *	Merge the csrhub stnd_firm into the unique stnd_firm in cstat
+gen stnd_firm = matchitkld
 merge 1:1 stnd_firm using data\unique-stnd_firm-kld-stnd_firm-only.dta
 /*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         9,248
+        from master                         0  (_merge==1)
+        from using                      9,248  (_merge==2)
+
+    matched                               432  (_merge==3)
+    -----------------------------------------
 */
+keep if _merge==3
+gen matchitcsrhub2kld=1
 drop _merge
 
+replace stnd_firm=matchitcsrhub
+
+compress
+save data\stnd_firm-csrhub-2-stnd_firm-kld-matchit-nonexact.dta, replace
 
 
 
@@ -1794,19 +2386,60 @@ drop _merge
 
 
 
+
+*****************************************************************
+*	COMBINE THE 2 MATCHIT DATASETS INTO A SINGLE DATASET WITH	*
+*					CSRHUB, CSTAT, AND KLD						*
+*****************************************************************
+
+*** Merge nonexact matches
+use data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-nonexact.dta, clear
+
+merge 1:1 stnd_firm using data\stnd_firm-csrhub-2-stnd_firm-kld-matchit-nonexact.dta 
+
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           760
+        from master                       389  (_merge==1)
+        from using                        371  (_merge==2)
+
+    matched                                61  (_merge==3)
+    -----------------------------------------
 */
 
+drop _merge row
+
+order stnd_firm matchitcsrhub matchitkld matchitcstat idcsrhub idkld idcstat ///
+	firm conm matchitcsrhub2kld matchitcsrhub2cstat
+	
+sort stnd_firm
+
+***	Merge in exact matches
+merge 1:1 stnd_firm using data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-exact.dta, ///
+	gen(_mergecsrhub2cstat)
+
+merge 1:1 stnd_firm using data\stnd_firm-csrhub-2-stnd_firm-kld-matchit-exact.dta, ///
+	gen(_mergecsrhub2kld)
+
+tab _mergecsrhub2cstat _mergecsrhub2kld
 
 
-
-
-
-
-
-
-
-
-
+***	Label variables
+	
+label var stnd_firm "firm name, standardized from csrhub"
+label var matchitcsrhub "firm name, standardized from csrhub"
+label var matchitkld "firm name, standardized from kld"
+label var matchitcstat "firm name, standardized from compustat"
+label var idcsrhub "=1 if in csrhub"
+label var idkld "=1 if in kld"
+label var idcstat "=1 if in compustat"
+rename firm firmkld
+label var firmkld "firm name, kld"
+rename conm firmcstat
+label var firmcstat "firm name, compustat"
+label var matchitcsrhub2kld "=1 if standardized firm names matched, csrhub to kld"
+label var matchitcsrhub2cstat "=1 if standardized firm names matched, csrhub to compustat"
 
 
 
