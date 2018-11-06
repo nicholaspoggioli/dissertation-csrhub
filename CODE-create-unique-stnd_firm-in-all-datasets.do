@@ -170,6 +170,9 @@ label var match_kldcstat "=1 if stnd_firm matched across kld & cstat"
 save data\crosswalk-csrhub-kld-cstat-stnd_firm.dta, replace
 
 
+
+
+
 ***	MERGE STND_NAME CROSSWALK INTO EACH MASTER DATASET
 *	KLD
 use data\kld-all-clean.dta, clear
@@ -185,9 +188,43 @@ merge m:1 stnd_firm using data\crosswalk-csrhub-kld-cstat-stnd_firm.dta
     -----------------------------------------
 */
 keep if _merge==3
-order stnd_firm
+drop _merge firm_n
+order stnd_firm firm_*
+format %30s stnd_firm firm_* firm
 sort stnd_firm year
-drop _merge
+compress
+
+bysort stnd_firm year: gen N=_N
+tab N
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     50,752       99.98       99.98
+          2 |          6        0.01       99.99
+          3 |          3        0.01      100.00
+------------+-----------------------------------
+      Total |     50,761      100.00
+*/
+
+*	Fix observations to prevent duplicate matches later
+sort stnd_firm ticker year
+replace stnd_firm="1ST BANCORP INC" if stnd_firm=="1ST BANCORP" & ticker=="FBNC"
+replace stnd_firm="THE 1ST BANCORP INC" if stnd_firm=="1ST BANCORP" & ticker=="FNLC"
+replace stnd_firm="FNB CORP" if stnd_firm=="FNB" & ticker=="FNBN"
+replace stnd_firm="UNITED SECURITY BANCSHARES INC" if stnd_firm=="UNITED SECURITY BANCSHARES" & ticker=="USBI"
+
+drop N
+bysort stnd_firm year: gen N=_N
+tab N
+/*
+
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     50,761      100.00      100.00
+------------+-----------------------------------
+      Total |     50,761      100.00
+*/
+drop N
 compress
 save data\kld-all-clean-with-stnd_firm-crosswalk.dta, replace
 
@@ -200,12 +237,13 @@ merge m:1 stnd_firm using data\crosswalk-csrhub-kld-cstat-stnd_firm.dta
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                        16,758
-        from master                        94  (_merge==1)
+    not matched                        16,752
+        from master                        88  (_merge==1)
         from using                     16,664  (_merge==2)
 
-    matched                           105,376  (_merge==3)
+    matched                           105,382  (_merge==3)
     -----------------------------------------
+
 */
 keep if _merge==3
 order stnd_firm firm_*
@@ -221,24 +259,25 @@ replace year=year(datadate) if fyear==.
 bysort stnd_firm year: gen N=_N
 tab N
 /*
+
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |     76,316       72.40       72.40
-          2 |     29,024       27.53       99.93
-          4 |         72        0.07      100.00
+          1 |     76,316       72.42       72.42
+          2 |     29,066       27.58      100.00
 ------------+-----------------------------------
-      Total |    105,412      100.00
+      Total |    105,382      100.00
+
+
 */
 tab N indfmt if N>1
 /*
+
            |    Industry Format
          N |        FS       INDL |     Total
 -----------+----------------------+----------
-         2 |    14,504     14,520 |    29,024 
-         4 |        36         36 |        72 
+         2 |    14,525     14,541 |    29,066 
 -----------+----------------------+----------
-     Total |    14,540     14,556 |    29,096 
-
+     Total |    14,525     14,541 |    29,066 
 
 */
 drop if indfmt=="FS"
@@ -248,10 +287,11 @@ tab N
 /*
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |     90,829       99.98       99.98
+          1 |     90,832       99.98       99.98
           2 |         16        0.02      100.00
 ------------+-----------------------------------
-      Total |     90,845      100.00
+      Total |     90,848      100.00
+
 */
 drop if fyear==.
 drop N
@@ -260,9 +300,10 @@ tab N
 /*
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |     90,598      100.00      100.00
+          1 |     90,601      100.00      100.00
 ------------+-----------------------------------
-      Total |     90,598      100.00
+      Total |     90,601      100.00
+
 */
 drop N
 compress
@@ -275,12 +316,13 @@ merge m:1 stnd_firm using data\crosswalk-csrhub-kld-cstat-stnd_firm.dta
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                         4,508
-        from master                         0  (_merge==1)
-        from using                      4,508  (_merge==2)
+    not matched                         4,539
+        from master                        28  (_merge==1)
+        from using                      4,511  (_merge==2)
 
-    matched                           965,877  (_merge==3)
+    matched                           965,849  (_merge==3)
     -----------------------------------------
+
 */
 keep if _merge==3
 order stnd_firm ym
@@ -290,7 +332,39 @@ drop _merge firm_n ticker in_other_vars in_ovrl_enviro in_2017_update ///
 compress
 
 ***	MERGE DATASETS TOGETHER ON STND_FIRM YEAR
-merge m:1 stnd_firm year using data\cstat-all-clean-with-stnd_firm-crosswalk.dta
+merge m:1 stnd_firm year using data\cstat-all-clean-with-stnd_firm-crosswalk.dta, nogen
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       833,263
+        from master                   761,914  
+        from using                     71,349  
+
+    matched                           203,935  
+    -----------------------------------------
+
+*/
+merge m:1 stnd_firm year using data\kld-all-clean-with-stnd_firm-crosswalk.dta, nogen
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       834,465
+        from master                   818,036  
+        from using                     16,429  
+
+    matched                           219,162  
+    -----------------------------------------
+*/
+
+*SAVE
+order stnd_firm firm_*
+format stnd_firm firm_* %30s
+
+mark in_csrhub
+mark in_kld
+mark in_cstat
+
+save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-matches-clean.dta, replace
 
 
 
@@ -298,13 +372,9 @@ merge m:1 stnd_firm year using data\cstat-all-clean-with-stnd_firm-crosswalk.dta
 
 
 
-
-
-
-
-
-
-
+/*	NOVEMBER 6 2018: THIS SECTION USING MATCHIT NEEDS WORK AND THEN TO BE COMBINED WITH THE 
+	data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-matches-clean.dta
+	DATASET TO INCREASE THE NUMBER OF MATCHES
 
 
 
@@ -2435,7 +2505,7 @@ label var matchitcsrhub2cstat "=1 if standardized firm names matched, csrhub to 
 
 
 
-
+*/
 
 
 
