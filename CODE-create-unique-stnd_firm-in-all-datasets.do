@@ -2,7 +2,7 @@
 use data\kld-all-clean.dta, clear
 
 *	Create stnd_firm standardized firm name using stnd_compname user package
-*search stnd_compname
+/*search stnd_compname
 stnd_compname firm, gen(stnd_firm entity_type)
 
 gen firm_kld=firm
@@ -10,8 +10,10 @@ label var firm_kld "firm name in kld-all-clean.dta"
 
 compress
 save data\kld-all-clean.dta, replace
+*/
 
 *	Keep unique stnd_firm
+use data\kld-all-clean.dta, clear
 bysort stnd_firm: gen n=_n
 keep if n==1
 drop n
@@ -19,9 +21,10 @@ drop n
 *	Save
 compress
 save data\unique-stnd_firm-kld.dta, replace
-keep stnd_firm firm
+keep stnd_firm firm_kld
+sort stnd_firm
 gen idkld=_n
-label var idkld "unique row variable"
+label var idkld "unique row id for unique stnd_firm in kld data"
 compress
 save data\unique-stnd_firm-kld-stnd_firm-only.dta, replace
 export delimited using data\unique-stnd_firm-kld.csv, replace
@@ -31,7 +34,7 @@ export delimited using data\unique-stnd_firm-kld.csv, replace
 ***	UNIQUE STND_FIRM IN CSTAT
 use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
 
-*	Create stnd_firm standardized firm name using stnd_compname user package
+/*	Create stnd_firm standardized firm name using stnd_compname user package
 *search stnd_compname
 stnd_compname conm, gen(stnd_firm entity_type)
 
@@ -42,8 +45,10 @@ gen year=year(datadate)
 
 compress
 save data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, replace
+*/
 
 *	Keep unique stnd_firm
+use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
 bysort stnd_firm: gen n=_n
 keep if n==1
 drop n
@@ -51,9 +56,10 @@ drop n
 *	Save
 compress
 save data\unique-stnd_firm-cstat.dta, replace
-keep stnd_firm conm
+keep stnd_firm firm_cstat
+sort stnd_firm
 gen idcstat=_n
-label var idcstat "unique row identifier"
+label var idcstat "unique row id for unique stnd_firm in cstat"
 compress
 save data\unique-stnd_firm-cstat-stnd_firm-only.dta, replace
 export delimited using data\unique-stnd_firm-cstat.csv, replace
@@ -62,7 +68,7 @@ export delimited using data\unique-stnd_firm-cstat.csv, replace
 ***	UNIQUE STND_FIRM IN CSRHUB
 use data/csrhub-all.dta, clear
 
-*	Create stnd_firm standardized firm name using stnd_compname user package
+/*	Create stnd_firm standardized firm name using stnd_compname user package
 *search stnd_compname
 capt n stnd_compname firm, gen(stnd_firm entity_type)
 
@@ -71,8 +77,10 @@ label var firm_csrhub "firm name in csrhub-all.dta"
 
 compress
 save data\csrhub-all.dta, replace
+*/
 
 *	Keep unique stnd_firm
+use data\csrhub-all.dta, clear
 bysort stnd_firm: gen n=_n
 keep if n==1
 drop n
@@ -80,239 +88,76 @@ drop n
 *	Save
 compress
 save data\unique-stnd_firm-csrhub.dta, replace
-keep stnd_firm firm
+keep stnd_firm firm_csrhub
+sort stnd_firm
 gen idcsrhub=_n
-label var idcsrhub "unique row identifier"
+label var idcsrhub "unique row id for unique stnd_firm in csrhub data"
 compress
 save data\unique-stnd_firm-csrhub-stnd_firm-only.dta, replace
 export delimited using data\unique-stnd_firm-csrhub.csv, replace
 
 
+***	MATCH KLD AND CSTAT TO CSRHUB ON UNIQUE STND_FIRM
+use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 
-
-
-***	MATCH
-
-*	KLD to CSTAT
-use data\unique-stnd_firm-kld, clear
-
-merge 1:1 stnd_firm using data\unique-stnd_firm-cstat.dta, gen(kld2cstat)
-label var kld2cstat "indicator for merge of kld to cstat on stnd_firm"
+merge 1:1 stnd_firm using data\unique-stnd_firm-kld-stnd_firm-only.dta, gen(hub2kld)
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                         8,508
-        from master                     6,458  (kld2cstat==1)
-        from using                      2,050  (kld2cstat==2)
+    not matched                        14,254
+        from master                    11,000  (hub2kld==1)
+        from using                      3,254  (hub2kld==2)
 
-    matched                             3,222  (kld2cstat==3)
+    matched                             6,426  (hub2kld==3)
     -----------------------------------------
 */
 
-merge 1:1 stnd_firm using data\unique-stnd_firm-csrhub.dta, gen(kldcstat2csrhub)
-label var kldcstat2csrhub "indicator for merge of kldcstat to csrhub on stnd_firm"
+merge 1:1 stnd_firm using data\unique-stnd_firm-cstat-stnd_firm-only.dta, gen(hubkld2cstat)
 /*
-
     Result                           # of obs.
     -----------------------------------------
-    not matched                        14,712
-        from master                     4,508  (kldcstat2csrhub==1)
-        from using                     10,204  (kldcstat2csrhub==2)
+    not matched                        17,916
+        from master                    16,662  (hubkld2cstat==1)
+        from using                      1,254  (hubkld2cstat==2)
 
-    matched                             7,222  (kldcstat2csrhub==3)
+    matched                             4,018  (hubkld2cstat==3)
     -----------------------------------------
 */
-
-
-tab kld2cstat kldcstat2csrhub
-
+tab hub2kld hubkld2cstat
 /*
-                      |    kldcstat2csrhub
-            kld2cstat | master on  matched ( |     Total
+                      |     hubkld2cstat
+              hub2kld | master on  matched ( |     Total
 ----------------------+----------------------+----------
-      master only (1) |     2,907      3,551 |     6,458 
-       using only (2) |     1,254        796 |     2,050 
-          matched (3) |       347      2,875 |     3,222 
+      master only (1) |    10,204        796 |    11,000 
+       using only (2) |     2,907        347 |     3,254 
+          matched (3) |     3,551      2,875 |     6,426 
 ----------------------+----------------------+----------
-                Total |     4,508      7,222 |    11,730 
+                Total |    16,662      4,018 |    20,680 
 */
 
-*	Keep stnd_firm that match across all three datasets
-gen keep=(kld2cstat==3 & kldcstat2csrhub==3)
+keep stnd_firm firm_csrhub firm_kld firm_cstat id*
+order id*, last
+format %30s stnd_firm firm_*
 
-keep if keep==1
+mark match_all
+markout match_all idcsrhub idkld idcstat
 
-keep stnd_firm firm_* kld2cstat kldcstat2csrhub
-drop firm_n
+mark match_hubkld
+markout match_hubkld idcsrhub idkld
 
-codebook stnd_firm
-*	2,875 unique stnd_firm names that are matched across all three datasets
+mark match_hubcstat
+markout match_hubcstat idcsrhub idcstat
 
-gen stnd_firm_ind=1
-label var stnd_firm_ind "=1 if stnd_firm matched across kld, cstat, and csrhub"
-
-*	Save
-compress
-save data\unique-stnd_firm-kld-cstat-csrhub-match.dta, replace
+mark match_kldcstat
+markout match_kldcstat idkld idcstat
 
 
 
 
-/*	CREATE SUBSAMPLES OF EACH FULL DATASET,
-	KEEPING ONLY OBSERVATIONS WITH FIRM NAMES THAT ARE
-	MATCHED ACROSS ALL THREE DATASETS
-*/
-
-***	KLD
-use data\kld-all-clean.dta, clear
-merge m:1 stnd_firm using data\unique-stnd_firm-kld-cstat-csrhub-match.dta, ///
-	keepusing(stnd_firm_ind)
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        24,848
-        from master                    24,848  (_merge==1)
-        from using                          0  (_merge==2)
-
-    matched                            25,914  (_merge==3)
-    -----------------------------------------
-*/
-
-keep if stnd_firm_ind==1
-drop _merge
-
-tempfile 1
-save `1'
-	
-	
-***	CSTAT
-use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
-merge m:1 stnd_firm using data\unique-stnd_firm-kld-cstat-csrhub-match.dta, ///
-	keepusing(stnd_firm_ind)
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        41,245
-        from master                    41,245  (_merge==1)
-        from using                          0  (_merge==2)
-
-    matched                            64,225  (_merge==3)
-    -----------------------------------------
-*/
-
-keep if stnd_firm_ind==1
-drop if indfmt=="FS" /*	DROP FINANCIAL SERVICE FIRMS	*/
-
-bysort stnd_firm year: gen N=_N
-tab N
-/*
-
-          N |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          1 |     55,453       99.55       99.55
-          2 |        250        0.45      100.00
-------------+-----------------------------------
-      Total |     55,703      100.00
-*/
-drop if N>1
-drop N
-
-drop _merge
-
-***	Merge KLD and CSTAT on stnd_firm year
-
-merge 1:1 stnd_firm year using `1'
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        29,997
-        from master                    29,768  (_merge==1)
-        from using                        229  (_merge==2)
-
-    matched                            25,685  (_merge==3)
-    -----------------------------------------
-*/
-
-keep if _merge==3
-*(29,997 observations deleted)
-drop _merge
-
-gen month=month(datadate)
-
-tempfile A
-save `A'
-
-***	CSRHUB
-use data\csrhub-all.dta, clear
-merge m:1 stnd_firm using data\unique-stnd_firm-kld-cstat-csrhub-match.dta, ///
-	keepusing(stnd_firm_ind)
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                       739,177
-        from master                   739,177  (_merge==1)
-        from using                          0  (_merge==2)
-
-    matched                           226,700  (_merge==3)
-    -----------------------------------------
-*/
-keep if _merge==3
-drop _merge
-
-bysort stnd_firm year month: gen N=_N											/*	Could do better here	*/
-tab N
-/*
-          N |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          1 |    737,803       99.81       99.81
-          2 |      1,374        0.19      100.00
-------------+-----------------------------------
-      Total |    739,177      100.00
-
-*/
-drop if N>1
-drop N
-
-compress
-
-***	Merge all three
-merge 1:1 stnd_firm year month using `A'
-
-*	correct firm_n
-drop firm_n
-encode stnd_firm, gen(firm_n)
 
 
-/*
-----------------------------------------------------------------------------------------------------------------------------------------------------------------
-stnd_firm                                                                                                                                          official name
-----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-                  type:  string (str67), but longest is str28
-
-         unique values:  2,875                    missing "":  0/226,700
-
-              examples:  "CHARTER COMMUNICATIONS"
-                         "GOGO"
-                         "MIDDLEBY"
-                         "SCHERING PLOUGH"
-
-               warning:  variable has embedded blanks
-*/
-
-*	2,875 unique firms, which matches the number above. IT WORKS!
-
-compress
 
 
-***	CLEAN DATA
-order stnd_firm firm_csrhub firm_kld firm_cstat
-order firm_csrhub firm_kld firm_cstat, after(firm)
-
-label data "unique stnd_firm that match across kld, cstat, and csrhub data"
-
-***	SAVE
-save data\subset-stnd_firm-in-all-three-datasets.dta, replace
 
 
 
