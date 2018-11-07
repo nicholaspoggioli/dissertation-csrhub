@@ -179,7 +179,7 @@ save data\crosswalk-csrhub-kld-cstat-stnd_firm.dta, replace
 
 
 
-/*
+
 
 ***	MERGE STND_NAME CROSSWALK INTO EACH MASTER DATASET
 *	KLD
@@ -237,8 +237,14 @@ drop N
 gen in_kld=1
 label var in_kld "=1 if in kld data"
 
+gen month=12																	/*	Assume month is 12	*/
+label var month "month in kld, assumed to be december of each year"
+gen ym=ym(year,month)
+
 compress
 save data\kld-all-clean-with-stnd_firm-crosswalk.dta, replace
+
+
 
 *	CSTAT
 use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
@@ -351,6 +357,8 @@ drop N
 gen in_cstat=1
 label var in_cstat "=1 if in compustat data"
 
+gen ym=ym(fyear,fyr)
+
 compress
 save data\cstat-all-clean-with-stnd_firm-crosswalk.dta, replace
 
@@ -380,27 +388,27 @@ gen in_csrhub=1
 label var in_csrhub "=1 if in csrhub data"
 
 ***	MERGE DATASETS TOGETHER ON STND_FIRM YEAR
-merge m:1 stnd_firm year using data\cstat-all-clean-with-stnd_firm-crosswalk.dta, nogen
+merge m:1 stnd_firm ym using data\cstat-all-clean-with-stnd_firm-crosswalk.dta, nogen
 /*
+
     Result                           # of obs.
     -----------------------------------------
-    not matched                       833,263
-        from master                   761,914  
-        from using                     71,349  
+    not matched                     1,020,898
+        from master                   948,066  
+        from using                     72,832  
 
-    matched                           203,935  
+    matched                            17,783  
     -----------------------------------------
-
 */
-merge m:1 stnd_firm year using data\kld-all-clean-with-stnd_firm-crosswalk.dta, nogen
+merge m:1 stnd_firm ym using data\kld-all-clean-with-stnd_firm-crosswalk.dta, nogen
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                       834,465
-        from master                   818,036  
-        from using                     16,429  
+    not matched                     1,029,090
+        from master                 1,008,499  
+        from using                     20,591  
 
-    matched                           219,162  
+    matched                            30,182  
     -----------------------------------------
 */
 
@@ -410,22 +418,33 @@ order stnd_firm firm_*
 format stnd_firm firm_* %30s
 
 compress
-save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-matches-clean.dta, replace
+save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, replace
 
 */
-
-
-
 
 				***=============================***
 				***		RUN ANALYSIS WITH NEW	***
 				***				DATASET			***
 				***=============================***
-use data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-matches-clean.dta, clear
+///	LOAD DATA
+use data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, clear
 
+***	Set panel
+encode stnd_firm, gen(firm_n)
+bysort firm_n ym: gen N=_N
+tab N
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |  1,051,911       99.84       99.84
+          2 |      1,716        0.16      100.00
+------------+-----------------------------------
+      Total |  1,053,627      100.00
+*/
+drop if N>1																		/*	Come back and fix this	*/
+drop N
 
-
-
+xtset firm_n ym, m
 
 
 
@@ -1427,7 +1446,7 @@ br idcsrhub stnd_firm idcstat stnd_firm1 row
 
 
 
-***	CSRHub to KLD
+/***	CSRHub to KLD
 use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 
 capt n ssc install matchit
