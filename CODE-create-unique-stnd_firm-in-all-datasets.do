@@ -412,22 +412,9 @@ merge m:1 stnd_firm ym using data\kld-all-clean-with-stnd_firm-crosswalk.dta, no
     -----------------------------------------
 */
 
-*SAVE
 drop firm_n
 order stnd_firm firm_*
 format stnd_firm firm_* %30s
-
-compress
-save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, replace
-
-*/
-
-				***=============================***
-				***		RUN ANALYSIS WITH NEW	***
-				***				DATASET			***
-				***=============================***
-///	LOAD DATA
-use data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, clear
 
 ***	Set panel
 encode stnd_firm, gen(firm_n)
@@ -445,8 +432,50 @@ drop if N>1																		/*	Come back and fix this	*/
 drop N
 
 xtset firm_n ym, m
+order stnd_firm ym
 
 
+*SAVE
+compress
+save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, replace
+
+*/
+
+				***=============================***
+				***		RUN MEDIATION ANALYSIS	***
+				***		 WITH NEW DATASET		***
+				***=============================***
+///	LOAD DATA
+use data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, clear
+
+foreach variable in net_kld over_rtg {
+	bysort firm_n: egen `variable'_m=mean(`variable')
+	bysort firm_n: gen `variable'_dm=`variable'-`variable'_m
+}
+
+///	ALL INDUSTRIES
+*	Y = ni
+*	X = over_rtg
+*	M = net_kld
+mark medall
+markout medall ni over_rtg net_kld year debt rd ad
+
+***	Baron and Kinny method
+*Main relationship
+xtreg ni over_rtg debt rd ad i.year if medall==1, fe cluster(firm_n)
+
+*Mediator predicting independent variable
+xtreg net_kld over_rtg debt rd ad i.year if medall==1, fe cluster(firm_n)
+
+*Mediation analysis
+xtreg ni over_rtg net_kld debt rd ad i.year if medall==1, fe cluster(firm_n)
+
+***	 Within between random effects
+xtreg ni over_rtg_dm over_rtg_m debt rd ad i.year if medall==1, re cluster(firm_n)
+
+xtreg net_kld over_rtg_dm over_rtg_m debt rd ad i.year if medall==1, re cluster(firm_n)
+
+xtreg ni over_rtg_dm net_kld_dm over_rtg_m net_kld_m debt rd ad i.year if medall==1, re cluster(firm_n)
 
 
 
