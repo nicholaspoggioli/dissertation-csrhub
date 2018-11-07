@@ -1,4 +1,4 @@
-***	UNIQUE STND_FIRM IN KLD
+/***	UNIQUE STND_FIRM IN KLD
 /*use data\kld-all-clean.dta, clear
 
 *	Create stnd_firm standardized firm name using stnd_compname user package
@@ -169,9 +169,17 @@ label var match_kldcstat "=1 if stnd_firm matched across kld & cstat"
 *Save
 save data\crosswalk-csrhub-kld-cstat-stnd_firm.dta, replace
 
+*/
 
 
 
+
+
+
+
+
+
+/*
 
 ***	MERGE STND_NAME CROSSWALK INTO EACH MASTER DATASET
 *	KLD
@@ -225,6 +233,10 @@ tab N
       Total |     50,761      100.00
 */
 drop N
+
+gen in_kld=1
+label var in_kld "=1 if in kld data"
+
 compress
 save data\kld-all-clean-with-stnd_firm-crosswalk.dta, replace
 
@@ -305,7 +317,40 @@ tab N
       Total |     90,601      100.00
 
 */
+
+*create needed variables
+encode stnd_firm, gen(firm_n)
+xtset firm_n year, y
+gen roa = ni / at
+
+sort firm_n year
+by firm_n: gen lroa=roa[_n-1]
+
+*	Net income
+sort firm_n year
+by firm_n: gen lni=ni[_n-1]
+	
+*	Debt ratio
+gen debt = dltt / at
+
+*	R&D
+gen rd = xrd / sale
+
+*	Advertising
+gen ad = xad / sale
+
+label var roa "(CSTAT) Return on assets (ni / at)"
+label var lroa "(CSTAT) 1-year lagged roa"
+label var lni "(CSTAT) 1-year lagged ni"
+label var debt "(CSTAT) Debt ratio (dltt / at)"
+label var rd "(CSTAT) R&D expense by sales (xrd / sale)"
+label var ad "(CSTAT) Advertising expense by sales (xad / sale)"
+
 drop N
+
+gen in_cstat=1
+label var in_cstat "=1 if in compustat data"
+
 compress
 save data\cstat-all-clean-with-stnd_firm-crosswalk.dta, replace
 
@@ -330,6 +375,9 @@ sort stnd_firm ym
 drop _merge firm_n ticker in_other_vars in_ovrl_enviro in_2017_update ///
 	in_csrhub row_id_csrhub entity_type
 compress
+
+gen in_csrhub=1
+label var in_csrhub "=1 if in csrhub data"
 
 ***	MERGE DATASETS TOGETHER ON STND_FIRM YEAR
 merge m:1 stnd_firm year using data\cstat-all-clean-with-stnd_firm-crosswalk.dta, nogen
@@ -357,14 +405,32 @@ merge m:1 stnd_firm year using data\kld-all-clean-with-stnd_firm-crosswalk.dta, 
 */
 
 *SAVE
+drop firm_n
 order stnd_firm firm_*
 format stnd_firm firm_* %30s
 
-mark in_csrhub
-mark in_kld
-mark in_cstat
-
+compress
 save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-matches-clean.dta, replace
+
+*/
+
+
+
+
+				***=============================***
+				***		RUN ANALYSIS WITH NEW	***
+				***				DATASET			***
+				***=============================***
+use data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-matches-clean.dta, clear
+
+
+
+
+
+
+
+
+
 
 
 
