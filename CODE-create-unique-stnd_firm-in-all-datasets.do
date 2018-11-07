@@ -237,10 +237,6 @@ drop N
 gen in_kld=1
 label var in_kld "=1 if in kld data"
 
-gen month=12																	/*	Assume month is 12	*/
-label var month "month in kld, assumed to be december of each year"
-gen ym=ym(year,month)
-
 compress
 save data\kld-all-clean-with-stnd_firm-crosswalk.dta, replace
 
@@ -387,38 +383,41 @@ compress
 gen in_csrhub=1
 label var in_csrhub "=1 if in csrhub data"
 
-***	MERGE DATASETS TOGETHER ON STND_FIRM YEAR
-merge m:1 stnd_firm ym using data\cstat-all-clean-with-stnd_firm-crosswalk.dta, nogen
-/*
+compress
+save data\csrhub-all-clean-with-stnd_firm-crosswalk.dta, replace
 
+
+
+
+
+
+
+
+
+***	MERGE DATASETS TOGETHER ON STND_FIRM YM
+*	Merge CSTAT and KLD on stnd_firm year
+use data\cstat-all-clean-with-stnd_firm-crosswalk.dta, clear
+
+merge 1:1 stnd_firm year using data\kld-all-clean-with-stnd_firm-crosswalk.dta, nogen
+/*
     Result                           # of obs.
     -----------------------------------------
-    not matched                     1,020,898
-        from master                   948,066  
-        from using                     72,832  
+    not matched                        86,248
+        from master                    63,044  (_merge==1)
+        from using                     23,204  (_merge==2)
 
-    matched                            17,783  
+    matched                            27,557  (_merge==3)
     -----------------------------------------
 */
-merge m:1 stnd_firm ym using data\kld-all-clean-with-stnd_firm-crosswalk.dta, nogen
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                     1,029,090
-        from master                 1,008,499  
-        from using                     20,591  
+replace ym=ym(year,12) if ym==. & in_kld==1										/* Assume KLD not matched with CSTAT is month 12	*/
 
-    matched                            30,182  
-    -----------------------------------------
-*/
+save data\cstat-2-kld-stnd_firm-year.dta, replace
 
-drop firm_n
-order stnd_firm firm_*
-format stnd_firm firm_* %30s
 
-***	Set panel
-encode stnd_firm, gen(firm_n)
-bysort firm_n ym: gen N=_N
+*	CSRhub with merged CSTAT-KLD on stnd_firm ym
+use data\csrhub-all-clean-with-stnd_firm-crosswalk.dta, clear
+
+bysort stnd_firm ym: gen N=_N
 tab N
 /*
           N |      Freq.     Percent        Cum.
@@ -431,9 +430,25 @@ tab N
 drop if N>1																		/*	Come back and fix this	*/
 drop N
 
+merge 1:1 stnd_firm ym using data\cstat-2-kld-stnd_firm-year.dta, nogen
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                     1,028,922
+        from master                   939,625  
+        from using                     89,297  
+
+    matched                            24,508  
+    -----------------------------------------
+*/
+drop firm_n
+order stnd_firm firm_*
+format stnd_firm firm_* %30s
+
+***	Set panel
+encode stnd_firm, gen(firm_n)
 xtset firm_n ym, m
 order stnd_firm ym
-
 
 *SAVE
 compress
@@ -462,24 +477,32 @@ markout medall ni over_rtg net_kld year debt rd ad
 
 ***	Baron and Kinny method
 *Main relationship
-xtreg ni over_rtg debt rd ad i.year if medall==1, fe cluster(firm_n)
+xtreg ni over_rtg debt rd ad i.year, fe cluster(firm_n)
 
 *Mediator predicting independent variable
-xtreg net_kld over_rtg debt rd ad i.year if medall==1, fe cluster(firm_n)
+xtreg net_kld over_rtg debt rd ad i.year, fe cluster(firm_n)
 
 *Mediation analysis
-xtreg ni over_rtg net_kld debt rd ad i.year if medall==1, fe cluster(firm_n)
+xtreg ni over_rtg net_kld debt rd ad i.year, fe cluster(firm_n)
 
 ***	 Within between random effects
-xtreg ni over_rtg_dm over_rtg_m debt rd ad i.year if medall==1, re cluster(firm_n)
+xtreg ni over_rtg_dm over_rtg_m debt rd ad i.year, re cluster(firm_n)
 
-xtreg net_kld over_rtg_dm over_rtg_m debt rd ad i.year if medall==1, re cluster(firm_n)
+xtreg net_kld over_rtg_dm over_rtg_m debt rd ad i.year, re cluster(firm_n)
 
-xtreg ni over_rtg_dm net_kld_dm over_rtg_m net_kld_m debt rd ad i.year if medall==1, re cluster(firm_n)
+xtreg ni over_rtg_dm net_kld_dm over_rtg_m net_kld_m debt rd ad i.year, re cluster(firm_n)
 
+///	MANUFACTURING
+keep if industry=="Manufacturing"
 
+*Main relationship
+xtreg ni over_rtg debt rd ad i.year, fe cluster(firm_n)
 
+*Mediator predicting independent variable
+xtreg net_kld over_rtg debt rd ad i.year, fe cluster(firm_n)
 
+*Mediation analysis
+xtreg ni over_rtg net_kld debt rd ad i.year, fe cluster(firm_n)
 
 
 
