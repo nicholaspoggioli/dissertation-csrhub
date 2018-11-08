@@ -930,22 +930,6 @@ save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-nonexact.dta, replace
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /***	CSRHub to KLD
 use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 
