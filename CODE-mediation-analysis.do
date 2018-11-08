@@ -1,3 +1,7 @@
+capt log close
+log using logs\mediation-analysis-2.txt, text replace
+
+
 				***=============================***
 				***		RUN MEDIATION ANALYSIS	***
 				***		 WITH NEW DATASET		***
