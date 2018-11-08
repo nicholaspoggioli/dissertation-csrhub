@@ -3,9 +3,6 @@
 	DATASET TO INCREASE THE NUMBER OF MATCHES
 */
 
-
-
-
 				***=============================***
 				***		IMPROVE THE MATCH		***
 				***		WITH THE MATCHIT ALGO	***
@@ -13,7 +10,7 @@
 capt n ssc install freqindex
 capt n ssc install matchit
 
-***	CSRHub to CSTAT
+/***	CSRHub to CSTAT
 use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 
 matchit idcsrhub stnd_firm using data\unique-stnd_firm-cstat-stnd_firm-only.dta, ///
@@ -34,6 +31,7 @@ keep if similscore==1
 compress
 save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-exact.dta, replace
 restore
+*/
 
 
 ***	Assess likely matches:
@@ -812,7 +810,7 @@ idcsrhub	stnd_firm	idcstat	stnd_firm1	row
 */
 
 
-***	Create dataset of nonexact matches
+***	Create dataset of nonexact matches created in excel from the matches above
 import excel "data\data-matchit\matchit-csrhub-2-cstat-nonexact-matches.xlsx", ///
 	sheet("Sheet1") clear firstrow
 	
@@ -931,45 +929,6 @@ compress
 save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-nonexact.dta, replace
 
 
-***	Re-run fuzzy match
-use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
-
-capt n ssc install matchit
-capt n ssc install freqindex
-
-matchit idcsrhub stnd_firm using data\stnd_firm-cstat-2-stnd_firm-csrhub-matchit-nonexact.dta, ///
-	idu(idcstat) txtu(stnd_firm) similmethod(ngram,3) time threshold(.75)
-	
-gsort stnd_firm -similscore
-
-by stnd_firm: egen simmax=max(similscore)
-by stnd_firm: gen n=_n
-drop if simmax==1 & n!=1
-*(2,496 observations deleted)
-drop simmax n
-
-codebook stnd_firm
-
-compress
-save data\matchit-csrhub-2-cstat-2.dta, replace
-
-preserve
-keep if similscore==1
-*(2,075 observations deleted)
-compress
-save data\matchit-csrhub-2-cstat-exact-matches-2.dta, replace
-restore
-
-**	Assess likely matches:
-use data\matchit-csrhub-2-cstat-2.dta, clear
-drop if similscore==1
-set seed 61047
-bysort stnd_firm: gen rando=rnormal()
-by stnd_firm: replace rando=rando[_n-1] if _n!=1
-
-gsort rando stnd_firm -similscore
-gen row=_n
-br idcsrhub stnd_firm idcstat stnd_firm1 row
 
 
 
