@@ -1,4 +1,4 @@
-/***	UNIQUE STND_FIRM IN KLD
+***	UNIQUE STND_FIRM IN KLD
 /*use data\kld-all-clean.dta, clear
 
 *	Create stnd_firm standardized firm name using stnd_compname user package
@@ -459,13 +459,9 @@ order stnd_firm ym
 compress
 save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, replace
 
-*/
 
 
 
-
-capt log close
-log using logs\mediation-analysis-2.txt, text replace
 
 
 
