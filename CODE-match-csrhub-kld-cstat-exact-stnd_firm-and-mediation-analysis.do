@@ -107,6 +107,11 @@ save data\unique-stnd_firm-csrhub-stnd_firm-only.dta, replace
 export delimited using data\unique-stnd_firm-csrhub.csv, replace
 
 
+
+
+
+
+
 ***	MATCH KLD AND CSTAT TO CSRHUB ON UNIQUE STND_FIRM
 use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 
@@ -179,7 +184,7 @@ save data\crosswalk-csrhub-kld-cstat-stnd_firm.dta, replace
 
 
 
-
+/*
 
 ***	MERGE STND_NAME CROSSWALK INTO EACH MASTER DATASET
 *	KLD
@@ -386,12 +391,12 @@ label var in_csrhub "=1 if in csrhub data"
 compress
 save data\csrhub-all-clean-with-stnd_firm-crosswalk.dta, replace
 
+*/
 
 
 
 
-
-
+/*
 
 
 ***	MERGE DATASETS TOGETHER ON STND_FIRM YM
