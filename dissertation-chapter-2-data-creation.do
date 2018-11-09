@@ -1524,13 +1524,6 @@ save data/CSRHub-CSTAT-KLD-FACTIVA.dta, replace
 
 
 
-
-
-
-
-
-
-
 ***===================***
 *	CLEAN MERGED DATA	*
 ***===================***
