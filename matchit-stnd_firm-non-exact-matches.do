@@ -35,7 +35,7 @@ restore
 
 
 ***	Assess likely matches:
-use data\matchit-csrhub-2-cstat.dta, clear
+use data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-all.dta, clear
 drop if similscore==1
 set seed 61047
 bysort stnd_firm: gen rando=rnormal()
