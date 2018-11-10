@@ -1092,6 +1092,11 @@ restore
 
 
 
+
+
+
+
+
 ***=======================================================================***
 *	MERGE CSTAT AND KLD USING ONLY UNIQUE TICKER-YEARS FROM EACH DATASET	*
 *	By: Nicholas Poggioli poggi005@umn.edu									*
@@ -1519,6 +1524,9 @@ save data/CSRHub-CSTAT-KLD-FACTIVA.dta, replace
 
 
 
+
+
+
 ***===================***
 *	CLEAN MERGED DATA	*
 ***===================***
@@ -1573,13 +1581,50 @@ save data/kld-cstat-bs2012.dta, replace
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ***===============================***
 *									*
 *	USING EXACT STRING MATCHING		*
 *									*
 ***===============================***
-/***	UNIQUE STND_FIRM IN KLD
-/*use data\kld-all-clean.dta, clear
+***	UNIQUE STND_FIRM IN KLD
+use data\kld-all-clean.dta, clear
 
 *	Create stnd_firm standardized firm name using stnd_compname user package
 *search stnd_compname
@@ -1588,22 +1633,18 @@ stnd_compname firm, gen(stnd_firm entity_type)
 gen firm_kld=firm
 label var firm_kld "firm name in kld-all-clean.dta"
 
-compress
-save data\kld-all-clean.dta, replace
-*/
+*	Fix observations to prevent duplicate matches later
+replace stnd_firm="SPIRE CORP" if stnd_firm=="SPIRE"
 
 *	Keep unique stnd_firm
-use data\kld-all-clean.dta, clear
 bysort stnd_firm: gen n=_n
 keep if n==1
 drop n
 
-*	Fix observations to prevent duplicate matches later
-replace stnd_firm="SPIRE CORP" if stnd_firm=="SPIRE"
-
 *	Save
 compress
 save data\unique-stnd_firm-kld.dta, replace
+
 keep stnd_firm firm_kld
 sort stnd_firm
 gen idkld=_n
