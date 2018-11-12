@@ -275,6 +275,31 @@ drop N
 encode firm, gen(firm_n)
 xtset firm_n year, y
 
+*** STANDARDIZE FIRM NAME
+*search stnd_compname
+stnd_compname firm, gen(stnd_firm entity_type)
+
+gen firm_kld=firm
+label var firm_kld "firm name in kld-all-clean.dta"
+
+*	Fix observations to prevent duplicate matches later
+replace stnd_firm="SPIRE CORP" if stnd_firm=="SPIRE"
+
+*	Keep unique stnd_firm
+bysort stnd_firm: gen n=_n
+keep if n==1
+drop n
+
+*	Save unique stnd_firm names
+preserve
+keep stnd_firm firm_kld
+sort stnd_firm
+gen idkld=_n
+label var idkld "unique row id for unique stnd_firm in kld data"
+compress
+save data\unique-stnd_firm-kld-stnd_firm-only.dta, replace
+restore
+
 ***	SAVE
 compress
 label data "KLD Data 1991 - 2015 downloaded Feb 12, 2018 by poggi005@umn.edu"
@@ -1041,8 +1066,11 @@ rename A3UN a3un
 drop if _merge==2
 drop _merge
 
-
-*	Standardize firm names
+						***=======================***
+						*							*
+						*	Standardize firm names	*
+						*							*
+						***=======================***
 preserve
 keep firm
 bysort firm: gen n=_n
@@ -1065,9 +1093,45 @@ merge m:1 firm using `d1', nogen
 gen firm_csrhub=firm
 label var firm_csrhub "firm name in csrhub-all.dta"
 
+
+						***=======================***
+						*							*
+						*	Merge FACTIVA results	*
+						*							*
+						***=======================***
+*		Merge with  media		*
+set more off
+rename year year_csrhub
+
+gen csrdate=dofm(ym)
+gen year_all = year(csrdate)
+gen year=year_all
+
+merge m:1 year using data/factiva-stakeholder-type-by-year-media-subset.dta
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                            29
+        from master                         0  (_merge==1)
+        from using                         29  (_merge==2)
+
+    matched                           965,877  (_merge==3)
+    -----------------------------------------
+*/
+drop if _merge!=3
+drop _merge
+
+
 *	Save
 compress
 save data/csrhub-all.dta, replace
+
+
+
+
+
+
+
 
 /*
 * 	Create CSRHub year-level datasets aggregating by mean and median
@@ -1174,6 +1238,14 @@ label var naics_n "(CSTAT) NAICS encoded as numeric"
 ***	SAVE
 compress
 save data/unique-ticker-years-in-cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, replace
+
+
+
+
+
+
+
+
 
 ***	CREATE LIST OF UNIQUE TICKER-YEARS IN KLD DATA TO IMPROVE MERGE WITH CSTAT ON TICKER-YEAR
 use data/kld-all-clean.dta, clear
@@ -1483,37 +1555,7 @@ save data/mergefile-kld-cstat-csrhub.dta, replace
 *	using "D:\Dropbox\papers\active\dissertation-csrhub\project\data\openrefine-cleaning-kld-cstat-csrhub.csv", replace
 
 
-***===================================***
-*										*
-*		Merge with FACTIVA media		*
-*										*
-***===================================***
-set more off
 
-use data/csrhub-all.dta, clear
-
-rename year year_csrhub
-
-gen csrdate=dofm(ym)
-gen year_all = year(csrdate)
-gen year=year_all
-
-merge m:1 year using data/factiva-stakeholder-type-by-year-media-subset.dta
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                            29
-        from master                         0  (_merge==1)
-        from using                         29  (_merge==2)
-
-    matched                           965,877  (_merge==3)
-    -----------------------------------------
-*/
-drop if _merge!=3
-drop _merge
-
-compress
-save data/CSRHub-CSTAT-KLD-FACTIVA.dta, replace
 
 
 
@@ -1597,32 +1639,7 @@ save data/kld-cstat-bs2012.dta, replace
 *	USING EXACT STRING MATCHING		*
 *									*
 ***===============================***
-/***	UNIQUE STND_FIRM IN KLD
-use data\kld-all-clean.dta, clear
 
-*	Create stnd_firm standardized firm name using stnd_compname user package
-*search stnd_compname
-stnd_compname firm, gen(stnd_firm entity_type)
-
-gen firm_kld=firm
-label var firm_kld "firm name in kld-all-clean.dta"
-
-*	Fix observations to prevent duplicate matches later
-replace stnd_firm="SPIRE CORP" if stnd_firm=="SPIRE"
-
-*	Keep unique stnd_firm
-bysort stnd_firm: gen n=_n
-keep if n==1
-drop n
-
-*	Save
-keep stnd_firm firm_kld
-sort stnd_firm
-gen idkld=_n
-label var idkld "unique row id for unique stnd_firm in kld data"
-compress
-save data\unique-stnd_firm-kld-stnd_firm-only.dta, replace
-*/
 
 ***	UNIQUE STND_FIRM IN CSTAT
 use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
