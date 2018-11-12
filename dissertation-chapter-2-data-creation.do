@@ -1263,10 +1263,13 @@ label var year "(CSTAT) Fiscal year"
 label var in_cstat "(CSTAT) =1 if in CSTAT before merge with KLD"
 label var naics_n "(CSTAT) NAICS encoded as numeric"
 
+***	SAVE
+compress
+save data/unique-ticker-years-in-cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, replace
+
 
 *	Keep unique stnd_firm
-preserve
-use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
+use data/unique-ticker-years-in-cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
 bysort stnd_firm: gen n=_n
 keep if n==1
 drop n
@@ -1276,34 +1279,31 @@ replace stnd_firm="SPIRE CORP" if stnd_firm=="SPIRE"
 replace stnd_firm="STERLING BANCORP INC" if stnd_firm=="STERLING BANCORP" & cik=="0001680379"
 
 *	Save
-compress
-save data\unique-stnd_firm-cstat.dta, replace
 keep stnd_firm firm_cstat
 sort stnd_firm
 gen idcstat=_n
 label var idcstat "unique row id for unique stnd_firm in cstat"
 compress
 save data\unique-stnd_firm-cstat-stnd_firm-only.dta, replace
-restore
 
+*Matchit csrhub to cstat
+use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
+matchit idcsrhub stnd_firm using data\unique-stnd_firm-cstat-stnd_firm-only.dta, ///
+	idu(idcstat) txtu(stnd_firm) similmethod(ngram,3) time threshold(.75) diagnose
+																						/*	This drops all CSRHub firms with 0 ngram matches	*/
+gsort stnd_firm -similscore
 
-***	SAVE
+by stnd_firm: egen simmax=max(similscore)
+by stnd_firm: gen n=_n
+drop if simmax==1 & n!=1
+drop simmax n
 compress
-save data/unique-ticker-years-in-cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, replace
+save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-all.dta, replace
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+*Save exact matches
+keep if similscore==1
+compress
+save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-exact.dta, replace
 
 
 
@@ -2131,27 +2131,7 @@ capt n ssc install freqindex
 capt n ssc install matchit
 
 /***	CSRHub to CSTAT
-use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 
-matchit idcsrhub stnd_firm using data\unique-stnd_firm-cstat-stnd_firm-only.dta, ///
-	idu(idcstat) txtu(stnd_firm) similmethod(ngram,3) time threshold(.75) diagnose
-																						/*	This drops all CSRHub firms with 0 ngram matches	*/
-gsort stnd_firm -similscore
-
-by stnd_firm: egen simmax=max(similscore)
-by stnd_firm: gen n=_n
-drop if simmax==1 & n!=1
-drop simmax n
-compress
-save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-all.dta, replace
-
-*Save exact matches
-preserve
-keep if similscore==1
-compress
-save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-exact.dta, replace
-restore
-*/
 
 
 ***	Assess likely matches:
