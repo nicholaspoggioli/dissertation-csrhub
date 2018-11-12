@@ -4152,16 +4152,6 @@ label var matchitcsrhub2cstat "=1 if standardized firm names matched, csrhub to 
 
 
 
-*/
-
-
-
-
-
-
-
-
-
 
 *END
 
