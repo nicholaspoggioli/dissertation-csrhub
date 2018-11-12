@@ -2372,7 +2372,7 @@ save data\unique-stnd_firm-cstat-stnd_firm-only.dta, replace
 
 
 
-
+/*
 ***	Matchit csrhub to cstat
 use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 matchit idcsrhub stnd_firm using data\unique-stnd_firm-cstat-stnd_firm-only.dta, ///
@@ -2394,7 +2394,7 @@ compress
 save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-exact.dta, replace
 restore
 
-/*
+
 
 ***	Assess likely matches:
 use data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-all.dta, clear
@@ -3703,12 +3703,6 @@ save data/kld-cstat-bs2012.dta, replace
 ***===============================***
 
 
-
-
-
-
-
-
 ***	MATCH KLD AND CSTAT TO CSRHUB ON UNIQUE STND_FIRM
 use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 
@@ -3775,14 +3769,6 @@ save data\crosswalk-csrhub-kld-cstat-stnd_firm.dta, replace
 
 
 
-
-
-
-
-
-
-/*
-
 ***	MERGE STND_NAME CROSSWALK INTO EACH MASTER DATASET
 *	KLD
 use data\kld-all-clean.dta, clear
@@ -3790,12 +3776,13 @@ merge m:1 stnd_firm using data\crosswalk-csrhub-kld-cstat-stnd_firm.dta
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                        12,257
-        from master                         1  (_merge==1)
-        from using                     12,256  (_merge==2)
+    not matched                        12,255
+        from master                         0  (_merge==1)
+        from using                     12,255  (_merge==2)
 
-    matched                            50,761  (_merge==3)
+    matched                            50,762  (_merge==3)
     -----------------------------------------
+
 */
 keep if _merge==3
 drop _merge firm_n
@@ -3809,11 +3796,12 @@ tab N
 /*
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |     50,752       99.98       99.98
+          1 |     50,753       99.98       99.98
           2 |          6        0.01       99.99
           3 |          3        0.01      100.00
 ------------+-----------------------------------
-      Total |     50,761      100.00
+      Total |     50,762      100.00
+
 */
 
 *	Fix observations to prevent duplicate matches later
@@ -3830,9 +3818,9 @@ tab N
 
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |     50,761      100.00      100.00
+          1 |     50,762      100.00      100.00
 ------------+-----------------------------------
-      Total |     50,761      100.00
+      Total |     50,762      100.00
 */
 drop N
 
@@ -3856,13 +3844,12 @@ merge m:1 stnd_firm using data\crosswalk-csrhub-kld-cstat-stnd_firm.dta
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                         4,539
+    not matched                         4,538
         from master                        28  (_merge==1)
-        from using                      4,511  (_merge==2)
+        from using                      4,510  (_merge==2)
 
     matched                           965,849  (_merge==3)
     -----------------------------------------
-
 */
 keep if _merge==3
 order stnd_firm ym
@@ -3894,14 +3881,16 @@ replace stnd_firm="UNION BANKSHARES INC" if stnd_firm=="UNION BANKSHARES" & gvke
 
 merge m:1 stnd_firm using data\crosswalk-csrhub-kld-cstat-stnd_firm.dta
 /*
+
     Result                           # of obs.
     -----------------------------------------
-    not matched                        16,752
-        from master                        88  (_merge==1)
+    not matched                        16,758
+        from master                        94  (_merge==1)
         from using                     16,664  (_merge==2)
 
-    matched                           105,382  (_merge==3)
+    matched                           105,376  (_merge==3)
     -----------------------------------------
+
 
 */
 keep if _merge==3
@@ -3922,21 +3911,24 @@ tab N
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
           1 |     76,316       72.42       72.42
-          2 |     29,066       27.58      100.00
+          2 |     29,060       27.58      100.00
 ------------+-----------------------------------
-      Total |    105,382      100.00
+      Total |    105,376      100.00
+
 
 
 */
 tab N indfmt if N>1
 /*
 
+
            |    Industry Format
          N |        FS       INDL |     Total
 -----------+----------------------+----------
-         2 |    14,525     14,541 |    29,066 
+         2 |    14,522     14,538 |    29,060 
 -----------+----------------------+----------
-     Total |    14,525     14,541 |    29,066 
+     Total |    14,522     14,538 |    29,060 
+
 
 */
 drop if indfmt=="FS"
@@ -3946,10 +3938,11 @@ tab N
 /*
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |     90,832       99.98       99.98
+          1 |     90,829       99.98       99.98
           2 |         16        0.02      100.00
 ------------+-----------------------------------
-      Total |     90,848      100.00
+      Total |     90,845      100.00
+
 
 */
 drop if fyear==.
@@ -3957,11 +3950,13 @@ drop N
 bysort stnd_firm year: gen N=_N
 tab N
 /*
+
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |     90,601      100.00      100.00
+          1 |     90,598      100.00      100.00
 ------------+-----------------------------------
-      Total |     90,601      100.00
+      Total |     90,598      100.00
+
 
 */
 
@@ -4003,15 +3998,7 @@ gen ym=ym(fyear,fyr)
 compress
 save data\cstat-all-clean-with-stnd_firm-crosswalk.dta, replace
 
-
-
-
 */
-
-
-
-
-/*
 
 
 ***	MERGE DATASETS TOGETHER ON STND_FIRM YM
@@ -4022,12 +4009,13 @@ merge 1:1 stnd_firm year using data\kld-all-clean-with-stnd_firm-crosswalk.dta, 
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                        86,248
-        from master                    63,044  (_merge==1)
-        from using                     23,204  (_merge==2)
+    not matched                        86,246
+        from master                    63,041  
+        from using                     23,205  
 
-    matched                            27,557  (_merge==3)
+    matched                            27,557  
     -----------------------------------------
+
 */
 replace ym=ym(year,12) if ym==. & in_kld==1										/* Assume KLD not matched with CSTAT is month 12	*/
 
@@ -4042,10 +4030,11 @@ tab N
 /*
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |  1,051,911       99.84       99.84
-          2 |      1,716        0.16      100.00
+          1 |    964,133       99.82       99.82
+          2 |      1,716        0.18      100.00
 ------------+-----------------------------------
-      Total |  1,053,627      100.00
+      Total |    965,849      100.00
+
 */
 drop if N>1																		/*	Come back and fix this	*/
 drop N
@@ -4054,12 +4043,13 @@ merge 1:1 stnd_firm ym using data\cstat-2-kld-stnd_firm-year.dta, nogen
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                     1,028,922
+    not matched                     1,028,920
         from master                   939,625  
-        from using                     89,297  
+        from using                     89,295  
 
     matched                            24,508  
     -----------------------------------------
+
 */
 drop firm_n
 order stnd_firm firm_*
@@ -4074,7 +4064,21 @@ order stnd_firm ym
 compress
 save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, replace
 
-*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4084,16 +4088,3 @@ save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, 
 
 
 *END
-
-
-
-
-
-
-
-
-
-
-
-
-
