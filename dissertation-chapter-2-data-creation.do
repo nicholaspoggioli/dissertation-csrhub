@@ -1121,6 +1121,25 @@ merge m:1 year using data/factiva-stakeholder-type-by-year-media-subset.dta
 drop if _merge!=3
 drop _merge
 
+preserve
+***	UNIQUE STND_FIRM IN CSRHUB
+*	Keep unique stnd_firm
+bysort stnd_firm: gen n=_n
+keep if n==1
+drop n
+
+*	Fix observations to prevent duplicate matches later
+replace stnd_firm="SPIRE INC" if stnd_firm=="SPIRE"
+
+*	Save
+keep stnd_firm firm_csrhub
+sort stnd_firm
+gen idcsrhub=_n
+label var idcsrhub "unique row id for unique stnd_firm in csrhub data"
+compress
+save data\unique-stnd_firm-csrhub-stnd_firm-only.dta, replace
+restore
+
 
 *	Save
 compress
@@ -1698,25 +1717,7 @@ save data/kld-cstat-bs2012.dta, replace
 
 
 
-***	UNIQUE STND_FIRM IN CSRHUB
-*	Keep unique stnd_firm
-use data\csrhub-all.dta, clear
-bysort stnd_firm: gen n=_n
-keep if n==1
-drop n
 
-*	Fix observations to prevent duplicate matches later
-replace stnd_firm="SPIRE INC" if stnd_firm=="SPIRE"
-
-*	Save
-compress
-save data\unique-stnd_firm-csrhub.dta, replace
-keep stnd_firm firm_csrhub
-sort stnd_firm
-gen idcsrhub=_n
-label var idcsrhub "unique row id for unique stnd_firm in csrhub data"
-compress
-save data\unique-stnd_firm-csrhub-stnd_firm-only.dta, replace
 
 
 ***	MATCH KLD AND CSTAT TO CSRHUB ON UNIQUE STND_FIRM
