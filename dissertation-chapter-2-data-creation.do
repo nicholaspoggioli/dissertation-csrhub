@@ -1286,7 +1286,11 @@ label var idcstat "unique row id for unique stnd_firm in cstat"
 compress
 save data\unique-stnd_firm-cstat-stnd_firm-only.dta, replace
 
-*Matchit csrhub to cstat
+
+
+
+
+***	Matchit csrhub to cstat
 use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 matchit idcsrhub stnd_firm using data\unique-stnd_firm-cstat-stnd_firm-only.dta, ///
 	idu(idcstat) txtu(stnd_firm) similmethod(ngram,3) time threshold(.75) diagnose
@@ -1301,838 +1305,17 @@ compress
 save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-all.dta, replace
 
 *Save exact matches
+preserve
 keep if similscore==1
 compress
 save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-exact.dta, replace
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-***	CREATE LIST OF UNIQUE TICKER-YEARS IN KLD DATA TO IMPROVE MERGE WITH CSTAT ON TICKER-YEAR
-use data/kld-all-clean.dta, clear
-keep firm ticker year cusip
-sort ticker year firm
-
-*	Fix #N/A tickers
-gen ch=(ticker=="#N/A")
-bysort firm: egen ch1=max(ch)
-replace ticker="" if ticker=="#N/A"
-gsort firm -ticker
-by firm: replace ticker=ticker[_n-1] if _n!=1 & ch1>0
-drop ch ch1
-
-*	Fix empty tickers
-replace ticker="ITCI" if firm=="INTRA-CELLULAR THERAPIES INC"
-replace ticker="FNBCQ" if firm=="FIRST NBC BANK HOLDING CO"
-replace ticker="BNHN" if firm=="BENIHANA INC"				/*	Acquired by private equity after 2012	*/
-drop if cusip=="82047101"									/*	Drop duplicate Benihana with different CUSIP	*/
-
-*	Keep unique ticker years
-bysort ticker year:gen N=_N
-drop if N>1
-drop N
-
-*	Rename variables
-rename cusip cusip_kld
-
-gen in_kld=1
-label var in_kld "(KLD) =1 if in KLD before merge with CSTAT"
-
-gen tic_kld = ticker
-gen firm_kld=firm
-
-*	Save
-compress
-save data/unique-ticker-years-in-kld-all.dta, replace
-
-
-***	MERGE KLD WITH CSTAT
-use data/unique-ticker-years-in-kld-all.dta, clear
-
-merge 1:1 ticker year using data/unique-ticker-years-in-cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta
-/*    Result                           # of obs.
-    -----------------------------------------
-    not matched                        74,874
-        from master                    16,874  (_merge==1)
-        from using                     58,000  (_merge==2)
-
-    matched                            32,795  (_merge==3)
-    -----------------------------------------
-*/
-drop if _merge==2
-drop _merge
-
-tempfile d1
-save `d1'
-
-use data/kld-all-clean.dta, clear
-
-
-*	Fix #N/A tickers
-gen ch=(ticker=="#N/A")
-bysort firm: egen ch1=max(ch)
-replace ticker="" if ticker=="#N/A"
-gsort firm -ticker
-by firm: replace ticker=ticker[_n-1] if _n!=1 & ch1>0
-drop ch ch1
-
-*	Fix empty tickers
-replace ticker="ITCI" if firm=="INTRA-CELLULAR THERAPIES INC"
-replace ticker="FNBCQ" if firm=="FIRST NBC BANK HOLDING CO"
-replace ticker="BNHN" if firm=="BENIHANA INC"				/*	Acquired by private equity after 2012	*/
-drop if cusip=="82047101"									/*	Drop duplicate Benihana with different CUSIP	*/
-
-merge m:1 ticker year using `d1'
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                         1,093
-        from master                     1,093  (_merge==1)
-        from using                          0  (_merge==2)
-
-    matched                            49,669  (_merge==3)
-    -----------------------------------------
-*/
-keep if _merge==3
-drop _merge
-
-bysort ticker year: gen N=_N
-keep if N==1
-drop N
-
-***	STANDARDIZE FIRM NAME
-capt n ssc install stnd_compname												/* Install user program, but need
-																					to use search stnd_compname to find it, not ssc	*/
-stnd_compname firm, gen(stnd_firm entity_type)
-label var stnd_firm "KLD firm name standardized with stnd_compname user program"
-
-bysort stnd_firm year: gen N=_N
-tab N
-/*
-          N |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          1 |     49,660       99.98       99.98
-          2 |          6        0.01       99.99
-          3 |          3        0.01      100.00
-------------+-----------------------------------
-      Total |     49,669      100.00
-*/
-
-list stnd_firm ticker year net_kld N firm if N>1, sepby(stnd_firm year)
-/*
-       +---------------------------------------------------------------------------------------------+
-       |                  stnd_firm   ticker   year   net_kld   N                               firm |
-       |---------------------------------------------------------------------------------------------|
-   57. |                1ST BANCORP     FBNC   2012         2   3                  FIRST BANCORP INC |
-   58. |                1ST BANCORP      FBP   2012         0   3                      FIRST BANCORP |
-   59. |                1ST BANCORP     FNLC   2012         0   3            THE FIRST BANCORP, INC. |
-       |---------------------------------------------------------------------------------------------|
-   60. |                1ST BANCORP      FBP   2013         2   2                      FIRST BANCORP |
-   61. |                1ST BANCORP     FBNC   2013         0   2                  FIRST BANCORP INC |
-       |---------------------------------------------------------------------------------------------|
-17921. |                        FNB      FNB   2003        -1   2                 F.N.B. CORPORATION |
-17922. |                        FNB     FNBN   2003        -1   2                          FNB CORP. |
-       |---------------------------------------------------------------------------------------------|
-45948. | UNITED SECURITY BANCSHARES     UBFO   2003         0   2         UNITED SECURITY BANCSHARES |
-45949. | UNITED SECURITY BANCSHARES     USBI   2003         1   2   UNITED SECURITY BANCSHARES, INC. |
-       +---------------------------------------------------------------------------------------------+
-
-FNB is FNB Corporation
-FBP is a bank holding company for FirstBank Puerto Rico
-FBNC is a bank holding company for First Bank in North Carolina
-FNBN is a private firm named FNBNY Bancorp
-FNLC is a holding company for First National Bank
-UBFO is United Security Bancshares, a holding company for United Security Bank
-USBI appears to be an old Ticker for USB, US Bancshares, the holding company for First US Bank
-*/
-
-foreach ticker in FNB FBP FBNC FNBN FNLC UBFO USBI {
-	list stnd_firm ticker year firm if ticker=="`ticker'"
-}
-/*
-      +---------------------------------------------------------+
-       |   stnd_firm   ticker   year                        firm |
-       |---------------------------------------------------------|
-  113. | 1ST CHICAGO      FNB   1991   FIRST CHICAGO CORPORATION |
-  114. | 1ST CHICAGO      FNB   1992   FIRST CHICAGO CORPORATION |
-  115. | 1ST CHICAGO      FNB   1993   FIRST CHICAGO CORPORATION |
-  116. | 1ST CHICAGO      FNB   1994   FIRST CHICAGO CORPORATION |
-  117. | 1ST CHICAGO      FNB   1995   FIRST CHICAGO CORPORATION |
-       |---------------------------------------------------------|
-17921. |         FNB      FNB   2003          F.N.B. CORPORATION |
-17923. |         FNB      FNB   2004          F.N.B. CORPORATION |
-17924. |         FNB      FNB   2005          F.N.B. CORPORATION |
-17925. |         FNB      FNB   2006          F.N.B. CORPORATION |
-17926. |         FNB      FNB   2007          F.N.B. CORPORATION |
-       |---------------------------------------------------------|
-17927. |         FNB      FNB   2008          F.N.B. CORPORATION |
-17928. |         FNB      FNB   2009          F.N.B. CORPORATION |
-17929. |         FNB      FNB   2010          F.N.B. CORPORATION |
-17930. |         FNB      FNB   2011          F.N.B. CORPORATION |
-17931. |         FNB      FNB   2012          F.N.B. CORPORATION |
-       |---------------------------------------------------------|
-17932. |         FNB      FNB   2013          F.N.B. CORPORATION |
-17933. |         FNB      FNB   2014          F.N.B. CORPORATION |
-17934. |         FNB      FNB   2015          F.N.B. CORPORATION |
-       +---------------------------------------------------------+
-
-       +----------------------------------------------------------------------+
-       |               stnd_firm   ticker   year                         firm |
-       |----------------------------------------------------------------------|
-   58. |             1ST BANCORP      FBP   2012                FIRST BANCORP |
-   60. |             1ST BANCORP      FBP   2013                FIRST BANCORP |
-   71. | 1ST BANCORP PUERTO RICO      FBP   2003   FIRST BANCORP. PUERTO RICO |
-   72. | 1ST BANCORP PUERTO RICO      FBP   2004   FIRST BANCORP. PUERTO RICO |
-   73. | 1ST BANCORP PUERTO RICO      FBP   2005   FIRST BANCORP. PUERTO RICO |
-       |----------------------------------------------------------------------|
-   74. | 1ST BANCORP PUERTO RICO      FBP   2006   FIRST BANCORP. PUERTO RICO |
-   75. | 1ST BANCORP PUERTO RICO      FBP   2007   FIRST BANCORP. PUERTO RICO |
-   76. | 1ST BANCORP PUERTO RICO      FBP   2008   FIRST BANCORP. PUERTO RICO |
-   77. | 1ST BANCORP PUERTO RICO      FBP   2009   FIRST BANCORP. PUERTO RICO |
-   78. | 1ST BANCORP PUERTO RICO      FBP   2010   FIRST BANCORP. PUERTO RICO |
-       |----------------------------------------------------------------------|
-   79. | 1ST BANCORP PUERTO RICO      FBP   2011   FIRST BANCORP. PUERTO RICO |
-       +----------------------------------------------------------------------+
-
-       +-----------------------------------------------------------------------+
-       |              stnd_firm   ticker   year                           firm |
-       |-----------------------------------------------------------------------|
-   57. |            1ST BANCORP     FBNC   2012              FIRST BANCORP INC |
-   61. |            1ST BANCORP     FBNC   2013              FIRST BANCORP INC |
-   62. | 1ST BANCORP N CAROLINA     FBNC   2003   FIRST BANCORP NORTH CAROLINA |
-   63. | 1ST BANCORP N CAROLINA     FBNC   2004   FIRST BANCORP NORTH CAROLINA |
-   64. | 1ST BANCORP N CAROLINA     FBNC   2005   FIRST BANCORP NORTH CAROLINA |
-       |-----------------------------------------------------------------------|
-   65. | 1ST BANCORP N CAROLINA     FBNC   2006   FIRST BANCORP NORTH CAROLINA |
-   66. | 1ST BANCORP N CAROLINA     FBNC   2007   FIRST BANCORP NORTH CAROLINA |
-   67. | 1ST BANCORP N CAROLINA     FBNC   2008   FIRST BANCORP NORTH CAROLINA |
-   68. | 1ST BANCORP N CAROLINA     FBNC   2009   FIRST BANCORP NORTH CAROLINA |
-   69. | 1ST BANCORP N CAROLINA     FBNC   2010   FIRST BANCORP NORTH CAROLINA |
-       |-----------------------------------------------------------------------|
-   70. | 1ST BANCORP N CAROLINA     FBNC   2011   FIRST BANCORP NORTH CAROLINA |
-       +-----------------------------------------------------------------------+
-
-       +--------------------------------------+
-       | stnd_f~m   ticker   year        firm |
-       |--------------------------------------|
-17922. |      FNB     FNBN   2003   FNB CORP. |
-       +--------------------------------------+
-
-       +-------------------------------------------------------+
-       |   stnd_firm   ticker   year                      firm |
-       |-------------------------------------------------------|
-   53. | 1ST BANCORP     FNLC   2008   THE FIRST BANCORP, INC. |
-   54. | 1ST BANCORP     FNLC   2009   THE FIRST BANCORP, INC. |
-   55. | 1ST BANCORP     FNLC   2010   THE FIRST BANCORP, INC. |
-   56. | 1ST BANCORP     FNLC   2011   THE FIRST BANCORP, INC. |
-   59. | 1ST BANCORP     FNLC   2012   THE FIRST BANCORP, INC. |
-       +-------------------------------------------------------+
-
-       +-------------------------------------------------------------------------+
-       |                  stnd_firm   ticker   year                         firm |
-       |-------------------------------------------------------------------------|
-45948. | UNITED SECURITY BANCSHARES     UBFO   2003   UNITED SECURITY BANCSHARES |
-45951. | UNITED SECURITY BANCSHARES     UBFO   2006   UNITED SECURITY BANCSHARES |
-45952. | UNITED SECURITY BANCSHARES     UBFO   2007   UNITED SECURITY BANCSHARES |
-45953. | UNITED SECURITY BANCSHARES     UBFO   2008   UNITED SECURITY BANCSHARES |
-45954. | UNITED SECURITY BANCSHARES     UBFO   2009   UNITED SECURITY BANCSHARES |
-       |-------------------------------------------------------------------------|
-45955. | UNITED SECURITY BANCSHARES     UBFO   2010   UNITED SECURITY BANCSHARES |
-       +-------------------------------------------------------------------------+
-
-       +-------------------------------------------------------------------------------+
-       |                  stnd_firm   ticker   year                               firm |
-       |-------------------------------------------------------------------------------|
-45949. | UNITED SECURITY BANCSHARES     USBI   2003   UNITED SECURITY BANCSHARES, INC. |
-45950. | UNITED SECURITY BANCSHARES     USBI   2005   UNITED SECURITY BANCSHARES, INC. |
-       +-------------------------------------------------------------------------------+
-*/
-replace stnd_firm = "1ST BANCORP PUERTO RICO" if ticker=="FBP"
-replace stnd_firm = "1ST BANCORP N CAROLINA" if ticker=="FBNC"
-replace stnd_firm = "FNBNY BANCORP" if ticker=="FNBN"
-replace stnd_firm = "THE 1ST BANCORP" if ticker=="FNLC"
-replace stnd_firm = "UNITED SECURITY BANCSHARES (CALIFORNIA)" if ticker=="UBFO"
-
-drop N
-bysort stnd_firm year: gen N=_N
-tab N
-/*
-
-          N |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          1 |     49,669      100.00      100.00
-------------+-----------------------------------
-      Total |     49,669      100.00
-*/
-drop N
-
-***	SAVE
-compress
-save data/mergefile-kld-cstat-barnett-salomon-tickers.dta, replace
-
-
-																				
-*/		
-
-
-
-***===================================***
-*										*
-*		Merge KLD-CSTAT with CSRHUB		*
-*										*
-***===================================***
-
-***	PREPARE DATA
-*use data/mergefile-kld-cstat-barnett-salomon-tickers.dta, clear
-/*	Merge variables
-		- firm:		stnd_firm		--> created using stnd_compname user program
-		- year: 	year
-*/
-
-use data/csrhub-all.dta, clear
-/*	Merge variables
-		- firm:		stnd_firm		--> created using stnd_compname user program
-		- year: 	year
-*/
-
-***	MERGE
-merge m:1 stnd_firm year using data/mergefile-kld-cstat-barnett-salomon-tickers.dta, gen(csrhub2kldcstat)
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                       803,010
-        from master                   771,399  (_merge==1)
-        from using                     31,611  (_merge==2)
-
-    matched                           194,478  (_merge==3)
-    -----------------------------------------
-*/
-
-***	SAVE
-save data/mergefile-kld-cstat-csrhub.dta, replace
-
-*	Export for OpenRefine cleaning
-*export delimited stnd_firm year firm firm_kld firm_cstat ticker tic_csrhub tic_kld ///
-*	using "D:\Dropbox\papers\active\dissertation-csrhub\project\data\openrefine-cleaning-kld-cstat-csrhub.csv", replace
-
-
-
-
-
-
-
-
-
-***===================***
-*	CLEAN MERGED DATA	*
-***===================***
-***	LOAD DATA
-use data/mergefile-kld-cstat-barnett-salomon-tickers.dta, clear
-
-***	GENERATE VARIABLES
-gen in_bs2012=(year>1997 & year < 2007)
-label var in_bs2012 "(KLD) =1 if part of sample used in Barnett & Salomon 2012 (SMJ)"
-
-*	Net KLD
-sum net_kld
-/*
-    Variable |        Obs        Mean    Std. Dev.       Min        Max
--------------+---------------------------------------------------------
-     net_kld |     49,669   -.1078741    2.425428        -12         19
-*/
-
-sum net_kld if in_bs==1
-/*
-    Variable |        Obs        Mean    Std. Dev.       Min        Max
--------------+---------------------------------------------------------
-     net_kld |     16,166   -.3785723    2.171536        -11         14
-
-Compare B&S2012			-->		my data
-Obs: 	not reported  	-->		16,166
-Mean:	-0.43			-->		-0.38
-Min:	-12				-->		-11
-Max:	 15				-->		 14
-*/
-
-gen net_kld_adj = net_kld + 12 if in_bs2012==1
-/*	Barnett & Salomon add an integer to net_kld to bring minimum to 0,
-	but their minimum value is -12, not -11 as I have	*/
-
-gen net_kld_adj_sq = net_kld_adj^2 
-
-label var net_kld_adj "(KLD) net_kld + 11 to make minimum = 0, replicating Barnett & Salomon 2012"
-label var net_kld_adj_sq "(KLD) net_kld_adj squared, replicating measure in Barnett & Salomon 2012"
-
-
-***	SAVE
-compress
-save data/kld-cstat-bs2012.dta, replace
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-***===============================***
-*									*
-*	USING EXACT STRING MATCHING		*
-*									*
-***===============================***
-
-
-
-
-
-
-
-
-***	MATCH KLD AND CSTAT TO CSRHUB ON UNIQUE STND_FIRM
-use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
-
-merge 1:1 stnd_firm using data\unique-stnd_firm-kld-stnd_firm-only.dta, gen(hub2kld)
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        14,256
-        from master                    11,001  (hub2kld==1)
-        from using                      3,255  (hub2kld==2)
-
-    matched                             6,425  (hub2kld==3)
-    -----------------------------------------
-*/
-
-merge 1:1 stnd_firm using data\unique-stnd_firm-cstat-stnd_firm-only.dta, gen(hubkld2cstat)
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        17,917
-        from master                    16,663  (hubkld2cstat==1)
-        from using                      1,254  (hubkld2cstat==2)
-
-    matched                             4,018  (hubkld2cstat==3)
-    -----------------------------------------
-*/
-tab hub2kld hubkld2cstat
-/*
-                      |     hubkld2cstat
-              hub2kld | master on  matched ( |     Total
-----------------------+----------------------+----------
-      master only (1) |    10,205        796 |    11,001 
-       using only (2) |     2,907        348 |     3,255 
-          matched (3) |     3,551      2,874 |     6,425 
-----------------------+----------------------+----------
-                Total |    16,663      4,018 |    20,681 
-
-*/
-
-keep stnd_firm firm_csrhub firm_kld firm_cstat id*
-order id*, last
-format %30s stnd_firm firm_*
-
-mark match_all
-markout match_all idcsrhub idkld idcstat
-label var match_all "=1 if stnd_firm matched across csrhub kld & cstat"
-
-mark match_hubkld
-markout match_hubkld idcsrhub idkld
-label var match_hubkld "=1 if stnd_firm matched across csrhub & kld"
-
-mark match_hubcstat
-markout match_hubcstat idcsrhub idcstat
-label var match_hubcstat "=1 if stnd_firm matched across csrhub & cstat"
-
-mark match_kldcstat
-markout match_kldcstat idkld idcstat
-label var match_kldcstat "=1 if stnd_firm matched across kld & cstat"
-
-*Save
-save data\crosswalk-csrhub-kld-cstat-stnd_firm.dta, replace
-
-*/
-
-
-
-
+restore
 
 
 
 
 
 /*
-
-***	MERGE STND_NAME CROSSWALK INTO EACH MASTER DATASET
-*	KLD
-use data\kld-all-clean.dta, clear
-merge m:1 stnd_firm using data\crosswalk-csrhub-kld-cstat-stnd_firm.dta
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        12,257
-        from master                         1  (_merge==1)
-        from using                     12,256  (_merge==2)
-
-    matched                            50,761  (_merge==3)
-    -----------------------------------------
-*/
-keep if _merge==3
-drop _merge firm_n
-order stnd_firm firm_*
-format %30s stnd_firm firm_* firm
-sort stnd_firm year
-compress
-
-bysort stnd_firm year: gen N=_N
-tab N
-/*
-          N |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          1 |     50,752       99.98       99.98
-          2 |          6        0.01       99.99
-          3 |          3        0.01      100.00
-------------+-----------------------------------
-      Total |     50,761      100.00
-*/
-
-*	Fix observations to prevent duplicate matches later
-sort stnd_firm ticker year
-replace stnd_firm="1ST BANCORP INC" if stnd_firm=="1ST BANCORP" & ticker=="FBNC"
-replace stnd_firm="THE 1ST BANCORP INC" if stnd_firm=="1ST BANCORP" & ticker=="FNLC"
-replace stnd_firm="FNB CORP" if stnd_firm=="FNB" & ticker=="FNBN"
-replace stnd_firm="UNITED SECURITY BANCSHARES INC" if stnd_firm=="UNITED SECURITY BANCSHARES" & ticker=="USBI"
-
-drop N
-bysort stnd_firm year: gen N=_N
-tab N
-/*
-
-          N |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          1 |     50,761      100.00      100.00
-------------+-----------------------------------
-      Total |     50,761      100.00
-*/
-drop N
-
-gen in_kld=1
-label var in_kld "=1 if in kld data"
-
-compress
-save data\kld-all-clean-with-stnd_firm-crosswalk.dta, replace
-
-
-
-*	CSTAT
-use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
-replace stnd_firm="STERLING BANCORP INC" if stnd_firm=="STERLING BANCORP" & cik=="0001680379"
-replace stnd_firm="UNION BANKSHARES INC" if stnd_firm=="UNION BANKSHARES" & gvkey=="111537"
-
-merge m:1 stnd_firm using data\crosswalk-csrhub-kld-cstat-stnd_firm.dta
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        16,752
-        from master                        88  (_merge==1)
-        from using                     16,664  (_merge==2)
-
-    matched                           105,382  (_merge==3)
-    -----------------------------------------
-
-*/
-keep if _merge==3
-order stnd_firm firm_*
-sort stnd_firm datadate
-drop _merge
-compress
-
-*change year from datadate to fiscal year
-drop year
-gen year=fyear
-replace year=year(datadate) if fyear==.
-
-bysort stnd_firm year: gen N=_N
-tab N
-/*
-
-          N |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          1 |     76,316       72.42       72.42
-          2 |     29,066       27.58      100.00
-------------+-----------------------------------
-      Total |    105,382      100.00
-
-
-*/
-tab N indfmt if N>1
-/*
-
-           |    Industry Format
-         N |        FS       INDL |     Total
------------+----------------------+----------
-         2 |    14,525     14,541 |    29,066 
------------+----------------------+----------
-     Total |    14,525     14,541 |    29,066 
-
-*/
-drop if indfmt=="FS"
-drop N
-bysort stnd_firm year: gen N=_N
-tab N
-/*
-          N |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          1 |     90,832       99.98       99.98
-          2 |         16        0.02      100.00
-------------+-----------------------------------
-      Total |     90,848      100.00
-
-*/
-drop if fyear==.
-drop N
-bysort stnd_firm year: gen N=_N
-tab N
-/*
-          N |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          1 |     90,601      100.00      100.00
-------------+-----------------------------------
-      Total |     90,601      100.00
-
-*/
-
-*create needed variables
-encode stnd_firm, gen(firm_n)
-xtset firm_n year, y
-gen roa = ni / at
-
-sort firm_n year
-by firm_n: gen lroa=roa[_n-1]
-
-*	Net income
-sort firm_n year
-by firm_n: gen lni=ni[_n-1]
-	
-*	Debt ratio
-gen debt = dltt / at
-
-*	R&D
-gen rd = xrd / sale
-
-*	Advertising
-gen ad = xad / sale
-
-label var roa "(CSTAT) Return on assets (ni / at)"
-label var lroa "(CSTAT) 1-year lagged roa"
-label var lni "(CSTAT) 1-year lagged ni"
-label var debt "(CSTAT) Debt ratio (dltt / at)"
-label var rd "(CSTAT) R&D expense by sales (xrd / sale)"
-label var ad "(CSTAT) Advertising expense by sales (xad / sale)"
-
-drop N
-
-gen in_cstat=1
-label var in_cstat "=1 if in compustat data"
-
-gen ym=ym(fyear,fyr)
-
-compress
-save data\cstat-all-clean-with-stnd_firm-crosswalk.dta, replace
-
-
-*	CSRHUB
-use data\csrhub-all.dta, clear
-merge m:1 stnd_firm using data\crosswalk-csrhub-kld-cstat-stnd_firm.dta
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                         4,539
-        from master                        28  (_merge==1)
-        from using                      4,511  (_merge==2)
-
-    matched                           965,849  (_merge==3)
-    -----------------------------------------
-
-*/
-keep if _merge==3
-order stnd_firm ym
-sort stnd_firm ym
-drop _merge firm_n ticker in_other_vars in_ovrl_enviro in_2017_update ///
-	in_csrhub row_id_csrhub entity_type
-compress
-
-gen in_csrhub=1
-label var in_csrhub "=1 if in csrhub data"
-
-compress
-save data\csrhub-all-clean-with-stnd_firm-crosswalk.dta, replace
-
-*/
-
-
-
-
-/*
-
-
-***	MERGE DATASETS TOGETHER ON STND_FIRM YM
-*	Merge CSTAT and KLD on stnd_firm year
-use data\cstat-all-clean-with-stnd_firm-crosswalk.dta, clear
-
-merge 1:1 stnd_firm year using data\kld-all-clean-with-stnd_firm-crosswalk.dta, nogen
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        86,248
-        from master                    63,044  (_merge==1)
-        from using                     23,204  (_merge==2)
-
-    matched                            27,557  (_merge==3)
-    -----------------------------------------
-*/
-replace ym=ym(year,12) if ym==. & in_kld==1										/* Assume KLD not matched with CSTAT is month 12	*/
-
-save data\cstat-2-kld-stnd_firm-year.dta, replace
-
-
-*	CSRhub with merged CSTAT-KLD on stnd_firm ym
-use data\csrhub-all-clean-with-stnd_firm-crosswalk.dta, clear
-
-bysort stnd_firm ym: gen N=_N
-tab N
-/*
-          N |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          1 |  1,051,911       99.84       99.84
-          2 |      1,716        0.16      100.00
-------------+-----------------------------------
-      Total |  1,053,627      100.00
-*/
-drop if N>1																		/*	Come back and fix this	*/
-drop N
-
-merge 1:1 stnd_firm ym using data\cstat-2-kld-stnd_firm-year.dta, nogen
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                     1,028,922
-        from master                   939,625  
-        from using                     89,297  
-
-    matched                            24,508  
-    -----------------------------------------
-*/
-drop firm_n
-order stnd_firm firm_*
-format stnd_firm firm_* %30s
-
-***	Set panel
-encode stnd_firm, gen(firm_n)
-xtset firm_n ym, m
-order stnd_firm ym
-
-*SAVE
-compress
-save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, replace
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-***===================================***
-*										*
-*	AND FUZZY MATCHING WITH MATCHIT		*
-*										*
-***===================================***
-
-
-
-/*	NOVEMBER 6 2018: THIS SECTION USING MATCHIT NEEDS WORK AND THEN TO BE COMBINED WITH THE 
-	data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-matches-clean.dta
-	DATASET TO INCREASE THE NUMBER OF MATCHES
-*/
-
-				***=============================***
-				***		IMPROVE THE MATCH		***
-				***		WITH THE MATCHIT ALGO	***
-				***=============================***
-capt n ssc install freqindex
-capt n ssc install matchit
-
-/***	CSRHub to CSTAT
-
-
 
 ***	Assess likely matches:
 use data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-all.dta, clear
@@ -2908,7 +2091,7 @@ idcsrhub	stnd_firm	idcstat	stnd_firm1	row
 16878	WEINGARTEN REALTY INVESTORS	5105	WEINGARTEN REALTY INVST	2549
 
 */
-
+*/
 
 ***	Create dataset of nonexact matches created in excel from the matches above
 import excel "data\data-matchit\matchit-csrhub-2-cstat-nonexact-matches.xlsx", ///
@@ -3027,6 +2210,862 @@ replace stnd_firm=matchitcsrhub
 
 compress
 save data\stnd_firm-csrhub-2-stnd_firm-cstat-matchit-nonexact.dta, replace
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+***	CREATE LIST OF UNIQUE TICKER-YEARS IN KLD DATA TO IMPROVE MERGE WITH CSTAT ON TICKER-YEAR
+use data/kld-all-clean.dta, clear
+keep firm ticker year cusip
+sort ticker year firm
+
+*	Fix #N/A tickers
+gen ch=(ticker=="#N/A")
+bysort firm: egen ch1=max(ch)
+replace ticker="" if ticker=="#N/A"
+gsort firm -ticker
+by firm: replace ticker=ticker[_n-1] if _n!=1 & ch1>0
+drop ch ch1
+
+*	Fix empty tickers
+replace ticker="ITCI" if firm=="INTRA-CELLULAR THERAPIES INC"
+replace ticker="FNBCQ" if firm=="FIRST NBC BANK HOLDING CO"
+replace ticker="BNHN" if firm=="BENIHANA INC"				/*	Acquired by private equity after 2012	*/
+drop if cusip=="82047101"									/*	Drop duplicate Benihana with different CUSIP	*/
+
+*	Keep unique ticker years
+bysort ticker year:gen N=_N
+drop if N>1
+drop N
+
+*	Rename variables
+rename cusip cusip_kld
+
+gen in_kld=1
+label var in_kld "(KLD) =1 if in KLD before merge with CSTAT"
+
+gen tic_kld = ticker
+gen firm_kld=firm
+
+*	Save
+compress
+save data/unique-ticker-years-in-kld-all.dta, replace
+
+
+***	MERGE KLD WITH CSTAT
+use data/unique-ticker-years-in-kld-all.dta, clear
+
+merge 1:1 ticker year using data/unique-ticker-years-in-cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                        74,874
+        from master                    16,874  (_merge==1)
+        from using                     58,000  (_merge==2)
+
+    matched                            32,795  (_merge==3)
+    -----------------------------------------
+*/
+drop if _merge==2
+drop _merge
+
+tempfile d1
+save `d1'
+
+use data/kld-all-clean.dta, clear
+
+
+*	Fix #N/A tickers
+gen ch=(ticker=="#N/A")
+bysort firm: egen ch1=max(ch)
+replace ticker="" if ticker=="#N/A"
+gsort firm -ticker
+by firm: replace ticker=ticker[_n-1] if _n!=1 & ch1>0
+drop ch ch1
+
+*	Fix empty tickers
+replace ticker="ITCI" if firm=="INTRA-CELLULAR THERAPIES INC"
+replace ticker="FNBCQ" if firm=="FIRST NBC BANK HOLDING CO"
+replace ticker="BNHN" if firm=="BENIHANA INC"				/*	Acquired by private equity after 2012	*/
+drop if cusip=="82047101"									/*	Drop duplicate Benihana with different CUSIP	*/
+
+merge m:1 ticker year using `d1'
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         1,093
+        from master                     1,093  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            49,669  (_merge==3)
+    -----------------------------------------
+*/
+keep if _merge==3
+drop _merge
+
+bysort ticker year: gen N=_N
+keep if N==1
+drop N
+
+***	STANDARDIZE FIRM NAME
+capt n ssc install stnd_compname												/* Install user program, but need
+																					to use search stnd_compname to find it, not ssc	*/
+stnd_compname firm, gen(stnd_firm entity_type)
+label var stnd_firm "KLD firm name standardized with stnd_compname user program"
+
+bysort stnd_firm year: gen N=_N
+tab N
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     49,660       99.98       99.98
+          2 |          6        0.01       99.99
+          3 |          3        0.01      100.00
+------------+-----------------------------------
+      Total |     49,669      100.00
+*/
+
+list stnd_firm ticker year net_kld N firm if N>1, sepby(stnd_firm year)
+/*
+       +---------------------------------------------------------------------------------------------+
+       |                  stnd_firm   ticker   year   net_kld   N                               firm |
+       |---------------------------------------------------------------------------------------------|
+   57. |                1ST BANCORP     FBNC   2012         2   3                  FIRST BANCORP INC |
+   58. |                1ST BANCORP      FBP   2012         0   3                      FIRST BANCORP |
+   59. |                1ST BANCORP     FNLC   2012         0   3            THE FIRST BANCORP, INC. |
+       |---------------------------------------------------------------------------------------------|
+   60. |                1ST BANCORP      FBP   2013         2   2                      FIRST BANCORP |
+   61. |                1ST BANCORP     FBNC   2013         0   2                  FIRST BANCORP INC |
+       |---------------------------------------------------------------------------------------------|
+17921. |                        FNB      FNB   2003        -1   2                 F.N.B. CORPORATION |
+17922. |                        FNB     FNBN   2003        -1   2                          FNB CORP. |
+       |---------------------------------------------------------------------------------------------|
+45948. | UNITED SECURITY BANCSHARES     UBFO   2003         0   2         UNITED SECURITY BANCSHARES |
+45949. | UNITED SECURITY BANCSHARES     USBI   2003         1   2   UNITED SECURITY BANCSHARES, INC. |
+       +---------------------------------------------------------------------------------------------+
+
+FNB is FNB Corporation
+FBP is a bank holding company for FirstBank Puerto Rico
+FBNC is a bank holding company for First Bank in North Carolina
+FNBN is a private firm named FNBNY Bancorp
+FNLC is a holding company for First National Bank
+UBFO is United Security Bancshares, a holding company for United Security Bank
+USBI appears to be an old Ticker for USB, US Bancshares, the holding company for First US Bank
+*/
+
+foreach ticker in FNB FBP FBNC FNBN FNLC UBFO USBI {
+	list stnd_firm ticker year firm if ticker=="`ticker'"
+}
+/*
+      +---------------------------------------------------------+
+       |   stnd_firm   ticker   year                        firm |
+       |---------------------------------------------------------|
+  113. | 1ST CHICAGO      FNB   1991   FIRST CHICAGO CORPORATION |
+  114. | 1ST CHICAGO      FNB   1992   FIRST CHICAGO CORPORATION |
+  115. | 1ST CHICAGO      FNB   1993   FIRST CHICAGO CORPORATION |
+  116. | 1ST CHICAGO      FNB   1994   FIRST CHICAGO CORPORATION |
+  117. | 1ST CHICAGO      FNB   1995   FIRST CHICAGO CORPORATION |
+       |---------------------------------------------------------|
+17921. |         FNB      FNB   2003          F.N.B. CORPORATION |
+17923. |         FNB      FNB   2004          F.N.B. CORPORATION |
+17924. |         FNB      FNB   2005          F.N.B. CORPORATION |
+17925. |         FNB      FNB   2006          F.N.B. CORPORATION |
+17926. |         FNB      FNB   2007          F.N.B. CORPORATION |
+       |---------------------------------------------------------|
+17927. |         FNB      FNB   2008          F.N.B. CORPORATION |
+17928. |         FNB      FNB   2009          F.N.B. CORPORATION |
+17929. |         FNB      FNB   2010          F.N.B. CORPORATION |
+17930. |         FNB      FNB   2011          F.N.B. CORPORATION |
+17931. |         FNB      FNB   2012          F.N.B. CORPORATION |
+       |---------------------------------------------------------|
+17932. |         FNB      FNB   2013          F.N.B. CORPORATION |
+17933. |         FNB      FNB   2014          F.N.B. CORPORATION |
+17934. |         FNB      FNB   2015          F.N.B. CORPORATION |
+       +---------------------------------------------------------+
+
+       +----------------------------------------------------------------------+
+       |               stnd_firm   ticker   year                         firm |
+       |----------------------------------------------------------------------|
+   58. |             1ST BANCORP      FBP   2012                FIRST BANCORP |
+   60. |             1ST BANCORP      FBP   2013                FIRST BANCORP |
+   71. | 1ST BANCORP PUERTO RICO      FBP   2003   FIRST BANCORP. PUERTO RICO |
+   72. | 1ST BANCORP PUERTO RICO      FBP   2004   FIRST BANCORP. PUERTO RICO |
+   73. | 1ST BANCORP PUERTO RICO      FBP   2005   FIRST BANCORP. PUERTO RICO |
+       |----------------------------------------------------------------------|
+   74. | 1ST BANCORP PUERTO RICO      FBP   2006   FIRST BANCORP. PUERTO RICO |
+   75. | 1ST BANCORP PUERTO RICO      FBP   2007   FIRST BANCORP. PUERTO RICO |
+   76. | 1ST BANCORP PUERTO RICO      FBP   2008   FIRST BANCORP. PUERTO RICO |
+   77. | 1ST BANCORP PUERTO RICO      FBP   2009   FIRST BANCORP. PUERTO RICO |
+   78. | 1ST BANCORP PUERTO RICO      FBP   2010   FIRST BANCORP. PUERTO RICO |
+       |----------------------------------------------------------------------|
+   79. | 1ST BANCORP PUERTO RICO      FBP   2011   FIRST BANCORP. PUERTO RICO |
+       +----------------------------------------------------------------------+
+
+       +-----------------------------------------------------------------------+
+       |              stnd_firm   ticker   year                           firm |
+       |-----------------------------------------------------------------------|
+   57. |            1ST BANCORP     FBNC   2012              FIRST BANCORP INC |
+   61. |            1ST BANCORP     FBNC   2013              FIRST BANCORP INC |
+   62. | 1ST BANCORP N CAROLINA     FBNC   2003   FIRST BANCORP NORTH CAROLINA |
+   63. | 1ST BANCORP N CAROLINA     FBNC   2004   FIRST BANCORP NORTH CAROLINA |
+   64. | 1ST BANCORP N CAROLINA     FBNC   2005   FIRST BANCORP NORTH CAROLINA |
+       |-----------------------------------------------------------------------|
+   65. | 1ST BANCORP N CAROLINA     FBNC   2006   FIRST BANCORP NORTH CAROLINA |
+   66. | 1ST BANCORP N CAROLINA     FBNC   2007   FIRST BANCORP NORTH CAROLINA |
+   67. | 1ST BANCORP N CAROLINA     FBNC   2008   FIRST BANCORP NORTH CAROLINA |
+   68. | 1ST BANCORP N CAROLINA     FBNC   2009   FIRST BANCORP NORTH CAROLINA |
+   69. | 1ST BANCORP N CAROLINA     FBNC   2010   FIRST BANCORP NORTH CAROLINA |
+       |-----------------------------------------------------------------------|
+   70. | 1ST BANCORP N CAROLINA     FBNC   2011   FIRST BANCORP NORTH CAROLINA |
+       +-----------------------------------------------------------------------+
+
+       +--------------------------------------+
+       | stnd_f~m   ticker   year        firm |
+       |--------------------------------------|
+17922. |      FNB     FNBN   2003   FNB CORP. |
+       +--------------------------------------+
+
+       +-------------------------------------------------------+
+       |   stnd_firm   ticker   year                      firm |
+       |-------------------------------------------------------|
+   53. | 1ST BANCORP     FNLC   2008   THE FIRST BANCORP, INC. |
+   54. | 1ST BANCORP     FNLC   2009   THE FIRST BANCORP, INC. |
+   55. | 1ST BANCORP     FNLC   2010   THE FIRST BANCORP, INC. |
+   56. | 1ST BANCORP     FNLC   2011   THE FIRST BANCORP, INC. |
+   59. | 1ST BANCORP     FNLC   2012   THE FIRST BANCORP, INC. |
+       +-------------------------------------------------------+
+
+       +-------------------------------------------------------------------------+
+       |                  stnd_firm   ticker   year                         firm |
+       |-------------------------------------------------------------------------|
+45948. | UNITED SECURITY BANCSHARES     UBFO   2003   UNITED SECURITY BANCSHARES |
+45951. | UNITED SECURITY BANCSHARES     UBFO   2006   UNITED SECURITY BANCSHARES |
+45952. | UNITED SECURITY BANCSHARES     UBFO   2007   UNITED SECURITY BANCSHARES |
+45953. | UNITED SECURITY BANCSHARES     UBFO   2008   UNITED SECURITY BANCSHARES |
+45954. | UNITED SECURITY BANCSHARES     UBFO   2009   UNITED SECURITY BANCSHARES |
+       |-------------------------------------------------------------------------|
+45955. | UNITED SECURITY BANCSHARES     UBFO   2010   UNITED SECURITY BANCSHARES |
+       +-------------------------------------------------------------------------+
+
+       +-------------------------------------------------------------------------------+
+       |                  stnd_firm   ticker   year                               firm |
+       |-------------------------------------------------------------------------------|
+45949. | UNITED SECURITY BANCSHARES     USBI   2003   UNITED SECURITY BANCSHARES, INC. |
+45950. | UNITED SECURITY BANCSHARES     USBI   2005   UNITED SECURITY BANCSHARES, INC. |
+       +-------------------------------------------------------------------------------+
+*/
+replace stnd_firm = "1ST BANCORP PUERTO RICO" if ticker=="FBP"
+replace stnd_firm = "1ST BANCORP N CAROLINA" if ticker=="FBNC"
+replace stnd_firm = "FNBNY BANCORP" if ticker=="FNBN"
+replace stnd_firm = "THE 1ST BANCORP" if ticker=="FNLC"
+replace stnd_firm = "UNITED SECURITY BANCSHARES (CALIFORNIA)" if ticker=="UBFO"
+
+drop N
+bysort stnd_firm year: gen N=_N
+tab N
+/*
+
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     49,669      100.00      100.00
+------------+-----------------------------------
+      Total |     49,669      100.00
+*/
+drop N
+
+***	SAVE
+compress
+save data/mergefile-kld-cstat-barnett-salomon-tickers.dta, replace
+
+
+																				
+*/		
+
+
+
+***===================================***
+*										*
+*		Merge KLD-CSTAT with CSRHUB		*
+*										*
+***===================================***
+
+***	PREPARE DATA
+*use data/mergefile-kld-cstat-barnett-salomon-tickers.dta, clear
+/*	Merge variables
+		- firm:		stnd_firm		--> created using stnd_compname user program
+		- year: 	year
+*/
+
+use data/csrhub-all.dta, clear
+/*	Merge variables
+		- firm:		stnd_firm		--> created using stnd_compname user program
+		- year: 	year
+*/
+
+***	MERGE
+merge m:1 stnd_firm year using data/mergefile-kld-cstat-barnett-salomon-tickers.dta, gen(csrhub2kldcstat)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       803,010
+        from master                   771,399  (_merge==1)
+        from using                     31,611  (_merge==2)
+
+    matched                           194,478  (_merge==3)
+    -----------------------------------------
+*/
+
+***	SAVE
+save data/mergefile-kld-cstat-csrhub.dta, replace
+
+*	Export for OpenRefine cleaning
+*export delimited stnd_firm year firm firm_kld firm_cstat ticker tic_csrhub tic_kld ///
+*	using "D:\Dropbox\papers\active\dissertation-csrhub\project\data\openrefine-cleaning-kld-cstat-csrhub.csv", replace
+
+
+
+
+
+
+
+
+
+***===================***
+*	CLEAN MERGED DATA	*
+***===================***
+***	LOAD DATA
+use data/mergefile-kld-cstat-barnett-salomon-tickers.dta, clear
+
+***	GENERATE VARIABLES
+gen in_bs2012=(year>1997 & year < 2007)
+label var in_bs2012 "(KLD) =1 if part of sample used in Barnett & Salomon 2012 (SMJ)"
+
+*	Net KLD
+sum net_kld
+/*
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+     net_kld |     49,669   -.1078741    2.425428        -12         19
+*/
+
+sum net_kld if in_bs==1
+/*
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+     net_kld |     16,166   -.3785723    2.171536        -11         14
+
+Compare B&S2012			-->		my data
+Obs: 	not reported  	-->		16,166
+Mean:	-0.43			-->		-0.38
+Min:	-12				-->		-11
+Max:	 15				-->		 14
+*/
+
+gen net_kld_adj = net_kld + 12 if in_bs2012==1
+/*	Barnett & Salomon add an integer to net_kld to bring minimum to 0,
+	but their minimum value is -12, not -11 as I have	*/
+
+gen net_kld_adj_sq = net_kld_adj^2 
+
+label var net_kld_adj "(KLD) net_kld + 11 to make minimum = 0, replicating Barnett & Salomon 2012"
+label var net_kld_adj_sq "(KLD) net_kld_adj squared, replicating measure in Barnett & Salomon 2012"
+
+
+***	SAVE
+compress
+save data/kld-cstat-bs2012.dta, replace
+
+
+
+
+
+
+
+
+
+
+
+***===============================***
+*									*
+*	USING EXACT STRING MATCHING		*
+*									*
+***===============================***
+
+
+
+
+
+
+
+
+***	MATCH KLD AND CSTAT TO CSRHUB ON UNIQUE STND_FIRM
+use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
+
+merge 1:1 stnd_firm using data\unique-stnd_firm-kld-stnd_firm-only.dta, gen(hub2kld)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        14,256
+        from master                    11,001  (hub2kld==1)
+        from using                      3,255  (hub2kld==2)
+
+    matched                             6,425  (hub2kld==3)
+    -----------------------------------------
+*/
+
+merge 1:1 stnd_firm using data\unique-stnd_firm-cstat-stnd_firm-only.dta, gen(hubkld2cstat)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        17,917
+        from master                    16,663  (hubkld2cstat==1)
+        from using                      1,254  (hubkld2cstat==2)
+
+    matched                             4,018  (hubkld2cstat==3)
+    -----------------------------------------
+*/
+tab hub2kld hubkld2cstat
+/*
+                      |     hubkld2cstat
+              hub2kld | master on  matched ( |     Total
+----------------------+----------------------+----------
+      master only (1) |    10,205        796 |    11,001 
+       using only (2) |     2,907        348 |     3,255 
+          matched (3) |     3,551      2,874 |     6,425 
+----------------------+----------------------+----------
+                Total |    16,663      4,018 |    20,681 
+
+*/
+
+keep stnd_firm firm_csrhub firm_kld firm_cstat id*
+order id*, last
+format %30s stnd_firm firm_*
+
+mark match_all
+markout match_all idcsrhub idkld idcstat
+label var match_all "=1 if stnd_firm matched across csrhub kld & cstat"
+
+mark match_hubkld
+markout match_hubkld idcsrhub idkld
+label var match_hubkld "=1 if stnd_firm matched across csrhub & kld"
+
+mark match_hubcstat
+markout match_hubcstat idcsrhub idcstat
+label var match_hubcstat "=1 if stnd_firm matched across csrhub & cstat"
+
+mark match_kldcstat
+markout match_kldcstat idkld idcstat
+label var match_kldcstat "=1 if stnd_firm matched across kld & cstat"
+
+*Save
+save data\crosswalk-csrhub-kld-cstat-stnd_firm.dta, replace
+
+*/
+
+
+
+
+
+
+
+
+
+/*
+
+***	MERGE STND_NAME CROSSWALK INTO EACH MASTER DATASET
+*	KLD
+use data\kld-all-clean.dta, clear
+merge m:1 stnd_firm using data\crosswalk-csrhub-kld-cstat-stnd_firm.dta
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        12,257
+        from master                         1  (_merge==1)
+        from using                     12,256  (_merge==2)
+
+    matched                            50,761  (_merge==3)
+    -----------------------------------------
+*/
+keep if _merge==3
+drop _merge firm_n
+order stnd_firm firm_*
+format %30s stnd_firm firm_* firm
+sort stnd_firm year
+compress
+
+bysort stnd_firm year: gen N=_N
+tab N
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     50,752       99.98       99.98
+          2 |          6        0.01       99.99
+          3 |          3        0.01      100.00
+------------+-----------------------------------
+      Total |     50,761      100.00
+*/
+
+*	Fix observations to prevent duplicate matches later
+sort stnd_firm ticker year
+replace stnd_firm="1ST BANCORP INC" if stnd_firm=="1ST BANCORP" & ticker=="FBNC"
+replace stnd_firm="THE 1ST BANCORP INC" if stnd_firm=="1ST BANCORP" & ticker=="FNLC"
+replace stnd_firm="FNB CORP" if stnd_firm=="FNB" & ticker=="FNBN"
+replace stnd_firm="UNITED SECURITY BANCSHARES INC" if stnd_firm=="UNITED SECURITY BANCSHARES" & ticker=="USBI"
+
+drop N
+bysort stnd_firm year: gen N=_N
+tab N
+/*
+
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     50,761      100.00      100.00
+------------+-----------------------------------
+      Total |     50,761      100.00
+*/
+drop N
+
+gen in_kld=1
+label var in_kld "=1 if in kld data"
+
+compress
+save data\kld-all-clean-with-stnd_firm-crosswalk.dta, replace
+
+
+
+
+
+
+
+
+
+*	CSRHUB
+use data\csrhub-all.dta, clear
+merge m:1 stnd_firm using data\crosswalk-csrhub-kld-cstat-stnd_firm.dta
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                         4,539
+        from master                        28  (_merge==1)
+        from using                      4,511  (_merge==2)
+
+    matched                           965,849  (_merge==3)
+    -----------------------------------------
+
+*/
+keep if _merge==3
+order stnd_firm ym
+sort stnd_firm ym
+drop _merge firm_n ticker in_other_vars in_ovrl_enviro in_2017_update ///
+	in_csrhub row_id_csrhub entity_type
+compress
+
+gen in_csrhub=1
+label var in_csrhub "=1 if in csrhub data"
+
+compress
+save data\csrhub-all-clean-with-stnd_firm-crosswalk.dta, replace
+
+
+
+
+
+
+
+
+
+
+
+*	CSTAT
+use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
+replace stnd_firm="STERLING BANCORP INC" if stnd_firm=="STERLING BANCORP" & cik=="0001680379"
+replace stnd_firm="UNION BANKSHARES INC" if stnd_firm=="UNION BANKSHARES" & gvkey=="111537"
+
+merge m:1 stnd_firm using data\crosswalk-csrhub-kld-cstat-stnd_firm.dta
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        16,752
+        from master                        88  (_merge==1)
+        from using                     16,664  (_merge==2)
+
+    matched                           105,382  (_merge==3)
+    -----------------------------------------
+
+*/
+keep if _merge==3
+order stnd_firm firm_*
+sort stnd_firm datadate
+drop _merge
+compress
+
+*change year from datadate to fiscal year
+drop year
+gen year=fyear
+replace year=year(datadate) if fyear==.
+
+bysort stnd_firm year: gen N=_N
+tab N
+/*
+
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     76,316       72.42       72.42
+          2 |     29,066       27.58      100.00
+------------+-----------------------------------
+      Total |    105,382      100.00
+
+
+*/
+tab N indfmt if N>1
+/*
+
+           |    Industry Format
+         N |        FS       INDL |     Total
+-----------+----------------------+----------
+         2 |    14,525     14,541 |    29,066 
+-----------+----------------------+----------
+     Total |    14,525     14,541 |    29,066 
+
+*/
+drop if indfmt=="FS"
+drop N
+bysort stnd_firm year: gen N=_N
+tab N
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     90,832       99.98       99.98
+          2 |         16        0.02      100.00
+------------+-----------------------------------
+      Total |     90,848      100.00
+
+*/
+drop if fyear==.
+drop N
+bysort stnd_firm year: gen N=_N
+tab N
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     90,601      100.00      100.00
+------------+-----------------------------------
+      Total |     90,601      100.00
+
+*/
+
+*create needed variables
+encode stnd_firm, gen(firm_n)
+xtset firm_n year, y
+gen roa = ni / at
+
+sort firm_n year
+by firm_n: gen lroa=roa[_n-1]
+
+*	Net income
+sort firm_n year
+by firm_n: gen lni=ni[_n-1]
+	
+*	Debt ratio
+gen debt = dltt / at
+
+*	R&D
+gen rd = xrd / sale
+
+*	Advertising
+gen ad = xad / sale
+
+label var roa "(CSTAT) Return on assets (ni / at)"
+label var lroa "(CSTAT) 1-year lagged roa"
+label var lni "(CSTAT) 1-year lagged ni"
+label var debt "(CSTAT) Debt ratio (dltt / at)"
+label var rd "(CSTAT) R&D expense by sales (xrd / sale)"
+label var ad "(CSTAT) Advertising expense by sales (xad / sale)"
+
+drop N
+
+gen in_cstat=1
+label var in_cstat "=1 if in compustat data"
+
+gen ym=ym(fyear,fyr)
+
+compress
+save data\cstat-all-clean-with-stnd_firm-crosswalk.dta, replace
+
+
+
+
+*/
+
+
+
+
+/*
+
+
+***	MERGE DATASETS TOGETHER ON STND_FIRM YM
+*	Merge CSTAT and KLD on stnd_firm year
+use data\cstat-all-clean-with-stnd_firm-crosswalk.dta, clear
+
+merge 1:1 stnd_firm year using data\kld-all-clean-with-stnd_firm-crosswalk.dta, nogen
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        86,248
+        from master                    63,044  (_merge==1)
+        from using                     23,204  (_merge==2)
+
+    matched                            27,557  (_merge==3)
+    -----------------------------------------
+*/
+replace ym=ym(year,12) if ym==. & in_kld==1										/* Assume KLD not matched with CSTAT is month 12	*/
+
+save data\cstat-2-kld-stnd_firm-year.dta, replace
+
+
+*	CSRhub with merged CSTAT-KLD on stnd_firm ym
+use data\csrhub-all-clean-with-stnd_firm-crosswalk.dta, clear
+
+bysort stnd_firm ym: gen N=_N
+tab N
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |  1,051,911       99.84       99.84
+          2 |      1,716        0.16      100.00
+------------+-----------------------------------
+      Total |  1,053,627      100.00
+*/
+drop if N>1																		/*	Come back and fix this	*/
+drop N
+
+merge 1:1 stnd_firm ym using data\cstat-2-kld-stnd_firm-year.dta, nogen
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                     1,028,922
+        from master                   939,625  
+        from using                     89,297  
+
+    matched                            24,508  
+    -----------------------------------------
+*/
+drop firm_n
+order stnd_firm firm_*
+format stnd_firm firm_* %30s
+
+***	Set panel
+encode stnd_firm, gen(firm_n)
+xtset firm_n ym, m
+order stnd_firm ym
+
+*SAVE
+compress
+save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, replace
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+***===================================***
+*										*
+*	AND FUZZY MATCHING WITH MATCHIT		*
+*										*
+***===================================***
+
+
+
+/*	NOVEMBER 6 2018: THIS SECTION USING MATCHIT NEEDS WORK AND THEN TO BE COMBINED WITH THE 
+	data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-matches-clean.dta
+	DATASET TO INCREASE THE NUMBER OF MATCHES
+*/
+
+				***=============================***
+				***		IMPROVE THE MATCH		***
+				***		WITH THE MATCHIT ALGO	***
+				***=============================***
+capt n ssc install freqindex
+capt n ssc install matchit
+
+/***	CSRHub to CSTAT
+
+
+
+
 
 
 
