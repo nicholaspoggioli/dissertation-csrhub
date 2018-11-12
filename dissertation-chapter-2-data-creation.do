@@ -66,7 +66,7 @@ set more off
 *	Nicholas Poggioli downloaded all data for all firms 		*
 *	from WRDS in February 2017 as kld-all-data.dta				*
 ***===========================================================***
-
+/*
 *** IMPORT DATA
 use data\all-available-kld-data-from-wrds-downloaded-20180212.dta, clear
 
