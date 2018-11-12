@@ -1090,12 +1090,6 @@ restore
 
 
 
-
-
-
-
-
-
 ***=======================================================================***
 *	MERGE CSTAT AND KLD USING ONLY UNIQUE TICKER-YEARS FROM EACH DATASET	*
 *	By: Nicholas Poggioli poggi005@umn.edu									*
@@ -1598,25 +1592,6 @@ save data/kld-cstat-bs2012.dta, replace
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ***===============================***
 *									*
 *	USING EXACT STRING MATCHING		*
@@ -1661,10 +1636,6 @@ label var firm_cstat "firm name in cstat-annual-csrhub-tickers-barnett-salomon-2
 
 gen year=year(datadate)
 
-compress
-
-*/
-
 *	Keep unique stnd_firm
 use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
 bysort stnd_firm: gen n=_n
@@ -1684,7 +1655,6 @@ gen idcstat=_n
 label var idcstat "unique row id for unique stnd_firm in cstat"
 compress
 save data\unique-stnd_firm-cstat-stnd_firm-only.dta, replace
-export delimited using data\unique-stnd_firm-cstat.csv, replace
 
 
 ***	UNIQUE STND_FIRM IN CSRHUB
@@ -1706,12 +1676,6 @@ gen idcsrhub=_n
 label var idcsrhub "unique row id for unique stnd_firm in csrhub data"
 compress
 save data\unique-stnd_firm-csrhub-stnd_firm-only.dta, replace
-export delimited using data\unique-stnd_firm-csrhub.csv, replace
-
-
-
-
-
 
 
 ***	MATCH KLD AND CSTAT TO CSRHUB ON UNIQUE STND_FIRM
