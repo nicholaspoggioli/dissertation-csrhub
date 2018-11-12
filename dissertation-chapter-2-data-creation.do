@@ -5,8 +5,8 @@
 *Purpose: Analyze KLD and CSRHub data
 ********************************************************************************
 
-
-/***
+/*
+***
 DATA CREATION AND CLEANING
 	KLD Data
 	Compustat Data
@@ -66,7 +66,7 @@ set more off
 *	Nicholas Poggioli downloaded all data for all firms 		*
 *	from WRDS in February 2017 as kld-all-data.dta				*
 ***===========================================================***
-/*
+
 *** IMPORT DATA
 use data\all-available-kld-data-from-wrds-downloaded-20180212.dta, clear
 
@@ -286,12 +286,44 @@ label var firm_kld "firm name in kld-all-clean.dta"
 replace stnd_firm="SPIRE CORP" if stnd_firm=="SPIRE"
 
 *	Keep unique stnd_firm
+preserve
 bysort stnd_firm: gen n=_n
+tab n
+/*
+          n |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      9,680       19.07       19.07
+          2 |      7,823       15.41       34.48
+          3 |      4,822        9.50       43.98
+          4 |      4,168        8.21       52.19
+          5 |      3,547        6.99       59.18
+          6 |      3,169        6.24       65.42
+          7 |      2,809        5.53       70.95
+          8 |      2,532        4.99       75.94
+          9 |      2,232        4.40       80.34
+         10 |      1,910        3.76       84.10
+         11 |      1,622        3.20       87.30
+         12 |      1,421        2.80       90.10
+         13 |      1,237        2.44       92.53
+         14 |        743        1.46       94.00
+         15 |        598        1.18       95.18
+         16 |        393        0.77       95.95
+         17 |        344        0.68       96.63
+         18 |        305        0.60       97.23
+         19 |        272        0.54       97.76
+         20 |        245        0.48       98.25
+         21 |        224        0.44       98.69
+         22 |        187        0.37       99.06
+         23 |        176        0.35       99.40
+         24 |        160        0.32       99.72
+         25 |        143        0.28      100.00
+------------+-----------------------------------
+      Total |     50,762      100.00
+*/
 keep if n==1
 drop n
 
 *	Save unique stnd_firm names
-preserve
 keep stnd_firm firm_kld
 sort stnd_firm
 gen idkld=_n
@@ -330,7 +362,7 @@ save data\kld-all-clean.dta, replace
 *     cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta 	*
 ***===================================================================***
 
-*	CODE TO CONVERT RAW .CSVS TO STATSETS, LAST RUN MARCH 2, 2018 (LINES 39 - 474)
+/*	CODE TO CONVERT RAW .CSVS TO STATSETS, LAST RUN MARCH 2, 2018 (LINES 39 - 474)
 
 			***===========================================***
 			*												*
@@ -1147,6 +1179,7 @@ restore
 
 
 ***	Fuzzy string matching CSRHub to KLD
+/*
 use data\unique-stnd_firm-csrhub-stnd_firm-only.dta, clear
 
 capt n ssc install matchit
@@ -1167,7 +1200,6 @@ drop simmax n
 compress
 save data\stnd_firm-csrhub-2-stnd_firm-kld-matchit-all.dta, replace
 
-
 *Save dataset of exact matches
 preserve
 keep if similscore==1
@@ -1175,7 +1207,7 @@ keep if similscore==1
 compress
 save data\stnd_firm-csrhub-2-stnd_firm-kld-matchit-exact.dta, replace
 restore
-
+*/
 
 /*
 
@@ -2229,11 +2261,6 @@ save data\stnd_firm-csrhub-2-stnd_firm-kld-matchit-nonexact.dta, replace
 
 
 
-
-
-
-
-
 ***=======================================================================***
 *	MERGE CSTAT AND KLD USING ONLY UNIQUE TICKER-YEARS FROM EACH DATASET	*
 *	By: Nicholas Poggioli poggi005@umn.edu									*
@@ -2270,11 +2297,6 @@ foreach var of varlist * {
  }
  
  
-*Create stnd_firm standardized firm name using stnd_compname user package
-*search stnd_compname
-capt n drop stnd_firm entity_type
-stnd_compname conm, gen(stnd_firm entity_type)
-
 label var firm_cstat "firm name in cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta"
  
 
@@ -3400,9 +3422,6 @@ keep if N==1
 drop N
 
 ***	STANDARDIZE FIRM NAME
-capt n ssc install stnd_compname												/* Install user program, but need
-																					to use search stnd_compname to find it, not ssc	*/
-stnd_compname firm, gen(stnd_firm entity_type)
 label var stnd_firm "KLD firm name standardized with stnd_compname user program"
 
 bysort stnd_firm year: gen N=_N
