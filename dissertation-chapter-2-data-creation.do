@@ -1162,6 +1162,7 @@ restore
 ***	CREATE LIST OF UNIQUE TICKER-YEARS IN CSTAT TO IMPROVE MERGE WITH KLD
 capt n use data/cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
 rename tic ticker
+capt n drop year
 gen year=fyear
 drop if indfmt=="FS"
 bysort ticker conm year: gen n=_n
@@ -1187,9 +1188,17 @@ foreach var of varlist * {
     local lab `: var label `var''
     label var `var' "(CSTAT) `lab'"
  }
+ 
+ 
+*Create stnd_firm standardized firm name using stnd_compname user package
+*search stnd_compname
+capt n drop stnd_firm entity_type
+stnd_compname conm, gen(stnd_firm entity_type)
+
+label var firm_cstat "firm name in cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta"
+ 
 
 ***	GENERATE VARIABLES
-gen firm_cstat=conm
 encode firm_cstat, gen(firm_n)
 rename conm firm
 
@@ -1235,9 +1244,54 @@ label var year "(CSTAT) Fiscal year"
 label var in_cstat "(CSTAT) =1 if in CSTAT before merge with KLD"
 label var naics_n "(CSTAT) NAICS encoded as numeric"
 
+
+*	Keep unique stnd_firm
+preserve
+use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
+bysort stnd_firm: gen n=_n
+keep if n==1
+drop n
+
+*	Fix observations to prevent duplicate matches later
+replace stnd_firm="SPIRE CORP" if stnd_firm=="SPIRE"
+replace stnd_firm="STERLING BANCORP INC" if stnd_firm=="STERLING BANCORP" & cik=="0001680379"
+
+*	Save
+compress
+save data\unique-stnd_firm-cstat.dta, replace
+keep stnd_firm firm_cstat
+sort stnd_firm
+gen idcstat=_n
+label var idcstat "unique row id for unique stnd_firm in cstat"
+compress
+save data\unique-stnd_firm-cstat-stnd_firm-only.dta, replace
+restore
+
+
 ***	SAVE
 compress
 save data/unique-ticker-years-in-cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, replace
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1641,37 +1695,7 @@ save data/kld-cstat-bs2012.dta, replace
 ***===============================***
 
 
-***	UNIQUE STND_FIRM IN CSTAT
-use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
 
-*Create stnd_firm standardized firm name using stnd_compname user package
-*search stnd_compname
-stnd_compname conm, gen(stnd_firm entity_type)
-
-gen firm_cstat=conm
-label var firm_cstat "firm name in cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta"
-
-gen year=year(datadate)
-
-*	Keep unique stnd_firm
-use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
-bysort stnd_firm: gen n=_n
-keep if n==1
-drop n
-
-*	Fix observations to prevent duplicate matches later
-replace stnd_firm="SPIRE CORP" if stnd_firm=="SPIRE"
-replace stnd_firm="STERLING BANCORP INC" if stnd_firm=="STERLING BANCORP" & cik=="0001680379"
-
-*	Save
-compress
-save data\unique-stnd_firm-cstat.dta, replace
-keep stnd_firm firm_cstat
-sort stnd_firm
-gen idcstat=_n
-label var idcstat "unique row id for unique stnd_firm in cstat"
-compress
-save data\unique-stnd_firm-cstat-stnd_firm-only.dta, replace
 
 
 ***	UNIQUE STND_FIRM IN CSRHUB
