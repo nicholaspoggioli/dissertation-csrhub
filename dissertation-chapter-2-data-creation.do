@@ -611,6 +611,7 @@ save "data/data-csrhub/csrhub-raw/OTHER-VARIABLES-ALL.dta", replace
 
 
 ***	CSRHub+Dashboard+CSR_ESG+Research--2017-06-12-updating data from march 2017 to sept 2017-________.csv
+clear
 set more off
 local files : dir "data/data-csrhub/csrhub-raw/" files "*updating data*.csv"
 
@@ -805,8 +806,6 @@ tab n
 drop if n>1
 drop N n
 
-*	Rename variables for appending to other CSRHub datasets
-rename (isin ticker) (ISIN Ticker)
 
 *	e)	Save
 gen in_2017_update=1
@@ -852,7 +851,7 @@ merge 1:1 firm date using "data/data-csrhub/csrhub-raw/OTHER-VARIABLES-ALL.dta",
 append using "data/data-csrhub/csrhub-raw/UPDATE-2017.dta"
 
 bysort firm date: gen N=_N
-tab N
+tab N																			
 /*
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
@@ -996,9 +995,6 @@ gen csrhub_cl = (date=="December2008")
 label var csrhub_cl "(CSRHub) =1 if firm in first year-month of CSRHub data (left censor)"
 
 *	Rename and order
-rename Ticker ticker
-rename ISIN isin
-
 order in_*, last
 
 *	Label data
@@ -1052,7 +1048,7 @@ keep firm
 bysort firm: gen n=_n
 keep if n==1
 drop n
-capt n search stnd_compname												/*	Installing user-created package	*/
+*search stnd_compname												/*	Installing user-created package	*/
 stnd_compname firm, gen(stnd_firm entity_type)
 tempfile d1
 save `d1'
@@ -1066,10 +1062,14 @@ merge m:1 firm using `d1', nogen
     -----------------------------------------
 */
 
+gen firm_csrhub=firm
+label var firm_csrhub "firm name in csrhub-all.dta"
+
 *	Save
 compress
 save data/csrhub-all.dta, replace
 
+/*
 * 	Create CSRHub year-level datasets aggregating by mean and median
 preserve
 foreach variable of varlist *_rtg {
@@ -1087,7 +1087,6 @@ collapse (median) *_rtg_p50, by(stnd_firm year) fast
 save data\csrhub-all-p50-year-level.dta, replace
 restore
 */
-
 
 
 
@@ -1623,7 +1622,7 @@ save data/kld-cstat-bs2012.dta, replace
 *	USING EXACT STRING MATCHING		*
 *									*
 ***===============================***
-***	UNIQUE STND_FIRM IN KLD
+/***	UNIQUE STND_FIRM IN KLD
 use data\kld-all-clean.dta, clear
 
 *	Create stnd_firm standardized firm name using stnd_compname user package
@@ -1642,21 +1641,16 @@ keep if n==1
 drop n
 
 *	Save
-compress
-save data\unique-stnd_firm-kld.dta, replace
-
 keep stnd_firm firm_kld
 sort stnd_firm
 gen idkld=_n
 label var idkld "unique row id for unique stnd_firm in kld data"
 compress
 save data\unique-stnd_firm-kld-stnd_firm-only.dta, replace
-export delimited using data\unique-stnd_firm-kld.csv, replace
-
-
+*/
 
 ***	UNIQUE STND_FIRM IN CSTAT
-/*use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
+use data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, clear
 
 *Create stnd_firm standardized firm name using stnd_compname user package
 *search stnd_compname
@@ -1668,7 +1662,7 @@ label var firm_cstat "firm name in cstat-annual-csrhub-tickers-barnett-salomon-2
 gen year=year(datadate)
 
 compress
-save data\cstat-annual-csrhub-tickers-barnett-salomon-2012-variables.dta, replace
+
 */
 
 *	Keep unique stnd_firm
@@ -1694,19 +1688,6 @@ export delimited using data\unique-stnd_firm-cstat.csv, replace
 
 
 ***	UNIQUE STND_FIRM IN CSRHUB
-/*use data/csrhub-all.dta, clear
-
-*	Create stnd_firm standardized firm name using stnd_compname user package
-*search stnd_compname
-capt n stnd_compname firm, gen(stnd_firm entity_type)
-
-gen firm_csrhub=firm
-label var firm_csrhub "firm name in csrhub-all.dta"
-
-compress
-save data\csrhub-all.dta, replace
-*/
-
 *	Keep unique stnd_firm
 use data\csrhub-all.dta, clear
 bysort stnd_firm: gen n=_n
@@ -2081,6 +2062,43 @@ compress
 save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, replace
 
 */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
