@@ -4073,11 +4073,21 @@ save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, 
 
 
 
+***===============================***
+*									*
+*	Merge with existing kld-cstat-bs2012.dta		*
+*									*
+***===============================***
 
+use data/kld-cstat-bs2012.dta, clear
 
+*create matching variables for data/csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta
+gen month=fyr
+replace month=12 if month==.
+gen ym = ym(year,month)
 
-
-
+*merge
+merge 1:1 stnd_firm ym using data/csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta
 
 
 
