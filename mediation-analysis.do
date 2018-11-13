@@ -1,5 +1,5 @@
 capt log close
-log using logs\mediation-analysis-2.txt, text replace
+log using logs\mediation-analysis-20181113.txt, text replace
 
 
 				***=============================***
