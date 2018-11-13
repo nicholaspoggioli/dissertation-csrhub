@@ -433,6 +433,13 @@ keep cusip
 export delimited data/unique-cusips-in-kld.txt, replace novarnames
 restore
 
+***	Fix CUSIP length in full data
+gen len=length(cusip)
+replace cusip = "00" + cusip if len==6
+replace cusip = "0" + cusip if len==7
+replace cusip="" if len < 6
+drop len
+
 ***	SAVE
 compress
 label data "KLD Data 1991 - 2015 downloaded Feb 12, 2018 by poggi005@umn.edu"
@@ -3750,7 +3757,10 @@ merge m:1 stnd_firm year using data/mergefile-kld-cstat-barnett-salomon-tickers.
     -----------------------------------------
 */
 
+drop cusip firm_n
+
 ***	SAVE
+compress
 save data/mergefile-kld-cstat-csrhub.dta, replace
 
 *	Export for OpenRefine cleaning
