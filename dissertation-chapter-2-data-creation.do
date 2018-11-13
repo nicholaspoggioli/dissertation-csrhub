@@ -905,6 +905,7 @@ merge 1:1 firm date using "data/data-csrhub/csrhub-raw/OTHER-VARIABLES-ALL.dta",
 */
 
 *	Merge data update
+rename (ISIN Ticker) (isin ticker)
 append using "data/data-csrhub/csrhub-raw/UPDATE-2017.dta"
 
 bysort firm date: gen N=_N
@@ -985,7 +986,7 @@ order firm date board_rtg cmty_rtg com_dev_phl_rtg comp_ben_rtg div_lab_rtg ///
 	emp_rtg enrgy_climchge_rtg enviro_pol_rpt_rtg enviro_rtg gov_rtg ///
 	humrts_supchain_rtg industry_avg_rtg ///
 	ldrship_ethics_rtg over_pct_rank over_rtg prod_rtg resource_mgmt_rtg ///
-	train_hlth_safe_rtg trans_report_rtg Ticker ISIN country industry datenum month year ///
+	train_hlth_safe_rtg trans_report_rtg ticker isin country industry datenum month year ///
 	in_other_vars in_ovrl_enviro 
 
 *Label
@@ -1008,7 +1009,7 @@ label var in_other_vars "(CSRHub) =1 if in OTHER VARIABLES file"
 label var in_ovrl_enviro "(CSRHub) =1 if in OVERALL ENVIRONMENT RESOURCEMGMT csv"
 label var industry "(CSRhub) Industry Classification"
 label var industry_avg_rtg "(CSRHub) Industry Average over_rtg"
-label var ISIN "(CSRHub) ISIN"
+label var isin "(CSRHub) ISIN"
 label var ldrship_ethics_rtg "(CSRHub) Leadership Ethics Rating"
 label var month "(CSRHub) Data Month"
 label var num_sources "(CSRHub) Number of Sources for Calculating Overall Rating"
@@ -1016,7 +1017,7 @@ label var over_rtg "(CSRHub) Overall Rating"
 label var over_pct_rank "(CSRHub) Overall Percentile Rank"
 label var prod_rtg "(CSRHub) Product Rating"
 label var resource_mgmt_rtg "(CSRHub) Resource Management Rating"
-label var Ticker "(CSRHub) Firm Ticker Symbol"
+label var ticker "(CSRHub) Firm Ticker Symbol"
 label var train_hlth_safe_rtg "(CSRHub) Training and Health and Safety Rating"
 label var trans_report_rtg "(CSRHub) Transparency and Reporting Rating"
 label var year "(CSRHub) Data Year"
@@ -1027,7 +1028,7 @@ gen ym=ym(year,month)
 label var firm_n "(CSRHub) Firm Encoded as Numerical"
 label var ym "(CSRHub) Year-Month Date Value"
 
-gen tic_csrhub = Ticker
+gen tic_csrhub = ticker
 label var tic_csrhub "(CSRHub) ticker"
 
 gen in_csrhub=1
@@ -1152,6 +1153,27 @@ merge m:1 year using data/factiva-stakeholder-type-by-year-media-subset.dta
 */
 drop if _merge!=3
 drop _merge
+
+						***===========================***
+						*								*
+						*	Generate cusip from isin	*
+						*								*
+						***===========================***
+*cusip is the first nine characters of isin after the country code
+replace isin="" if isin=="Missing"
+
+gen cusip=substr(isin,3,9)
+label var cusip "(CSRHUB) cusip created from isin"
+
+*create list of unique cusip for downloading cstat data from wrds
+preserve
+drop if cusip==""
+bysort cusip: gen n=_n
+keep if n==1
+keep cusip
+export delimited data/unique-cusips-in-csrhub.txt, novarnames replace
+restore
+
 
 *	Save
 compress
