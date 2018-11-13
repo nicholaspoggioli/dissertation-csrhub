@@ -4,7 +4,6 @@ log using logs\mediation-analysis-2.txt, text replace
 
 				***=============================***
 				***		RUN MEDIATION ANALYSIS	***
-				***		 WITH NEW DATASET		***
 				***=============================***
 ///	LOAD DATA
 use data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, clear
