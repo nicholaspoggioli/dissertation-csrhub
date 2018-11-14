@@ -98,27 +98,50 @@ use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, cle
 		Market to book ration = MKVALT / BKVLPS
 */
 
-keep cusip ym conm revt ni at xrd xad emp dltt tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
+keep cusip ym conm revt ni at xrd xad emp dltt sale tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
 	gp unnp unnpl drc drlt dvrre lcoxdr loxdr nfsr revt ris urevub ///
 	at csho prcc_f ceq ///
 	mkvalt bkvlps
 
 	
 *	Generate variables
-gen roa = ni/at
 gen tobinq = (at + (csho * prcc_f) - ceq) / at
 gen mkt2book = mkvalt / bkvlps
 
+*	ROA
+gen roa = ni / at
+
+sort cusip ym
+by cusip: gen lroa=roa[_n-1]
+
+*	Net income
+sort cusip ym
+by cusip: gen lni=ni[_n-1]
+	
+*	Debt ratio
+gen debt = dltt / at
+
+*	R&D
+gen rd = xrd / sale
+
+*	Advertising
+gen ad = xad / sale
 
 foreach var of varlist * {
 	local lab `: var label `var''
 	label var `var' "(CSTAT) `lab'"
 }
 
-label var roa "(CSTAT) return on assets = ni / at"
-label var tobinq "(CSTAT) tobin's q = (at + (csho * prcc_f) - ceq) / at"
-label var mkt2book "(CSTAT) market to book ratio = mkvalt / bkvlps"
-label var ym "(CSTAT) fiscal year and end-of-fiscal-year month"
+label var roa "(CSTAT) Return on assets = ni / at"
+label var tobinq "(CSTAT) Tobin's q = (at + (csho * prcc_f) - ceq) / at"
+label var mkt2book "(CSTAT) Market to book ratio = mkvalt / bkvlps"
+label var ym "(CSTAT) Fiscal year and end-of-fiscal-year month"
+label var lroa "(CSTAT) Lagged roa, 1 year"
+label var lni "(CSTAT) Lagged ni, 1 year"
+label var debt "(CSTAT) Debt ratio = dltt / at"
+label var rd "(CSTAT) R&D intensity = xrd / sale"
+label var ad "(CSTAT) Advertising intensity = xad / sale"
+label var emp "(CSTAT) Number of employees in 1000s"
 
 *	Save
 save data/cstat-subset-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, replace
