@@ -98,7 +98,7 @@ use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, cle
 		Market to book ration = MKVALT / BKVLPS
 */
 
-keep cusip ym conm revt ni at xrd xad dltt tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
+keep cusip ym conm revt ni at xrd xad emp dltt tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
 	gp unnp unnpl drc drlt dvrre lcoxdr loxdr nfsr revt ris urevub ///
 	at csho prcc_f ceq ///
 	mkvalt bkvlps
