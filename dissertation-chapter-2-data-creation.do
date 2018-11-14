@@ -446,7 +446,7 @@ bysort cusip: gen n=_n
 keep if n==1
 keep cusip
 drop if cusip==""
-export delimited "data/unique-cusips-in-kld.txt", replace novarnames
+export delimited "data/unique-8-digits-cusips-in-kld.txt", replace novarnames
 restore
 
 ***	SAVE
