@@ -440,6 +440,15 @@ replace cusip = "0" + cusip if len==7
 replace cusip="" if len < 6
 drop len
 
+***	Export unique CUSIPs
+preserve
+bysort cusip: gen n=_n
+keep if n==1
+keep cusip
+drop if cusip==""
+export delimited "data/unique-cusips-in-kld.txt", replace novarnames
+restore
+
 ***	SAVE
 compress
 label data "KLD Data 1991 - 2015 downloaded Feb 12, 2018 by poggi005@umn.edu"
