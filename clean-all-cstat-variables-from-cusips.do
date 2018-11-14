@@ -69,6 +69,7 @@ use data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018.dta, clear
 bysort cusip ym: gen N=_N
 tab N
 keep if N==1
+drop N
 
 merge 1:1 cusip ym using data/cstat-all-variables-for-all-cusip9-in-csrhub-data-1990-2018.dta, gen(cstatvars) update assert(1 2 3 4 5)
 /*
@@ -102,6 +103,30 @@ merge 1:1 cusip ym using `d2', update assert(1 2 3 4 5)
 
 gen cusip9=cusip
 replace cusip=substr(cusip9,1,8)
+
+bysort cusip ym: gen N=_N
+tab N
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    895,918       94.66       94.66
+          2 |     25,460        2.69       97.35
+          3 |      8,895        0.94       98.29
+          4 |      8,016        0.85       99.14
+          5 |      4,040        0.43       99.56
+          6 |      1,452        0.15       99.72
+          7 |        805        0.09       99.80
+          8 |        600        0.06       99.87
+          9 |        450        0.05       99.91
+         10 |        300        0.03       99.94
+         11 |        275        0.03       99.97
+         12 |        132        0.01       99.99
+         13 |        117        0.01      100.00
+------------+-----------------------------------
+      Total |    946,460      100.00
+*/
+drop if N>1
+drop N
 
 tempfile d3
 save `d3'
@@ -142,6 +167,7 @@ tab N
 drop if N>1
 drop N
 
+drop firm_n
 merge 1:1 cusip ym using `d3', update assert(1 2 3 4 5) gen(_merge3)
 
 
@@ -149,8 +175,12 @@ encode cusip, gen(cusip9)
 xtset cusip9 ym, m
 
 
+set scheme plotplainblind
+gen logrev=log(revt)
+binscatter logrev net_kld, nq(31) xlabel(-20(5)20) line(none) by(year) legend(off) ylabel(-4(2)14)
+binscatter logrev net_kld, nq(31) xlabel(-20(5)20) line(none) by(year) legend(off) ylabel(-4(2)14) medians
 
-
+binscatter revt net_kld, nq(31) xlabel(-20(5)20) line(none) by(year) legend(off) medians
 
 
 
