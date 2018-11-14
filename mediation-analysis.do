@@ -8,6 +8,9 @@ log using logs\mediation-analysis-20181113.txt, text replace
 ///	LOAD DATA
 use data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, clear
 
+merge 1:1 cusip ym using data/cstat-all-variables-for-all-cusips-in-csrhub-data-csrhub-ym-only.dta, ///
+	keepusing(revt)
+
 ///	ALL INDUSTRIES
 *	Y = ni
 *	X = over_rtg
