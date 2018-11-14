@@ -1,8 +1,8 @@
 ***	CLEANING ALL COMPUSTAT FUNDAMENTALS ANNUAL VARIABLES FOR ALL CUSIPS
 
-***=======================***
-*		CSRHUB				*
-***=======================***
+***===============================================***
+*		CSTAT data using CSRHub CUSIPs				*
+***===============================================***
 
 /***	File size reduction
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-data-1990-2018.dta, clear
@@ -18,6 +18,7 @@ compress
 save data/cstat-all-variables-for-all-cusip9-in-csrhub-data-1990-2018.dta, replace
 */
 
+/***		Drop years not in CSRHub
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-data-1990-2018.dta, replace
 
 *	keep only ym in csrhub (587 - 692)
@@ -26,11 +27,11 @@ drop if ym<587 | ym>692
 *	save
 compress
 save data/cstat-all-variables-for-all-cusip9-in-csrhub-data-csrhub-ym-only.dta, replace
+*/
 
-
-***=======================***
-*			KLD				*
-***=======================***
+***=======================================***
+*		CSTAT data using KLD CUSIPs			*
+***=======================================***
 /***	File size reduction
 use data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018.dta, clear
 
@@ -60,10 +61,10 @@ save data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018.dta, replace
 */
 
 
-***===========================================***
-*	MERGE CSTAT FOR CSRHUB 2 CSTAT FOR KLD		*
-***===========================================***
-
+***===============================================***
+*	MERGE CSTAT data from CSRHUB and KLD CUSIPs		*
+***===============================================***
+/*
 use data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018.dta, clear
 
 bysort cusip ym: gen N=_N
@@ -86,10 +87,40 @@ merge 1:1 cusip ym using data/cstat-all-variables-for-all-cusip9-in-csrhub-data-
     -----------------------------------------
 */
 
-tempfile d1
-save `d1'
+save data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, replace
+*/
 
-***	Merge with CSRHub data
+***	Subset to needed variables
+/*	VARIABLE EQUATIONS FROM CSTAT (https://www.wiwi.uni-muenster.de/uf/sites/uf/files/2017_10_12_wrds_data_items.pdf)
+		ROA = NI / AT
+		Tobin's Q = (AT + (CSHO * PRCC_F) - CEQ) / AT
+		Market to book ration = MKVALT / BKVLPS
+*/
+
+keep cusip ym conm revt ni at xrd xad dltt tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
+	gp unnp unnpl drc drlt dvrre lcoxdr loxdr nfsr revt ris urevub ///
+	at csho prcc_f ceq ///
+	mkvalt bkvlps
+
+	
+*	Generate variables
+gen roa = ni/at
+gen tobinq = (at + (csho * prcc_f) - ceq) / at
+gen mkt2book = mkvalt / bkvlps
+
+label var roa "(CSTAT) return on assets = ni / at"
+label var tobinq "(CSTAT) tobin's q = (at + (csho * prcc_f) - ceq) / at"
+label var mkt2book "(CSTAT) market to book ratio = mkvalt / bkvlps"
+label var ym "(CSTAT) fiscal year and end-of-fiscal-year month"
+
+*	Save
+save data/cstat-subset-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, replace
+
+
+***===================================================================***
+*	MERGE CSTAT data from CSRHUB and KLD	with  		CSRHub data		*
+***===================================================================***
+***	
 use data/csrhub-all.dta, clear
 bysort cusip ym: gen N=_N
 drop if N>1
