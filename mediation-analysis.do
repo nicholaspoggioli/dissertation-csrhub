@@ -158,9 +158,9 @@ eststo nistrcon
 
 
 
-***=============================***
-***		DATA FROM CLEAN-ALL-CSTAT-VARIABLES-FROM-CUSIPS.DO	***
-***=============================***
+***=========================================================***
+*		DATA FROM CLEAN-ALL-CSTAT-VARIABLES-FROM-CUSIPS.DO	  *
+***=========================================================***
 use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 
 ///	ALL INDUSTRIES
@@ -172,6 +172,138 @@ use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 
 ///	BARON AND KINNY MEDIATION ANALYSIS
 
+*************************
+*	Revenue as DV		*
+*************************
+***	All industries
+***	Net KLD strengths
+*Main relationship
+xtreg revt over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
+eststo m1_revt
+
+*Mediator predicting independent variable
+xtreg net_kld_str over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
+eststo m1_net_kld
+
+*Mediation analysis
+xtreg revt over_rtg net_kld_str emp debt rd ad i.year, fe cluster(cusip_n)
+eststo m1_med
+
+estout m1_revt m1_net_kld m1_med, cells(b(star fmt(%9.3f)) z(par))                ///
+	stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
+	labels("N" "Firms" "Adj. R^2"))      ///
+	legend collabels(none) ///
+	keep(over_rtg net_kld_str emp debt rd ad _cons) ///
+	order(over_rtg net_kld_str emp debt rd ad _cons) ///
+	title("DV: Revenue. Fixed effects regression on NET KLD STRENGTHS. Errors clustered by CUSIP.")
+	
+
+	
+***	All industries
+***	Net KLD concerns
+*Main relationship
+xtreg revt over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
+eststo m2_revt
+
+*Mediator predicting independent variable
+xtreg net_kld_con over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
+eststo m2_net_kld
+
+*Mediation analysis
+xtreg revt over_rtg net_kld_con emp debt rd ad i.year, fe cluster(cusip_n)
+eststo m2_med
+
+estout m2_revt m2_net_kld m2_med, cells(b(star fmt(%9.3f)) z(par))                ///
+	stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
+	labels("N" "Firms" "Adj. R^2"))      ///
+	legend collabels(none) ///
+	keep(over_rtg net_kld_con emp debt rd ad _cons) ///
+	order(over_rtg net_kld_con emp debt rd ad _cons) ///
+	title("DV: Revenue. Fixed effects regression on NET KLD CONCERNS. Errors clustered by CUSIP.")
+	
+	
+///	WITHIN-BETWEEN RANDOM EFFECTS MODELS
+foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad {
+	bysort firm_n: egen `variable'_m=mean(`variable')
+	bysort firm_n: gen `variable'_dm=`variable'-`variable'_m
+}
+
+
+*** All industries
+***	Net KLD strengths
+xtreg revt over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, ///
+	re cluster(cusip_n) base
+
+xtreg net_kld_str over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, ///
+	re cluster(cusip_n) base
+
+xtreg revt over_rtg_dm net_kld_str_dm over_rtg_m net_kld_str_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, ///
+	re cluster(cusip_n) base
+
+
+***	Control 2-digit NAICS
+gen naics2=substr(naics,1,2)
+destring(naics2), gen(naics_2)
+replace naics_2=31 if naics_2==32 | naics_2==33									/*	Manufacturing */
+replace naics_2=44 if naics_2==45												/*	Retail Trade	*/
+replace naics_2=48 if naics_2==49												/*	Transport and Warehousing	*/
+
+fvset base 51 naics_2
+
+*	Net KLD strengths
+xtreg revt over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
+eststo revts1
+
+xtreg net_kld_str over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
+eststo revts2
+
+xtreg revt over_rtg_dm net_kld_str_dm over_rtg_m net_kld_str_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
+eststo revts3
+
+*	Net KLD concerns
+xtreg revt over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
+eststo revtc1
+
+xtreg net_kld_con over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
+eststo revtc2
+
+xtreg revt over_rtg_dm net_kld_con_dm over_rtg_m net_kld_con_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
+eststo revtc3
+
+
+*	Regression of net income on CSRHub rating
+estout revts1 revtc1, cells(b(star fmt(%9.3f)) z(par))                ///
+	stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
+	labels("N" "Firms" "Adj. R^2"))      ///
+	legend collabels(none) ///
+	order(over* net*)
+
+*	Regression of CSRHub rating on KLD strengths or concerns
+estout revts2 revtc2, cells(b(star fmt(%9.3f)) z(par))                ///
+	stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
+	labels("N" "Firms" "Adj. R^2"))      ///
+	legend collabels(none) ///
+	order(over* net*)
+
+*	Regression of net income on CSRHub rating and KLD strengths or concerns
+estout revts1 revtc1 revts3 revtc3, cells(b(star fmt(%9.3f)) z(par))                ///
+	stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
+	labels("N" "Firms" "Adj. R^2"))      ///
+	legend collabels(none) ///
+	order(over* net*)
+
+*	Regression of net income on CSRHub rating and KLD strengths and KLD concerns
+xtreg revt over_rtg_dm net_kld_str_dm net_kld_con_dm over_rtg_m net_kld_str_m net_kld_con_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
+eststo revtstrcon
+
+
+
+
+
+
+*************************
+*	Net income as DV	*
+*************************
 ***	All industries
 ***	Net KLD strengths
 *Main relationship
