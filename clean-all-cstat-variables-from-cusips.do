@@ -229,7 +229,7 @@ tab N
       Total |    944,525      100.00
 */
 drop if N>1
-drop N _merge ticker
+drop N ticker
 
 *	Check months
 tab month _merge
@@ -237,20 +237,20 @@ tab month _merge
   (CSRHub) |        _merge
 Data Month | using onl  matched ( |     Total
 -----------+----------------------+----------
-         1 |    67,101        859 |    67,960 
-         2 |    68,471        164 |    68,635 
-         3 |    71,345        760 |    72,105 
-         4 |    72,482        251 |    72,733 
-         5 |    73,525        234 |    73,759 
-         6 |    73,479      1,002 |    74,481 
-         7 |    76,175        230 |    76,405 
-         8 |    76,396        267 |    76,663 
-         9 |    76,048      1,127 |    77,175 
-        10 |    63,334        375 |    63,709 
-        11 |    63,712        136 |    63,848 
-        12 |    50,198     17,144 |    67,342 
+         1 |    63,051        859 |    63,910 
+         2 |    64,342        164 |    64,506 
+         3 |    66,973        760 |    67,733 
+         4 |    68,051        251 |    68,302 
+         5 |    68,994        234 |    69,228 
+         6 |    68,878      1,001 |    69,879 
+         7 |    71,334        230 |    71,564 
+         8 |    71,505        267 |    71,772 
+         9 |    71,062      1,127 |    72,189 
+        10 |    59,516        375 |    59,891 
+        11 |    59,892        129 |    60,021 
+        12 |    46,203     17,143 |    63,346 
 -----------+----------------------+----------
-     Total |   832,266     22,549 |   854,815 
+     Total |   779,801     22,540 |   802,341 
 */
 compress
 save data/csrhub-with-cstat-from-csrhub-kld-cusips.dta, replace
@@ -485,30 +485,34 @@ list firm cusip year if N>1 & cusip!="", sepby(cusip year)
        +---------------------------------------------------------------------------+
 */
 drop if N>1
-drop firm
+drop firm N firm_n entity_type stnd_firm
 
-drop N firm_n entity_type month year stnd_firm
-
-merge 1:1 cusip ym using data/csrhub-with-cstat-from-csrhub-kld-cusips.dta, update assert(1 2 3 4 5) gen(_merge3)
+merge 1:m cusip year using data/csrhub-with-cstat-from-csrhub-kld-cusips.dta, update assert(1 2 3 4 5) gen(_merge3)
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                       881,723
-        from master                    16,264  (_merge3==1)
-        from using                    865,459  (_merge3==2)
+    not matched                       770,485
+        from master                    30,424  (_merge3==1)
+        from using                    740,061  (_merge3==2)
 
-    matched                            28,524
-        not updated                    28,524  (_merge3==3)
+    matched                           153,922
+        not updated                   153,922  (_merge3==3)
         missing updated                     0  (_merge3==4)
         nonmissing conflict                 0  (_merge3==5)
     -----------------------------------------
 */
+gen ch=(fyr==month & fyr!=. & month!=.)
+
+foreach variable of varlist year ticker cusip companyid env_str_a env_str_b env_str_c env_str_d env_str_f env_str_x env_con_a env_con_b env_con_c env_con_d env_con_e env_con_x com_str_a com_str_b com_str_c com_str_x com_con_a com_con_b com_con_d com_con_x hum_con_a hum_con_b emp_str_a emp_str_b emp_str_c emp_str_d emp_str_f emp_str_x emp_con_a emp_con_b emp_con_c emp_con_x div_str_a div_str_b div_str_c div_str_d div_str_e div_str_f div_str_x div_con_a div_con_x pro_str_a pro_str_b pro_str_c pro_str_x pro_con_a pro_con_d pro_con_e pro_con_x cgov_str_a cgov_str_c cgov_str_x cgov_con_b cgov_con_f alc_con_a gam_con_a mil_con_a mil_con_b mil_con_c mil_con_x nuc_con_a nuc_con_c nuc_con_d nuc_con_x tob_con_a emp_con_d cgov_con_x div_con_b com_str_d com_str_f hum_str_a hum_str_x hum_con_c hum_con_d hum_con_x div_str_g cgov_str_d alc_con_x gam_con_x hum_con_f fir_con_a tob_con_x env_con_f hum_str_d hum_con_g hum_str_g emp_str_g com_str_g cgov_str_e cgov_con_g cgov_con_h cgov_con_i env_str_g cgov_str_f cgov_con_j env_con_g env_con_h env_con_i com_str_h hum_con_h emp_str_h emp_con_f div_str_h div_con_c pro_str_d cgov_con_k env_str_h env_str_i env_str_j env_con_j env_con_k hum_con_j hum_con_k emp_str_i emp_str_j emp_str_k emp_str_l emp_con_g div_con_d pro_con_f cgov_str_g cgov_str_h cgov_con_l cgov_con_m env_str_k env_str_l env_str_m env_str_n env_str_o env_str_p env_str_q emp_str_n pro_str_e pro_str_f pro_str_g pro_str_h pro_str_i pro_str_j pro_str_k pro_con_g row_id_kld sum_alc_con sum_cgov_con sum_cgov_str sum_com_con sum_com_str sum_div_con sum_div_str sum_emp_con sum_emp_str sum_env_con sum_env_str sum_gam_con sum_hum_con sum_hum_str sum_mil_con sum_nuc_con sum_pro_con sum_pro_str sum_tob_con cgov_agg com_agg div_agg emp_agg env_agg hum_agg pro_agg alc_agg gam_agg mil_agg nuc_agg tob_agg net_kld_str net_kld_con net_kld firm_kld {
+	capt n replace `variable'=. if ch==0
+	capt n replace `variable'="" if ch==0
+}
 
 drop stnd_firm _merge3
 
 encode cusip, gen(cusip_n)
 bysort cusip_n ym: gen N=_N
-tab N
+drop if N>1
 xtset cusip_n ym, m
 
 order firm_kld firm_csrhub cusip ym
