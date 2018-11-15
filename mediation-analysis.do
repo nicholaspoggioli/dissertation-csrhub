@@ -175,15 +175,15 @@ use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 ***	All industries
 ***	Net KLD strengths
 *Main relationship
-xtreg ni over_rtg emp debt rd ad i.year, fe cluster(firm_n)
+xtreg ni over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
 eststo m1_ni
 
 *Mediator predicting independent variable
-xtreg net_kld_str over_rtg emp debt rd ad i.year, fe cluster(firm_n)
+xtreg net_kld_str over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
 eststo m1_net_kld
 
 *Mediation analysis
-xtreg ni over_rtg net_kld_str emp debt rd ad i.year, fe cluster(firm_n)
+xtreg ni over_rtg net_kld_str emp debt rd ad i.year, fe cluster(cusip_n)
 eststo m1_med
 
 estout m1_ni m1_net_kld m1_med, cells(b(star fmt(%9.3f)) z(par))                ///
@@ -198,15 +198,15 @@ estout m1_ni m1_net_kld m1_med, cells(b(star fmt(%9.3f)) z(par))                
 ***	All industries
 ***	Net KLD concerns
 *Main relationship
-xtreg ni over_rtg emp debt rd ad i.year, fe cluster(firm_n)
+xtreg ni over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
 eststo m2_ni
 
 *Mediator predicting independent variable
-xtreg net_kld_con over_rtg emp debt rd ad i.year, fe cluster(firm_n)
+xtreg net_kld_con over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
 eststo m2_net_kld
 
 *Mediation analysis
-xtreg ni over_rtg net_kld_con emp debt rd ad i.year, fe cluster(firm_n)
+xtreg ni over_rtg net_kld_con emp debt rd ad i.year, fe cluster(cusip_n)
 eststo m2_med
 
 estout m2_ni m2_net_kld m2_med, cells(b(star fmt(%9.3f)) z(par))                ///
@@ -227,11 +227,11 @@ foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad {
 
 *** All industries
 ***	Net KLD strengths
-xtreg ni over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, re cluster(firm_n) base
+xtreg ni over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, re cluster(cusip_n) base
 
-xtreg net_kld_str over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, re cluster(firm_n) base
+xtreg net_kld_str over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, re cluster(cusip_n) base
 
-xtreg ni over_rtg_dm net_kld_str_dm over_rtg_m net_kld_str_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, re cluster(firm_n) base
+xtreg ni over_rtg_dm net_kld_str_dm over_rtg_m net_kld_str_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, re cluster(cusip_n) base
 
 
 ***	Control 2-digit NAICS
