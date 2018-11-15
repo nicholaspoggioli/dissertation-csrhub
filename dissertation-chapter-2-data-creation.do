@@ -2468,6 +2468,9 @@ gen rd = xrd / sale
 *	Advertising
 gen ad = xad / sale
 
+*	Employees
+replace emp=emp*1000
+
 *	NAICS
 encode naics,gen(naics_n)
 

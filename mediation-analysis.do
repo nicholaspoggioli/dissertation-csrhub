@@ -13,9 +13,6 @@ log using logs\mediation-analysis-20181113.txt, text replace
 ///	LOAD DATA
 use data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, clear
 
-merge 1:1 cusip ym using data/cstat-all-variables-for-all-cusips-in-csrhub-data-csrhub-ym-only.dta, ///
-	keepusing(revt)
-
 ///	ALL INDUSTRIES
 *	Y = ni
 *	X = over_rtg
@@ -28,18 +25,18 @@ merge 1:1 cusip ym using data/cstat-all-variables-for-all-cusips-in-csrhub-data-
 ***	All industries
 ***	Net KLD strengths
 *Main relationship
-xtreg ni over_rtg emp debt rd ad i.year, fe cluster(firm_n)
+xtreg f12.ni over_rtg emp debt rd ad i.year, fe cluster(firm_n)
 eststo m1_ni
 
 *Mediator predicting independent variable
 xtreg net_kld_str over_rtg emp debt rd ad i.year, fe cluster(firm_n)
-eststo m1_net_kld
+eststo m1_ni_kld
 
 *Mediation analysis
-xtreg ni over_rtg net_kld_str emp debt rd ad i.year, fe cluster(firm_n)
-eststo m1_med
+xtreg f12.ni over_rtg net_kld_str emp debt rd ad i.year, fe cluster(firm_n)
+eststo m1_ni_med
 
-estout m1_ni m1_net_kld m1_med, cells(b(star fmt(%9.3f)) z(par))                ///
+estout m1_ni m1_ni_kld m1_ni_med, cells(b(star fmt(%9.3f)) z(par))                ///
 	stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
 	labels("N" "Firms" "Adj. R^2"))      ///
 	legend collabels(none) ///
@@ -151,58 +148,46 @@ eststo nistrcon
 
 
 
-
-
-
-
-
-
-
 ***=========================================================***
 *		DATA FROM CLEAN-ALL-CSTAT-VARIABLES-FROM-CUSIPS.DO	  *
 ***=========================================================***
 use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 
-///	ALL INDUSTRIES
+
+///	BARON AND KINNY MEDIATION ANALYSIS
 *	Y = ni
 *	X = over_rtg
 *	M = net_kld
-*mark medall
-*markout medall ni over_rtg net_kld year debt rd ad
-
-///	BARON AND KINNY MEDIATION ANALYSIS
 
 *************************
-*	Revenue as DV		*
+*	DV: Revenue 		*
 *************************
 ***	All industries
 ***	Net KLD strengths
 *Main relationship
-xtreg revt over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
+xtreg f12.revt over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
 eststo m1_revt
 
 *Mediator predicting independent variable
 xtreg net_kld_str over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
-eststo m1_net_kld
+eststo m1_revt_kld
 
 *Mediation analysis
-xtreg revt over_rtg net_kld_str emp debt rd ad i.year, fe cluster(cusip_n)
-eststo m1_med
+xtreg f12.revt over_rtg net_kld_str emp debt rd ad i.year, fe cluster(cusip_n)
+eststo m1_revt_med
 
-estout m1_revt m1_net_kld m1_med, cells(b(star fmt(%9.3f)) z(par))                ///
+estout m1_revt m1_revt_kld m1_revt_med, cells(b(star fmt(%9.3f)) z(par))                ///
 	stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
 	labels("N" "Firms" "Adj. R^2"))      ///
 	legend collabels(none) ///
 	keep(over_rtg net_kld_str emp debt rd ad _cons) ///
 	order(over_rtg net_kld_str emp debt rd ad _cons) ///
-	title("DV: Revenue. Fixed effects regression on NET KLD STRENGTHS. Errors clustered by CUSIP.")
-	
-
-	
+	title("DV: 1-year leading revenue. Fixed effects regression on NET KLD STRENGTHS. Errors clustered by CUSIP.")
+		
 ***	All industries
 ***	Net KLD concerns
 *Main relationship
-xtreg revt over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
+xtreg f12.revt over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
 eststo m2_revt
 
 *Mediator predicting independent variable
@@ -210,7 +195,7 @@ xtreg net_kld_con over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
 eststo m2_net_kld
 
 *Mediation analysis
-xtreg revt over_rtg net_kld_con emp debt rd ad i.year, fe cluster(cusip_n)
+xtreg f12.revt over_rtg net_kld_con emp debt rd ad i.year, fe cluster(cusip_n)
 eststo m2_med
 
 estout m2_revt m2_net_kld m2_med, cells(b(star fmt(%9.3f)) z(par))                ///
@@ -219,7 +204,7 @@ estout m2_revt m2_net_kld m2_med, cells(b(star fmt(%9.3f)) z(par))              
 	legend collabels(none) ///
 	keep(over_rtg net_kld_con emp debt rd ad _cons) ///
 	order(over_rtg net_kld_con emp debt rd ad _cons) ///
-	title("DV: Revenue. Fixed effects regression on NET KLD CONCERNS. Errors clustered by CUSIP.")
+	title("DV: 1-year leading revenue. Fixed effects regression on NET KLD CONCERNS. Errors clustered by CUSIP.")
 	
 	
 ///	WITHIN-BETWEEN RANDOM EFFECTS MODELS
@@ -228,16 +213,15 @@ foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad {
 	bysort cusip_n: gen `variable'_dm=`variable'-`variable'_m
 }
 
-
 *** All industries
 ***	Net KLD strengths
-xtreg revt over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, ///
+xtreg f12.revt over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, ///
 	re cluster(cusip_n) base
 
 xtreg net_kld_str over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, ///
 	re cluster(cusip_n) base
 
-xtreg revt over_rtg_dm net_kld_str_dm over_rtg_m net_kld_str_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, ///
+xtreg f12.revt over_rtg_dm net_kld_str_dm over_rtg_m net_kld_str_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, ///
 	re cluster(cusip_n) base
 
 
