@@ -3,8 +3,7 @@
 ***===============================================***
 *		CSTAT data using CSRHub CUSIPs				*
 ***===============================================***
-
-/***	File size reduction
+***	File size reduction
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-data-1990-2018.dta, clear
 
 *	clean
@@ -16,9 +15,8 @@ gen ym=ym(year(datadate),month(datadate))
 *	save
 compress
 save data/cstat-all-variables-for-all-cusip9-in-csrhub-data-1990-2018.dta, replace
-*/
 
-/***		Drop years not in CSRHub
+***		Drop years not in CSRHub
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-data-1990-2018.dta, replace
 
 *	keep only ym in csrhub (587 - 692)
@@ -27,12 +25,12 @@ drop if ym<587 | ym>692
 *	save
 compress
 save data/cstat-all-variables-for-all-cusip9-in-csrhub-data-csrhub-ym-only.dta, replace
-*/
+
 
 ***=======================================***
 *		CSTAT data using KLD CUSIPs			*
 ***=======================================***
-/***	File size reduction
+***	File size reduction
 use data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018.dta, clear
 
 order conm cusip tic datadate fyear fyr
@@ -58,13 +56,11 @@ drop N
 
 compress
 save data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018.dta, replace
-*/
 
 
 ***===============================================***
 *	MERGE CSTAT data from CSRHUB and KLD CUSIPs		*
 ***===============================================***
-/*
 use data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018.dta, clear
 
 bysort cusip ym: gen N=_N
@@ -88,21 +84,34 @@ merge 1:1 cusip ym using data/cstat-all-variables-for-all-cusip9-in-csrhub-data-
 */
 
 save data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, replace
-*/
 
 ***	Subset to needed variables
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
-/*	VARIABLE EQUATIONS FROM CSTAT (https://www.wiwi.uni-muenster.de/uf/sites/uf/files/2017_10_12_wrds_data_items.pdf)
-		ROA = NI / AT
-		Tobin's Q = (AT + (CSHO * PRCC_F) - CEQ) / AT
-		Market to book ration = MKVALT / BKVLPS
+/*	CSTAT variables
+		
+		MEASURE					VARNAME			EQUATION TO CREATE FROM CSTAT VARIABLES
+		--------------------	--------		---------------------------------------
+		Revenue					revt		=	REVT
+		Net income				ni			=	NI
+		Sales					sale		=	SALE
+		Total assets			at			=	AT								
+		Advertising expense		xad			=	XAD								
+		R&D expense				xrd			=	XRD								
+		Firm size				emp			=	EMP								*Barnett & Salomon 2012
+		
+********VARIABLE EQUATIONS FROM C:\Dropbox\papers\active\dissertation-csrhub\project\data\data-documentation\2017_10_12_wrds_data_items.pdf
+		Debt					debt		=	DLTT / AT		
+		Return on assets 		roa 		=	NI / AT
+		Tobin's Q 				tobinq		=	(AT + (CSHO * PRCC_F) - CEQ) / AT
+		Market to book ratio	mkt2book	=	MKVALT / BKVLPS
+		R&D intensity			rd			=	XRD / SALE
+		Advertising intensity	ad			=	XAD / SALE
+		Firm size				size		=	log(AT)
 */
 
-keep cusip ym conm revt ni at xrd xad emp dltt sale tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
-	gp unnp unnpl drc drlt dvrre lcoxdr loxdr nfsr revt ris urevub ///
-	at csho prcc_f ceq ///
-	mkvalt bkvlps
-
+keep cusip ym conm tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
+	revt ni sale at xad xrd emp dltt csho prcc_f ceq at mkvalt bkvlps ///
+	gp unnp unnpl drc drlt dvrre lcoxdr loxdr nfsr revt ris urevub
 	
 *	Generate variables
 gen tobinq = (at + (csho * prcc_f) - ceq) / at
@@ -132,6 +141,20 @@ foreach var of varlist * {
 	label var `var' "(CSTAT) `lab'"
 }
 
+*	Firm size
+gen size = log(at)
+
+*	Employees
+replace emp=emp*1000
+
+*	Set panel
+encode cusip, gen(cusip_n)
+xtset cusip_n ym, m
+
+*	Revenue growth
+gen revt_growth=revt-l12.revt
+
+*	Save
 label var roa "(CSTAT) Return on assets = ni / at"
 label var tobinq "(CSTAT) Tobin's q = (at + (csho * prcc_f) - ceq) / at"
 label var mkt2book "(CSTAT) Market to book ratio = mkvalt / bkvlps"
@@ -141,9 +164,11 @@ label var lni "(CSTAT) Lagged ni, 1 year"
 label var debt "(CSTAT) Debt ratio = dltt / at"
 label var rd "(CSTAT) R&D intensity = xrd / sale"
 label var ad "(CSTAT) Advertising intensity = xad / sale"
-label var emp "(CSTAT) Number of employees in 1000s"
+label var emp "(CSTAT) Number of employees"
+label var size "(CSTAT) Firm size = logarithm of AT"
+label var revt_growth
 
-*	Save
+compress
 save data/cstat-subset-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, replace
 
 
@@ -159,6 +184,8 @@ compress
 save data/csrhub-all-unique-cusip-ym.dta, replace
 
 use data/cstat-subset-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
+drop cusip_n
+
 merge 1:1 cusip ym using data/csrhub-all-unique-cusip-ym.dta, update assert(1 2 3 4 5)
 /*
     Result                           # of obs.
@@ -279,18 +306,14 @@ merge 1:1 cusip ym using data/csrhub-with-cstat-from-csrhub-kld-cusips.dta, upda
 drop stnd_firm _merge3
 
 encode cusip, gen(cusip_n)
+bysort cusip_n ym: gen N=_N
+tab N
 xtset cusip_n ym, m
 
 order firm_kld firm_csrhub cusip ym
 
 compress
 save data/csrhub-kld-cstat-matched-on-cusip.dta, replace
-
-
-
-
-
-
 
 
 
