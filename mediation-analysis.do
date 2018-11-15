@@ -224,8 +224,8 @@ estout m2_revt m2_net_kld m2_med, cells(b(star fmt(%9.3f)) z(par))              
 	
 ///	WITHIN-BETWEEN RANDOM EFFECTS MODELS
 foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad {
-	bysort firm_n: egen `variable'_m=mean(`variable')
-	bysort firm_n: gen `variable'_dm=`variable'-`variable'_m
+	bysort cusip_n: egen `variable'_m=mean(`variable')
+	bysort cusip_n: gen `variable'_dm=`variable'-`variable'_m
 }
 
 
