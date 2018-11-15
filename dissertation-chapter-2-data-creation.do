@@ -1282,6 +1282,9 @@ replace isin="" if isin=="Missing"
 gen cusip=substr(isin,3,9)
 label var cusip "(CSRHUB) cusip created from isin"
 
+gen cusip8=substr(cusip,1,8)
+label var cusip8 "(CSRHUB) 8-character cusip created from isin"
+
 *create list of unique cusip for downloading cstat data from wrds
 preserve
 drop if cusip==""
