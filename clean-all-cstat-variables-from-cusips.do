@@ -98,7 +98,8 @@ use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, cle
 
 keep cusip ym conm tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
 	revt ni sale at xad xrd emp dltt csho prcc_f ceq at mkvalt bkvlps ///
-	gp unnp unnpl drc drlt dvrre lcoxdr loxdr nfsr revt ris urevub
+	gp unnp unnpl drc drlt dvrre lcoxdr loxdr nfsr revt ris urevub ///
+	naics sic spcindcd spcseccd
 	
 *	Generate variables
 gen tobinq = (at + (csho * prcc_f) - ceq) / at
@@ -160,7 +161,7 @@ save data/cstat-subset-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta,
 
 
 ***===================================================================***
-*	MERGE CSTAT data from CSRHUB and KLD	with  		CSRHub data		*
+*	MERGE CSTAT data from CSRHUB and KLD with CSRHub data		*
 ***===================================================================***
 ***	
 use data/csrhub-all.dta, clear
