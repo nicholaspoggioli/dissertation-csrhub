@@ -300,8 +300,8 @@ use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 
 *Generate random effects within-between variables
 foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad {
-	bysort firm_n: egen `variable'_m=mean(`variable')
-	bysort firm_n: gen `variable'_dm=`variable'-`variable'_m
+	bysort cusip_n: egen `variable'_m=mean(`variable')
+	bysort cusip_n: gen `variable'_dm=`variable'-`variable'_m
 }
 *Generate 2-digit NAICS for control variable
 gen naics2=substr(naics,1,2)
@@ -319,13 +319,13 @@ fvset base 51 naics_2
 ///	All industries: 	Net KLD strengths
 
 ***	Fixed effects regression
-xtreg ni over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
+xtreg f12.ni over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
 eststo m1_ni
 
 xtreg net_kld_str over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
 eststo m1_net_kld
 
-xtreg ni over_rtg net_kld_str emp debt rd ad i.year, fe cluster(cusip_n)
+xtreg f12.ni over_rtg net_kld_str emp debt rd ad i.year, fe cluster(cusip_n)
 eststo m1_med
 
 estout m1_ni m1_net_kld m1_med, cells(b(star fmt(%9.3f)) z(par))                ///
@@ -337,20 +337,34 @@ estout m1_ni m1_net_kld m1_med, cells(b(star fmt(%9.3f)) z(par))                
 
 *** Random effects within-between models
 *	Main relationships
-xtreg ni over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, re cluster(cusip_n) base
-xtreg net_kld_str over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, re cluster(cusip_n) base
-xtreg ni over_rtg_dm net_kld_str_dm over_rtg_m net_kld_str_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, re cluster(cusip_n) base
+xtreg ni over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, /// 
+	re cluster(cusip_n) base
+eststo ni_m
+
+xtreg net_kld_str over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, ///
+	re cluster(cusip_n) base
+eststo kld_str_m
+	
+xtreg ni over_rtg_dm net_kld_str_dm over_rtg_m net_kld_str_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, ///
+	re cluster(cusip_n) base
+eststo ni_mod_m
 
 *	Controlling for industry
-xtreg ni over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
-eststo nis1
+qui xtreg f12.ni over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
+eststo ni
 
-xtreg net_kld_str over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
-eststo nis2
+qui xtreg net_kld_str over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
+eststo kld_str
 
-xtreg ni over_rtg_dm net_kld_str_dm over_rtg_m net_kld_str_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
-eststo nis3
+qui xtreg f12.ni over_rtg_dm net_kld_str_dm over_rtg_m net_kld_str_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
+eststo ni_mod
 
+estout ni kld_str ni_mod m1_med, cells(b(star fmt(%9.3f)) z(par))	///
+	stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
+	labels("N" "Firms" "Adj. R^2"))      ///
+	legend collabels(none) ///
+	keep(over_rtg_dm net_kld_str_dm over_rtg_m net_kld_str_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m) ///
+	order(over_rtg_dm net_kld_str_dm over_rtg_m net_kld_str_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m)
 
 
 
