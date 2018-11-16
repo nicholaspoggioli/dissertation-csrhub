@@ -1,28 +1,42 @@
 ***	CLEANING ALL COMPUSTAT FUNDAMENTALS ANNUAL VARIABLES FOR ALL CUSIPS
 
 ***===============================================***
-*		CSTAT data using CSRHub CUSIPs				*
+*		Clean CSTAT data from CSRHub CUSIPs				*
 ***===============================================***
+/*
 ***	File size reduction
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-data-1990-2018.dta, clear
 
 *	clean
 order conm cusip tic datadate fyear fyr
 
+*	keep unique cusip ym
+gen ym=ym(year(datadate),month(datadate))
+label var ym "(CSTAT) Year-month = datadate year and datadate month"
+
+bysort cusip ym: gen N=_N
+tab N
+keep if N==1
+drop N
+
+gen in_cstat_csrhub_cusip=1
+label var in_cstat_csrhub_cusip "(CSTAT) =1 if in CSTAT data created from unique CSRHub CUSIPs"
+
 *	save
 compress
-save data/cstat-all-variables-for-all-cusip9-in-csrhub-data-1990-2018.dta, replace
+save data/cstat-all-variables-for-all-cusip9-in-csrhub-data-1990-2018-clean.dta, replace
 
 
-***=======================================***
-*		CSTAT data using KLD CUSIPs			*
-***=======================================***
-***	File size reduction
+***===============================================***
+*		Clean CSTAT data from KLD CUSIPs			*
+***===============================================***
 use data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018.dta, clear
 
-order conm cusip tic datadate fyear fyr
-
+*	generate ym variable
 gen ym=ym(year(datadate),month(datadate))
+label var ym "(CSTAT) Year-month = datadate year and datadate month"
+
+order conm cusip tic datadate fyear fyr
 
 bysort cusip ym: gen N=_N
 tab N
@@ -41,21 +55,20 @@ tab N
 drop if N>1
 drop N
 
+gen in_cstat_kld_cusip=1
+label var in_cstat_kld_cusip "(CSTAT) =1 if in CSTAT data created from unique KLD CUSIPs"
+
 compress
-save data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018.dta, replace
+save data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018-clean.dta, replace
 
 
 ***===============================================***
 *	MERGE CSTAT data from CSRHUB and KLD CUSIPs		*
 ***===============================================***
-use data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018.dta, clear
+use data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018-clean.dta, clear
 
-bysort cusip ym: gen N=_N
-tab N
-keep if N==1
-drop N
-
-merge 1:1 cusip ym using data/cstat-all-variables-for-all-cusip9-in-csrhub-data-1990-2018.dta, gen(cstatvars) update assert(1 2 3 4 5)
+merge 1:1 cusip ym using data/cstat-all-variables-for-all-cusip9-in-csrhub-data-1990-2018-clean.dta, ///
+	gen(cstatvars) update assert(1 2 3 4 5)
 /*
     Result                           # of obs.
     -----------------------------------------
@@ -70,7 +83,13 @@ merge 1:1 cusip ym using data/cstat-all-variables-for-all-cusip9-in-csrhub-data-
     -----------------------------------------
 */
 
+label var cstatvars "(CSTAT) Merge indicator for CSTAT data of KLD CUSIPs to CSRHub CUSIPs"
+
+*	Save full dataset
 save data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, replace
+
+*/
+
 
 ***	Subset to needed variables
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
@@ -99,7 +118,7 @@ use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, cle
 keep cusip ym conm tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
 	revt ni sale at xad xrd emp dltt csho prcc_f ceq at mkvalt bkvlps ///
 	gp unnp unnpl drc drlt dvrre lcoxdr loxdr nfsr revt ris urevub ///
-	naics sic spcindcd spcseccd
+	naics sic spcindcd spcseccd cstatvars
 	
 *	Generate variables
 gen tobinq = (at + (csho * prcc_f) - ceq) / at
@@ -154,7 +173,7 @@ label var rd "(CSTAT) R&D intensity = xrd / sale"
 label var ad "(CSTAT) Advertising intensity = xad / sale"
 label var emp "(CSTAT) Number of employees"
 label var size "(CSTAT) Firm size = logarithm of AT"
-label var revt_growth
+label var revt_growth "(CSTAT) Change in revenue from previous year = revt - revt from 12 months prior"
 
 compress
 save data/cstat-subset-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, replace
