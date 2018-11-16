@@ -20,19 +20,15 @@ use data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, c
 *mark medall
 *markout medall ni over_rtg net_kld year debt rd ad
 
-///	BARON AND KINNY MEDIATION ANALYSIS
+///		All industries: 	Net KLD strengths		No imputation of missing values
 
-***	All industries
-***	Net KLD strengths
-*Main relationship
+***	KLD Strengths
 xtreg f12.ni over_rtg emp debt rd ad i.year, fe cluster(firm_n)
 eststo m1_ni
 
-*Mediator predicting independent variable
 xtreg net_kld_str over_rtg emp debt rd ad i.year, fe cluster(firm_n)
 eststo m1_ni_kld
 
-*Mediation analysis
 xtreg f12.ni over_rtg net_kld_str emp debt rd ad i.year, fe cluster(firm_n)
 eststo m1_ni_med
 
@@ -42,7 +38,15 @@ estout m1_ni m1_ni_kld m1_ni_med, cells(b(star fmt(%9.3f)) z(par))              
 	legend collabels(none) ///
 	keep(over_rtg net_kld_str emp debt rd ad _cons) ///
 	order(over_rtg net_kld_str emp debt rd ad _cons)
-	
+
+outreg2 [m1_ni m1_ni_kld m1_ni_med] using "tables-and-figures/ch3-ni-on-kld-str", excel ///
+	stats(coef tstat) ///
+	keep(over_rtg net_kld_str emp debt rd ad) ///
+	sortvar(over_rtg net_kld_str emp debt rd ad) ///
+	dec(2) fmt(f) ///
+	alpha(.001, .01, .05) ///
+	addtext(Firm FE, YES, Year FE, YES) ///
+	replace	
 
 	
 ***	All industries
@@ -66,7 +70,14 @@ estout m2_ni m2_net_kld m2_med, cells(b(star fmt(%9.3f)) z(par))                
 	keep(over_rtg net_kld_con emp debt rd ad _cons) ///
 	order(over_rtg net_kld_con emp debt rd ad _cons)
 	
-	
+outreg2 [m2_ni m2_net_kld m2_med] using "tables-and-figures/ch3-ni-on-kld-con", excel ///
+	stats(coef tstat) ///
+	keep(over_rtg net_kld_con emp debt rd ad) ///
+	sortvar(over_rtg net_kld_con emp debt rd ad) ///
+	dec(2) fmt(f) ///
+	alpha(.001, .01, .05) ///
+	addtext(Firm FE, YES, Year FE, YES) ///
+	replace		
 	
 ///	WITHIN-BETWEEN RANDOM EFFECTS MODELS
 foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad {
