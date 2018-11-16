@@ -225,6 +225,7 @@ tab _merge len
 keep if len==9
 drop len
 gen cusip9=cusip
+label var cusip9 "(CSRHUB) CUSIP, 9-digit"
 replace cusip=substr(cusip9,1,8)
 bysort cusip ym: gen N=_N
 tab N
@@ -543,16 +544,6 @@ drop _merge ch N
 compress
 label data "CUSIPs from KLD and CSRHUB matched to CSTAT"
 save data/csrhub-kld-cstat-matched-on-cusip.dta, replace
-
-
-
-
-
-
-
-
-
-
 
 
 
