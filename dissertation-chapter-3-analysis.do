@@ -405,30 +405,6 @@ eststo nic3
 	
 	
 
-*	Regression of net income on CSRHub rating
-estout nis1 nic1, cells(b(star fmt(%9.3f)) z(par))                ///
-	stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
-	labels("N" "Firms" "Adj. R^2"))      ///
-	legend collabels(none) ///
-	order(over* net*)
-
-*	Regression of CSRHub rating on KLD strengths or concerns
-estout nis2 nic2, cells(b(star fmt(%9.3f)) z(par))                ///
-	stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
-	labels("N" "Firms" "Adj. R^2"))      ///
-	legend collabels(none) ///
-	order(over* net*)
-
-*	Regression of net income on CSRHub rating and KLD strengths or concerns
-estout nis1 nic1 nis3 nic3, cells(b(star fmt(%9.3f)) z(par))                ///
-	stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
-	labels("N" "Firms" "Adj. R^2"))      ///
-	legend collabels(none) ///
-	order(over* net*)
-
-*	Regression of net income on CSRHub rating and KLD strengths and KLD concerns
-xtreg ni over_rtg_dm net_kld_str_dm net_kld_con_dm over_rtg_m net_kld_str_m net_kld_con_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
-eststo nistrcon
 
 
 
