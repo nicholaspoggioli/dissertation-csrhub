@@ -5,11 +5,10 @@ Stata version 15.1
 
 OUTLINE
 	1	Create data
-	2	Chapter 1:	Improved CSR Measurement Using Metaratings and the CSRHub Dataset
-	3	Chapter 2:	Exploratory data analysis of the KLD and CSRHub
-	4	Chapter 3: 	Replicating and Extending Barnett & Salomon (2012
-	5	Chapter 4:	Identifying the Causal Effect of Social Performance on Financial Performance
-	6	Appendix 1: Graphics and Figures
+	2	Chapter 1:	Theory
+	3	Chapter 2:	Reproduction and replication of Barnett and Salomon (2012)
+	4	Chapter 3: 	Mediation analysis of the CSR - Performance Relationship
+	5	Chapter 4:	Industry heterogeneity
 */
 
 do code\CODE-dissertation-chapter-2.do
