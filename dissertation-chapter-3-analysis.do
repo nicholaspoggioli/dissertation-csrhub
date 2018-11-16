@@ -7,9 +7,9 @@ log using logs\mediation-analysis-20181113.txt, text replace
 				***=============================***
 
 				
-***=============================***
+***=============================================***
 ***		DATA FROM CHAPTER 2 DATA CREATION FILE	***
-***=============================***
+***=============================================***
 ///	LOAD DATA
 use data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, clear
 
@@ -153,15 +153,15 @@ eststo nistrcon
 ***=========================================================***
 use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 
-
-///	BARON AND KINNY MEDIATION ANALYSIS
-*	Y = ni
-*	X = over_rtg
-*	M = net_kld
-
 *************************
 *	DV: Revenue 		*
 *************************
+/*
+*	Y = revt
+*	X = over_rtg
+*	M = net_kld
+*/
+
 ***	All industries
 ***	Net KLD strengths
 *Main relationship
@@ -207,7 +207,7 @@ estout m2_revt m2_net_kld m2_med, cells(b(star fmt(%9.3f)) z(par))              
 	title("DV: 1-year leading revenue. Fixed effects regression on NET KLD CONCERNS. Errors clustered by CUSIP.")
 	
 	
-///	WITHIN-BETWEEN RANDOM EFFECTS MODELS
+***	WITHIN-BETWEEN RANDOM EFFECTS MODELS
 foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad {
 	bysort cusip_n: egen `variable'_m=mean(`variable')
 	bysort cusip_n: gen `variable'_dm=`variable'-`variable'_m
@@ -285,9 +285,15 @@ eststo revtstrcon
 
 
 
+
 *************************
-*	Net income as DV	*
+*	DV: Net income 		*
 *************************
+/*
+*	Y = ni
+*	X = over_rtg
+*	M = net_kld
+*/
 ***	All industries
 ***	Net KLD strengths
 *Main relationship
