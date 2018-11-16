@@ -527,16 +527,21 @@ foreach variable of varlist year ticker cusip companyid env_str_a env_str_b env_
 	capt n replace `variable'="" if ch==0
 }
 
-drop stnd_firm _merge3
+drop stnd_firm
 
 encode cusip, gen(cusip_n)
 bysort cusip_n ym: gen N=_N
 drop if N>1
 xtset cusip_n ym, m
 
-order firm_kld firm_csrhub cusip ym
+order firm_kld firm_csrhub conm cusip ym
+
+rename conm firm_cstat
+
+drop _merge ch N
 
 compress
+label data "CUSIPs from KLD and CSRHUB matched to CSTAT"
 save data/csrhub-kld-cstat-matched-on-cusip.dta, replace
 
 
