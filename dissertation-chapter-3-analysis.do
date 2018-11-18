@@ -167,16 +167,16 @@ use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 ***	Descriptive analysis
 corr revt ni tobinq roa net_kld_str net_kld_con over_rtg, means
 pwcorr revt ni tobinq roa net_kld_str net_kld_con over_rtg, p(.05)
+
+set scheme plotplainblind
 graph matrix net_kld_str net_kld_con over_rtg revt ni tobinq roa, half
 
 
 ///	Main CFP - CSR performance
-set scheme plotplainblind
-
 
 ***	Univariate analysis
 *	Contemporaneous
-foreach dv of varlist sale ni tobinq roa {
+foreach dv of varlist revt ni tobinq roa {
 	
 	foreach iv of varlist net_kld_str net_kld_con over_rtg {
 		
