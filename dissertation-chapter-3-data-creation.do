@@ -547,6 +547,10 @@ rename conm firm_cstat
 
 drop _merge ch N
 
+*	Make net_kld_con negative
+replace net_kld_con = net_kld_con * -1 if net_kld_con >= 0
+
+*	Save
 compress
 label data "CUSIPs from KLD and CSRHUB matched to CSTAT"
 save data/csrhub-kld-cstat-matched-on-cusip.dta, replace
