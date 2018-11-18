@@ -168,18 +168,38 @@ replace net_kld_con=net_kld_con * -1 if net_kld_con >=0
 
 
 ///	Main CFP - CSR performance
+set schem plotplainblind
 
-foreach dv of varlist revt sale ni tobinq roa {
+***	Descriptive analysis
+corr revt ni tobinq roa net_kld_str net_kld_con over_rtg, means
+pwcorr revt ni tobinq roa net_kld_str net_kld_con over_rtg, p(.05)
+graph matrix net_kld_str net_kld_con over_rtg revt ni tobinq roa, half
 
-	foreach iv of varlist net_kld_str net_kld_con {
+***	Univariate analysis
 
-		
+*	Contemporaneous
+foreach dv of varlist sale ni tobinq roa {
 	
+	foreach iv of varlist net_kld_str net_kld_con over_rtg {
+		
+		xtreg `dv' `iv', fe cluster(cusip_n)
+	}
+}
+
+*	Lagged CSR
+foreach dv of varlist revt ni tobinq roa {
+
+	foreach iv of varlist net_kld_str net_kld_con over_rtg {
+
+		xtreg `dv' L12.`iv', fe cluster(cusip_n)
+		
+	}
+}
 
 ///	Barron & Kinny Mediation Analysis
 
 ***	All independent variables lagged 12 months by regressing 12-month leading DV.
-foreach dv of varlist revt sale ni tobinq roa {
+foreach dv of varlist revt ni tobinq roa {
 
 	foreach iv of varlist net_kld_str net_kld_con {
 
@@ -204,7 +224,7 @@ foreach dv of varlist revt sale ni tobinq roa {
 
 
 ***	KLD and CSRHub lagged 12 months. Other variables contemporaneous with DV.
-foreach dv of varlist revt sale ni tobinq roa {
+foreach dv of varlist revt ni tobinq roa {
 
 	foreach iv of varlist net_kld_str net_kld_con {
 
@@ -226,6 +246,11 @@ foreach dv of varlist revt sale ni tobinq roa {
 		title("Fixed effects regression of `dv' on `iv'. CSR variables lagged 12 months. Errors clustered by CUSIP.")
 	}
 }
+
+
+
+
+
 
 
 
