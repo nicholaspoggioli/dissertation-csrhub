@@ -176,21 +176,70 @@ graph matrix net_kld_str net_kld_con over_rtg revt ni tobinq roa, half
 
 ***	Univariate analysis
 *	Contemporaneous
+eststo clear
 foreach dv of varlist revt ni tobinq roa {
 	
 	foreach iv of varlist net_kld_str net_kld_con over_rtg {
 		
 		xtreg `dv' `iv', fe cluster(cusip_n)
+		eststo uni
+		xtreg `dv' `iv' i.year, fe cluster(cusip_n)
+		eststo uni_yr
+		
+		estout uni uni_yr, cells(b(star fmt(%9.3f)) se z(par)) ///
+		stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+		labels("N" "CUSIPs"))      ///
+		legend collabels(none) ///
+		keep(`iv' *.year) ///
+		order(`iv' *.year) ///
+		mlabel(,dep) ///
+		title("Fixed effects regression of `dv' on `iv'. Errors clustered by CUSIP.")
 	}
 }
 
-*	Lagged CSR
+*	Contemporaneous both KLD
+eststo clear
 foreach dv of varlist revt ni tobinq roa {
-
-	foreach iv of varlist net_kld_str net_kld_con over_rtg {
-
-		xtreg `dv' L12.`iv', fe cluster(cusip_n)
 		
+	xtreg `dv' net_kld_str net_kld_con, fe cluster(cusip_n)
+	eststo `dv'_uni
+	xtreg `dv' net_kld_str net_kld_con i.year, fe cluster(cusip_n)
+	eststo `dv'_uni_yr
+	
+}
+
+estout *, cells(b(star fmt(%9.3f)) se z(par)) ///
+stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+labels("N" "CUSIPs"))      ///
+legend collabels(none) ///
+keep(net_kld*) ///
+order(net_kld*) ///
+mlabel(,dep) ///
+indicate(Year FE = 2008.year 2009.year 2010.year 2011.year 2012.year 2013.year 2014.year 2015.year) ///
+title("Fixed effects regressions of CFP outcomes. Errors clustered by CUSIP.")
+
+eststo clear
+
+
+***	Lagged CSR
+eststo clear
+foreach dv of varlist revt ni tobinq roa {
+	
+	foreach iv of varlist net_kld_str net_kld_con over_rtg {
+		
+		xtreg `dv' L12.`iv', fe cluster(cusip_n)
+		eststo uni
+		xtreg `dv' L12.`iv' i.year, fe cluster(cusip_n)
+		eststo uni_yr
+		
+		estout uni uni_yr, cells(b(star fmt(%9.3f)) se z(par)) ///
+		stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+		labels("N" "CUSIPs"))      ///
+		legend collabels(none) ///
+		keep(L12.`iv' *.year) ///
+		order(L12.`iv' *.year) ///
+		mlabel(,dep) ///
+		title("Fixed effects regression of `dv' on `iv'. Errors clustered by CUSIP.")
 	}
 }
 
@@ -216,6 +265,7 @@ foreach dv of varlist revt ni tobinq roa {
 		legend collabels(none) ///
 		keep(over_rtg `iv' emp debt rd ad _cons) ///
 		order(over_rtg `iv' emp debt rd ad _cons) ///
+		mlabel(,dep) ///
 		title("DV: 1-year leading `dv'. Fixed effects regression on `iv'. Errors clustered by CUSIP.")
 	}
 }
