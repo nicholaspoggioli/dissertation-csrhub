@@ -164,59 +164,73 @@ eststo nistrcon
 ***=========================================================***
 use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 
-*************************
-*	DV: Revenue 		*
-*************************
-/*
-*	Y = revt
-*	X = over_rtg
-*	M = net_kld
-*/
+replace net_kld_con=net_kld_con * -1 if net_kld_con >=0
 
-***	All industries
-***	Net KLD strengths
-*Main relationship
-xtreg f12.revt over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
-eststo m1_revt
 
-*Mediator predicting independent variable
-xtreg net_kld_str over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
-eststo m1_revt_kld
+///	Main CFP - CSR performance
 
-*Mediation analysis
-xtreg f12.revt over_rtg net_kld_str emp debt rd ad i.year, fe cluster(cusip_n)
-eststo m1_revt_med
+foreach dv of varlist revt sale ni tobinq roa {
 
-estout m1_revt m1_revt_kld m1_revt_med, cells(b(star fmt(%9.3f)) z(par))                ///
-	stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
-	labels("N" "Firms" "Adj. R^2"))      ///
-	legend collabels(none) ///
-	keep(over_rtg net_kld_str emp debt rd ad _cons) ///
-	order(over_rtg net_kld_str emp debt rd ad _cons) ///
-	title("DV: 1-year leading revenue. Fixed effects regression on NET KLD STRENGTHS. Errors clustered by CUSIP.")
+	foreach iv of varlist net_kld_str net_kld_con {
+
 		
-***	All industries
-***	Net KLD concerns
-*Main relationship
-xtreg f12.revt over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
-eststo m2_revt
-
-*Mediator predicting independent variable
-xtreg net_kld_con over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
-eststo m2_net_kld
-
-*Mediation analysis
-xtreg f12.revt over_rtg net_kld_con emp debt rd ad i.year, fe cluster(cusip_n)
-eststo m2_med
-
-estout m2_revt m2_net_kld m2_med, cells(b(star fmt(%9.3f)) z(par))                ///
-	stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
-	labels("N" "Firms" "Adj. R^2"))      ///
-	legend collabels(none) ///
-	keep(over_rtg net_kld_con emp debt rd ad _cons) ///
-	order(over_rtg net_kld_con emp debt rd ad _cons) ///
-	title("DV: 1-year leading revenue. Fixed effects regression on NET KLD CONCERNS. Errors clustered by CUSIP.")
 	
+
+///	Barron & Kinny Mediation Analysis
+
+***	All independent variables lagged 12 months by regressing 12-month leading DV.
+foreach dv of varlist revt sale ni tobinq roa {
+
+	foreach iv of varlist net_kld_str net_kld_con {
+
+		xtreg f12.`dv' over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
+		eststo `dv'_m1
+		
+		xtreg `iv' over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
+		eststo `dv'_m2
+		
+		xtreg f12.`dv' over_rtg `iv' emp debt rd ad i.year, fe cluster(cusip_n)
+		eststo `dv'_m3
+
+		estout `dv'_m1 `dv'_m2 `dv'_m3, cells(b(star fmt(%9.3f)) z(par)) ///
+		stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
+		labels("N" "Firms" "Adj. R^2"))      ///
+		legend collabels(none) ///
+		keep(over_rtg `iv' emp debt rd ad _cons) ///
+		order(over_rtg `iv' emp debt rd ad _cons) ///
+		title("DV: 1-year leading `dv'. Fixed effects regression on `iv'. Errors clustered by CUSIP.")
+	}
+}
+
+
+***	KLD and CSRHub lagged 12 months. Other variables contemporaneous with DV.
+foreach dv of varlist revt sale ni tobinq roa {
+
+	foreach iv of varlist net_kld_str net_kld_con {
+
+		xtreg `dv' l12.over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
+		eststo `dv'_m1
+		
+		xtreg l12.`iv' l12.over_rtg emp debt rd ad i.year, fe cluster(cusip_n)
+		eststo `dv'_m2
+		
+		xtreg `dv' l12.over_rtg l12.`iv' emp debt rd ad i.year, fe cluster(cusip_n)
+		eststo `dv'_m3
+
+		estout `dv'_m1 `dv'_m2 `dv'_m3, cells(b(star fmt(%9.3f)) z(par)) ///
+		stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
+		labels("N" "Firms" "Adj. R^2"))      ///
+		legend collabels(none) ///
+		keep(L12.over_rtg L12.`iv' emp debt rd ad _cons) ///
+		order(L12.over_rtg L12.`iv' emp debt rd ad _cons) ///
+		title("Fixed effects regression of `dv' on `iv'. CSR variables lagged 12 months. Errors clustered by CUSIP.")
+	}
+}
+
+
+
+
+
 	
 ***	WITHIN-BETWEEN RANDOM EFFECTS MODELS
 foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad {
