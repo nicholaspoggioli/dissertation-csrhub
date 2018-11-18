@@ -4209,6 +4209,9 @@ encode stnd_firm, gen(firm_n)
 xtset firm_n ym, m
 order stnd_firm ym
 
+***	Make net_kld_con negative
+replace net_kld_con=net_kld_con * -1 if net_kld_con >=0
+
 *SAVE
 compress
 save data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, replace
