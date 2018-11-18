@@ -164,19 +164,17 @@ eststo nistrcon
 ***=========================================================***
 use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 
-replace net_kld_con=net_kld_con * -1 if net_kld_con >=0
-
-
-///	Main CFP - CSR performance
-set schem plotplainblind
-
 ***	Descriptive analysis
 corr revt ni tobinq roa net_kld_str net_kld_con over_rtg, means
 pwcorr revt ni tobinq roa net_kld_str net_kld_con over_rtg, p(.05)
 graph matrix net_kld_str net_kld_con over_rtg revt ni tobinq roa, half
 
-***	Univariate analysis
 
+///	Main CFP - CSR performance
+set scheme plotplainblind
+
+
+***	Univariate analysis
 *	Contemporaneous
 foreach dv of varlist sale ni tobinq roa {
 	
@@ -249,19 +247,8 @@ foreach dv of varlist revt ni tobinq roa {
 
 
 
-
-
-
-
-
-
-
 	
 ***	WITHIN-BETWEEN RANDOM EFFECTS MODELS
-foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad {
-	bysort cusip_n: egen `variable'_m=mean(`variable')
-	bysort cusip_n: gen `variable'_dm=`variable'-`variable'_m
-}
 
 *** All industries
 ***	Net KLD strengths
