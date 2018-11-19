@@ -102,7 +102,8 @@ replace naics_2=31 if naics_2==32 | naics_2==33									/*	Manufacturing */
 replace naics_2=44 if naics_2==45												/*	Retail Trade	*/
 replace naics_2=48 if naics_2==49												/*	Transport and Warehousing	*/
 
-fvset base 51 naics_2
+*	Set base industry as retail trade
+fvset base 44 naics_2
 
 *	Net KLD strengths
 xtreg ni over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
@@ -187,9 +188,9 @@ foreach dv of varlist revt ni tobinq roa {
 	
 	foreach iv of varlist net_kld_str net_kld_con over_rtg {
 		
-		xtreg `dv' `iv', fe cluster(cusip_n)
+		qui xtreg `dv' `iv', fe cluster(cusip_n)
 		eststo reg1_`dv'
-		xtreg `dv' `iv' i.year, fe cluster(cusip_n)
+		qui xtreg `dv' `iv' i.year, fe cluster(cusip_n)
 		eststo reg1yr_`dv'
 	}
 }
@@ -208,9 +209,9 @@ title("Fixed effects regressions. Panel is CUSIP-yearmonth. Errors clustered by 
 eststo clear
 foreach dv of varlist revt ni tobinq roa {
 		
-	xtreg `dv' net_kld_str net_kld_con, fe cluster(cusip_n)
+	qui xtreg `dv' net_kld_str net_kld_con, fe cluster(cusip_n)
 	eststo reg2_`dv'
-	xtreg `dv' net_kld_str net_kld_con i.year, fe cluster(cusip_n)
+	qui xtreg `dv' net_kld_str net_kld_con i.year, fe cluster(cusip_n)
 	eststo reg2yr_`dv'
 	
 }
@@ -233,9 +234,9 @@ foreach dv of varlist revt ni tobinq roa {
 	
 	foreach iv of varlist net_kld_str net_kld_con over_rtg {
 		
-		xtreg `dv' L12.`iv', fe cluster(cusip_n)
+		qui xtreg `dv' L12.`iv', fe cluster(cusip_n)
 		eststo reg3_`dv'
-		xtreg `dv' L12.`iv' i.year, fe cluster(cusip_n)
+		qui xtreg `dv' L12.`iv' i.year, fe cluster(cusip_n)
 		eststo reg3yr_`dv'
 	}
 }
@@ -256,9 +257,9 @@ xtset
 eststo clear
 foreach dv of varlist revt ni tobinq roa {
 		
-	xtreg `dv' L12.net_kld_str L12.net_kld_con, fe cluster(cusip_n)
+	qui xtreg `dv' L12.net_kld_str L12.net_kld_con, fe cluster(cusip_n)
 	eststo reg2_`dv'
-	xtreg `dv' L12.net_kld_str L12.net_kld_con i.year, fe cluster(cusip_n)
+	qui xtreg `dv' L12.net_kld_str L12.net_kld_con i.year, fe cluster(cusip_n)
 	eststo reg2yr_`dv'
 	
 }
@@ -280,9 +281,9 @@ eststo clear
 xtset
 foreach dv of varlist revt ni tobinq roa {
 	
-	xtreg `dv' over_rtg_dm over_rtg_m, re cluster(cusip_n)
+	qui xtreg `dv' over_rtg_dm over_rtg_m, re cluster(cusip_n)
 	eststo rewb1_`dv'_1
-	xtreg `dv' over_rtg_dm over_rtg_m i.year, re cluster(cusip_n)
+	qui xtreg `dv' over_rtg_dm over_rtg_m i.year, re cluster(cusip_n)
 	eststo rewb1_`dv'_2
 }
 
@@ -300,9 +301,9 @@ title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Erro
 xtset
 foreach dv of varlist revt ni tobinq roa {
 	
-	xtreg `dv' L12.over_rtg_dm L12.over_rtg_m, re cluster(cusip_n)
+	qui xtreg `dv' L12.over_rtg_dm L12.over_rtg_m, re cluster(cusip_n)
 	eststo rewb2_`dv'_1
-	xtreg `dv' L12.over_rtg_dm L12.over_rtg_m i.year, re cluster(cusip_n)
+	qui xtreg `dv' L12.over_rtg_dm L12.over_rtg_m i.year, re cluster(cusip_n)
 	eststo rewb2_`dv'_2
 }
 
@@ -320,9 +321,9 @@ title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Erro
 xtset
 foreach dv of varlist revt ni tobinq roa {
 	
-	xtreg `dv' net_kld_str_dm net_kld_con_dm net_kld_str_m net_kld_con_m, re cluster(cusip_n)
+	qui xtreg `dv' net_kld_str_dm net_kld_con_dm net_kld_str_m net_kld_con_m, re cluster(cusip_n)
 	eststo rewb3_`dv'_1
-	xtreg `dv' net_kld_str_dm net_kld_con_dm net_kld_str_m net_kld_con_m i.year, re cluster(cusip_n)
+	qui xtreg `dv' net_kld_str_dm net_kld_con_dm net_kld_str_m net_kld_con_m i.year, re cluster(cusip_n)
 	eststo rewb3_`dv'_2
 }
 
@@ -340,9 +341,9 @@ title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Erro
 xtset
 foreach dv of varlist revt ni tobinq roa {
 	
-	xtreg `dv' L12.net_kld_str_dm L12.net_kld_con_dm L12.net_kld_str_m L12.net_kld_con_m, re cluster(cusip_n)
+	qui xtreg `dv' L12.net_kld_str_dm L12.net_kld_con_dm L12.net_kld_str_m L12.net_kld_con_m, re cluster(cusip_n)
 	eststo rewb4_`dv'_1
-	xtreg `dv' L12.net_kld_str_dm L12.net_kld_con_dm L12.net_kld_str_m L12.net_kld_con_m i.year, re cluster(cusip_n)
+	qui xtreg `dv' L12.net_kld_str_dm L12.net_kld_con_dm L12.net_kld_str_m L12.net_kld_con_m i.year, re cluster(cusip_n)
 	eststo rewb4_`dv'_2
 }
 
@@ -373,9 +374,9 @@ title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Erro
 xtset
 
 foreach dv of varlist net_kld_str net_kld_con {
-	xtreg `dv' over_rtg_dm over_rtg_m, re cluster(cusip_n)
+	qui xtreg `dv' over_rtg_dm over_rtg_m, re cluster(cusip_n)
 	eststo rewb5_`dv'_1
-	xtreg `dv' over_rtg_dm over_rtg_m i.year, re cluster(cusip_n)
+	qui xtreg `dv' over_rtg_dm over_rtg_m i.year, re cluster(cusip_n)
 	eststo rewb5_`dv'_2
 }
 
@@ -398,22 +399,25 @@ replace naics_2=31 if naics_2==32 | naics_2==33									/*	Manufacturing */
 replace naics_2=44 if naics_2==45												/*	Retail Trade	*/
 replace naics_2=48 if naics_2==49												/*	Transport and Warehousing	*/
 
-fvset base 51 naics_2
+*	Set base industry as retail trade
+fvset base 44 naics_2
 
 ***	Industry dummies
 bysort cusip_n: egen naics_2_m = mean(naics_2)
 by cusip_n: gen naics_2_dm = naics_2 - naics_2_m
 label var naics_2_m "CUSIP-level mean naics_2"
 label var naics_2_dm "CUSIP-level de-meaned naics_2 (always 0 unless firm moves sectors)"
-fvset base 51 naics_2_m
+
+*	Set base industry as retail trade
+fvset base 44 naics_2_m
 
 
 xtset 
 foreach dv of varlist revt ni tobinq roa {
 	
-	xtreg `dv' i.naics_2_dm i.naics_2_m, re cluster(cusip_n) base
+	qui xtreg `dv' i.naics_2_dm i.naics_2_m, re cluster(cusip_n) base
 	eststo rewb6_`dv'_1
-	xtreg `dv' i.naics_2_dm i.naics_2_m i.year, re cluster(cusip_n) base
+	qui xtreg `dv' i.naics_2_dm i.naics_2_m i.year, re cluster(cusip_n) base
 	eststo rewb6_`dv'_2
 }
 
@@ -429,9 +433,9 @@ title("Random effects regressions. Panel is CUSIP-yearmonth. Errors clustered by
 xtset 
 foreach dv of varlist over_rtg net_kld_str net_kld_con {
 	
-	xtreg `dv' i.naics_2_dm i.naics_2_m, re cluster(cusip_n) base
+	qui xtreg `dv' i.naics_2_dm i.naics_2_m, re cluster(cusip_n) base
 	eststo rewb7_`dv'_1
-	xtreg `dv' i.naics_2_dm i.naics_2_m i.year, re cluster(cusip_n) base
+	qui xtreg `dv' i.naics_2_dm i.naics_2_m i.year, re cluster(cusip_n) base
 	eststo rewb7_`dv'_2
 }
 
@@ -442,15 +446,6 @@ legend collabels(none) ///
 mlabel(,dep) ///
 drop(_cons) ///
 title("Random effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
-
-
-
-
-
-
-
-
-
 
 
 
@@ -624,7 +619,8 @@ replace naics_2=31 if naics_2==32 | naics_2==33									/*	Manufacturing */
 replace naics_2=44 if naics_2==45												/*	Retail Trade	*/
 replace naics_2=48 if naics_2==49												/*	Transport and Warehousing	*/
 
-fvset base 51 naics_2
+*	Set base industry as retail trade
+fvset base 44 naics_2
 
 
 
