@@ -426,7 +426,22 @@ drop(_cons) ///
 title("Random effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
 
 
+xtset 
+foreach dv of varlist over_rtg net_kld_str net_kld_con {
+	
+	xtreg `dv' i.naics_2_dm i.naics_2_m, re cluster(cusip_n) base
+	eststo rewb7_`dv'_1
+	xtreg `dv' i.naics_2_dm i.naics_2_m i.year, re cluster(cusip_n) base
+	eststo rewb7_`dv'_2
+}
 
+estout rewb7*, cells(b(star fmt(%9.3f)) z(par)) ///
+stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+labels("N" "CUSIPs"))      ///
+legend collabels(none) ///
+mlabel(,dep) ///
+drop(_cons) ///
+title("Random effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
 
 
 
