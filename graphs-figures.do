@@ -60,6 +60,7 @@ graph combine overnetmean.gph overnetmedian.gph, col(1)
 					***===================================***
 use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 
+set scheme plotplainblind
 graph matrix net_kld_str net_kld_con over_rtg revt ni at tobinq roa
 
 
