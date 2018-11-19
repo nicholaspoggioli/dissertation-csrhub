@@ -172,74 +172,230 @@ set scheme plotplainblind
 
 ///	Main CFP - CSR performance
 
-***	Univariate analysis
-*	Contemporaneous
+***	Contemporaneous 
+*	CSRHub
 eststo clear
 foreach dv of varlist revt ni tobinq roa {
 	
 	foreach iv of varlist net_kld_str net_kld_con over_rtg {
 		
 		xtreg `dv' `iv', fe cluster(cusip_n)
-		eststo uni
+		eststo reg1_`dv'
 		xtreg `dv' `iv' i.year, fe cluster(cusip_n)
-		eststo uni_yr
-		
-		estout uni uni_yr, cells(b(star fmt(%9.3f)) se z(par)) ///
-		stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
-		labels("N" "CUSIPs"))      ///
-		legend collabels(none) ///
-		keep(`iv' *.year) ///
-		order(`iv' *.year) ///
-		mlabel(,dep) ///
-		title("Fixed effects regression of `dv' on `iv'. Errors clustered by CUSIP.")
+		eststo reg1yr_`dv'
 	}
 }
+eststo dir
 
-*	Contemporaneous both KLD
+estout *, cells(b(star fmt(%9.3f)) z(par)) ///
+stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+labels("N" "CUSIPs"))      ///
+legend collabels(none) ///
+mlabel(,dep) ///
+drop(_cons) ///
+indicate(Year FEs = *.year) ///
+title("Fixed effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+*	KLD
 eststo clear
 foreach dv of varlist revt ni tobinq roa {
 		
 	xtreg `dv' net_kld_str net_kld_con, fe cluster(cusip_n)
-	eststo `dv'_uni
+	eststo reg2_`dv'
 	xtreg `dv' net_kld_str net_kld_con i.year, fe cluster(cusip_n)
-	eststo `dv'_uni_yr
+	eststo reg2yr_`dv'
 	
 }
 
-estout *, cells(b(star fmt(%9.3f)) se z(par)) ///
+estout *, cells(b(star fmt(%9.3f)) z(par)) ///
 stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
 labels("N" "CUSIPs"))      ///
 legend collabels(none) ///
-keep(net_kld*) ///
-order(net_kld*) ///
 mlabel(,dep) ///
-indicate(Year FE = 2008.year 2009.year 2010.year 2011.year 2012.year 2013.year 2014.year 2015.year) ///
-title("Fixed effects regressions of CFP outcomes. Errors clustered by CUSIP.")
+drop(_cons) ///
+indicate(Year FEs = *.year) ///
+title("Fixed effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
 
-eststo clear
 
-
-***	Lagged CSR
+***	Lagged independent variables
+*	CSRHub
+xtset
 eststo clear
 foreach dv of varlist revt ni tobinq roa {
 	
 	foreach iv of varlist net_kld_str net_kld_con over_rtg {
 		
 		xtreg `dv' L12.`iv', fe cluster(cusip_n)
-		eststo uni
+		eststo reg3_`dv'
 		xtreg `dv' L12.`iv' i.year, fe cluster(cusip_n)
-		eststo uni_yr
-		
-		estout uni uni_yr, cells(b(star fmt(%9.3f)) se z(par)) ///
-		stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
-		labels("N" "CUSIPs"))      ///
-		legend collabels(none) ///
-		keep(L12.`iv' *.year) ///
-		order(L12.`iv' *.year) ///
-		mlabel(,dep) ///
-		title("Fixed effects regression of `dv' on `iv'. Errors clustered by CUSIP.")
+		eststo reg3yr_`dv'
 	}
 }
+
+estout *, cells(b(star fmt(%9.3f)) z(par)) ///
+stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+labels("N" "CUSIPs"))      ///
+legend collabels(none) ///
+mlabel(,dep) ///
+drop(_cons) ///
+indicate(Year FEs = *.year) ///
+title("Fixed effects regression on lagged CSR. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+		
+eststo clear
+
+*	KLD
+xtset
+eststo clear
+foreach dv of varlist revt ni tobinq roa {
+		
+	xtreg `dv' L12.net_kld_str L12.net_kld_con, fe cluster(cusip_n)
+	eststo reg2_`dv'
+	xtreg `dv' L12.net_kld_str L12.net_kld_con i.year, fe cluster(cusip_n)
+	eststo reg2yr_`dv'
+	
+}
+
+estout *, cells(b(star fmt(%9.3f)) z(par)) ///
+stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+labels("N" "CUSIPs"))      ///
+legend collabels(none) ///
+mlabel(,dep) ///
+drop(_cons) ///
+indicate(Year FEs = *.year) ///
+title("Fixed effects regressions. Panel is CUSIP-year. Errors clustered by CUSIP.")
+
+eststo clear
+
+
+***	Random effects within-between models
+*	CSRHub contemporaneous
+xtset
+foreach dv of varlist revt ni tobinq roa {
+	
+	xtreg `dv' over_rtg_dm over_rtg_m, re cluster(cusip_n)
+	eststo rewb1_`dv'_1
+	xtreg `dv' over_rtg_dm over_rtg_m i.year, re cluster(cusip_n)
+	eststo rewb1_`dv'_2
+}
+
+estout rewb1*, cells(b(star fmt(%9.3f)) z(par)) ///
+stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+labels("N" "CUSIPs"))      ///
+legend collabels(none) ///
+mlabel(,dep) ///
+drop(_cons) ///
+indicate(Year FEs = *.year) ///
+title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+		
+
+*	CSRHub lagged
+xtset
+foreach dv of varlist revt ni tobinq roa {
+	
+	xtreg `dv' L12.over_rtg_dm L12.over_rtg_m, re cluster(cusip_n)
+	eststo rewb2_`dv'_1
+	xtreg `dv' L12.over_rtg_dm L12.over_rtg_m i.year, re cluster(cusip_n)
+	eststo rewb2_`dv'_2
+}
+
+estout rewb2*, cells(b(star fmt(%9.3f)) z(par)) ///
+stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+labels("N" "CUSIPs"))      ///
+legend collabels(none) ///
+mlabel(,dep) ///
+drop(_cons) ///
+indicate(Year FEs = *.year) ///
+title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+		
+
+*	KLD contemporaneous
+xtset
+foreach dv of varlist revt ni tobinq roa {
+	
+	xtreg `dv' net_kld_str_dm net_kld_con_dm net_kld_str_m net_kld_con_m, re cluster(cusip_n)
+	eststo rewb3_`dv'_1
+	xtreg `dv' net_kld_str_dm net_kld_con_dm net_kld_str_m net_kld_con_m i.year, re cluster(cusip_n)
+	eststo rewb3_`dv'_2
+}
+
+estout rewb3*, cells(b(star fmt(%9.3f)) z(par)) ///
+stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+labels("N" "CUSIPs"))      ///
+legend collabels(none) ///
+mlabel(,dep) ///
+drop(_cons) ///
+indicate(Year FEs = *.year) ///
+title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+		
+
+*	KLD lagged
+xtset
+foreach dv of varlist revt ni tobinq roa {
+	
+	xtreg `dv' L12.net_kld_str_dm L12.net_kld_con_dm L12.net_kld_str_m L12.net_kld_con_m, re cluster(cusip_n)
+	eststo rewb4_`dv'_1
+	xtreg `dv' L12.net_kld_str_dm L12.net_kld_con_dm L12.net_kld_str_m L12.net_kld_con_m i.year, re cluster(cusip_n)
+	eststo rewb4_`dv'_2
+}
+
+estout rewb4*, cells(b(star fmt(%9.3f)) z(par)) ///
+stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+labels("N" "CUSIPs"))      ///
+legend collabels(none) ///
+mlabel(,dep) ///
+drop(_cons) ///
+indicate(Year FEs = *.year) ///
+title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+		
+
+
+***	Compare contemporaneous and lagged KLD
+estout rewb3_r* rewb4_r*, cells(b(star) z(par fmt(%9.4f))) ///
+stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+labels("N" "CUSIPs"))      ///
+legend collabels(none) ///
+mlabel(,dep) ///
+drop(_cons) ///
+indicate(Year FEs = *.year) ///
+title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+
+
+
+
+///	INDUSTRY RELATIONSHIPS
+
+*	Generate 2-digit NAICS
+gen naics2=substr(naics,1,2)
+destring(naics2), gen(naics_2)
+replace naics_2=31 if naics_2==32 | naics_2==33									/*	Manufacturing */
+replace naics_2=44 if naics_2==45												/*	Retail Trade	*/
+replace naics_2=48 if naics_2==49												/*	Transport and Warehousing	*/
+
+fvset base 51 naics_2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ///	Barron & Kinny Mediation Analysis
 
@@ -257,16 +413,17 @@ foreach dv of varlist revt ni tobinq roa {
 		xtreg f12.`dv' over_rtg `iv' emp debt rd ad i.year, fe cluster(cusip_n)
 		eststo `dv'_m3
 
-		estout `dv'_m1 `dv'_m2 `dv'_m3, cells(b(star fmt(%9.3f)) z(par)) ///
-		stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
-		labels("N" "Firms" "Adj. R^2"))      ///
-		legend collabels(none) ///
-		keep(over_rtg `iv' emp debt rd ad _cons) ///
-		order(over_rtg `iv' emp debt rd ad _cons) ///
-		mlabel(,dep) ///
-		title("DV: 1-year leading `dv'. Fixed effects regression on `iv'. Errors clustered by CUSIP.")
 	}
 }
+
+estout `dv'_m1 `dv'_m2 `dv'_m3, cells(b(star fmt(%9.3f)) z(par)) ///
+stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
+labels("N" "Firms" "Adj. R^2"))      ///
+legend collabels(none) ///
+keep(over_rtg `iv' emp debt rd ad _cons) ///
+order(over_rtg `iv' emp debt rd ad _cons) ///
+mlabel(,dep) ///
+title("DV: 1-year leading `dv'. Fixed effects regression on `iv'. Errors clustered by CUSIP.")
 
 
 ***	KLD and CSRHub lagged 12 months. Other variables contemporaneous with DV.
@@ -308,16 +465,6 @@ xtreg net_kld_str over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m
 
 xtreg f12.revt over_rtg_dm net_kld_str_dm over_rtg_m net_kld_str_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year, ///
 	re cluster(cusip_n) base
-
-
-***	Control 2-digit NAICS
-gen naics2=substr(naics,1,2)
-destring(naics2), gen(naics_2)
-replace naics_2=31 if naics_2==32 | naics_2==33									/*	Manufacturing */
-replace naics_2=44 if naics_2==45												/*	Retail Trade	*/
-replace naics_2=48 if naics_2==49												/*	Transport and Warehousing	*/
-
-fvset base 51 naics_2
 
 *	Net KLD strengths
 xtreg f12.revt over_rtg_dm over_rtg_m emp_dm debt_dm rd_dm ad_dm emp_m debt_m rd_m ad_m i.year i.naics_2, re base
