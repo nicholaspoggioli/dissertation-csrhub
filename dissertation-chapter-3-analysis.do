@@ -360,7 +360,25 @@ indicate(Year FEs = *.year) ///
 title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
 
 
+///	CSP AND STAKEHOLDER MANAGEMENT
 
+xtset
+
+foreach dv of varlist net_kld_str net_kld_con {
+	xtreg `dv' over_rtg_dm over_rtg_m, re cluster(cusip_n)
+	eststo rewb5_`dv'_1
+	xtreg `dv' over_rtg_dm over_rtg_m i.year, re cluster(cusip_n)
+	eststo rewb5_`dv'_2
+}
+
+estout rewb5*, cells(b(star fmt(%9.3f)) z(par)) ///
+stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+labels("N" "CUSIPs"))      ///
+legend collabels(none) ///
+mlabel(,dep) ///
+drop(_cons) ///
+indicate(Year FEs = *.year) ///
+title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
 
 
 ///	INDUSTRY RELATIONSHIPS
