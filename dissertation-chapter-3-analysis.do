@@ -355,7 +355,6 @@ mlabel(,dep) ///
 drop(_cons) ///
 indicate(Year FEs = *.year) ///
 title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
-		
 
 
 ***	Compare contemporaneous and lagged KLD
@@ -369,8 +368,12 @@ indicate(Year FEs = *.year) ///
 title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
 
 
+
+
+
 ///	CSP AND STAKEHOLDER MANAGEMENT
 
+***	Direct relationship: contemporaneous
 xtset
 
 foreach dv of varlist net_kld_str net_kld_con {
@@ -388,6 +391,21 @@ mlabel(,dep) ///
 drop(_cons) ///
 indicate(Year FEs = *.year) ///
 title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ///	INDUSTRY RELATIONSHIPS
@@ -453,27 +471,6 @@ title("Random effects regressions. Panel is CUSIP-yearmonth. Errors clustered by
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ///	Barron & Kinny Mediation Analysis
 
 ***	All independent variables lagged 12 months by regressing 12-month leading DV.
@@ -493,14 +490,13 @@ foreach dv of varlist revt ni tobinq roa {
 	}
 }
 
-estout `dv'_m1 `dv'_m2 `dv'_m3, cells(b(star fmt(%9.3f)) z(par)) ///
-stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) ///
-labels("N" "Firms" "Adj. R^2"))      ///
+estout revt* ni* tobinq* roa*, cells(b(star fmt(%9.3f)) z(par)) ///
+stats(N  N_g r2_a, fmt(%9.0g %9.0g %9.0g %9.4g) labels("N" "Firms" "Adj. R^2"))      ///
 legend collabels(none) ///
-keep(over_rtg `iv' emp debt rd ad _cons) ///
-order(over_rtg `iv' emp debt rd ad _cons) ///
+keep(over_rtg net* emp debt rd ad _cons) ///
+order(over_rtg net* emp debt rd ad _cons) ///
 mlabel(,dep) ///
-title("DV: 1-year leading `dv'. Fixed effects regression on `iv'. Errors clustered by CUSIP.")
+title("Fixed effects regressions. Panel CUSIP-yearmonth. Errors clustered by CUSIP.")
 
 
 ***	KLD and CSRHub lagged 12 months. Other variables contemporaneous with DV.
