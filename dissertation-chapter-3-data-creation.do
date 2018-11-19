@@ -529,6 +529,7 @@ merge 1:m cusip year using data/csrhub-with-cstat-from-csrhub-kld-cusips.dta, up
 */
 gen ch=(fyr==month & fyr!=. & month!=.)
 
+* Change non-matching ym to missing for KLD data
 foreach variable of varlist year ticker cusip companyid env_str_a env_str_b env_str_c env_str_d env_str_f env_str_x env_con_a env_con_b env_con_c env_con_d env_con_e env_con_x com_str_a com_str_b com_str_c com_str_x com_con_a com_con_b com_con_d com_con_x hum_con_a hum_con_b emp_str_a emp_str_b emp_str_c emp_str_d emp_str_f emp_str_x emp_con_a emp_con_b emp_con_c emp_con_x div_str_a div_str_b div_str_c div_str_d div_str_e div_str_f div_str_x div_con_a div_con_x pro_str_a pro_str_b pro_str_c pro_str_x pro_con_a pro_con_d pro_con_e pro_con_x cgov_str_a cgov_str_c cgov_str_x cgov_con_b cgov_con_f alc_con_a gam_con_a mil_con_a mil_con_b mil_con_c mil_con_x nuc_con_a nuc_con_c nuc_con_d nuc_con_x tob_con_a emp_con_d cgov_con_x div_con_b com_str_d com_str_f hum_str_a hum_str_x hum_con_c hum_con_d hum_con_x div_str_g cgov_str_d alc_con_x gam_con_x hum_con_f fir_con_a tob_con_x env_con_f hum_str_d hum_con_g hum_str_g emp_str_g com_str_g cgov_str_e cgov_con_g cgov_con_h cgov_con_i env_str_g cgov_str_f cgov_con_j env_con_g env_con_h env_con_i com_str_h hum_con_h emp_str_h emp_con_f div_str_h div_con_c pro_str_d cgov_con_k env_str_h env_str_i env_str_j env_con_j env_con_k hum_con_j hum_con_k emp_str_i emp_str_j emp_str_k emp_str_l emp_con_g div_con_d pro_con_f cgov_str_g cgov_str_h cgov_con_l cgov_con_m env_str_k env_str_l env_str_m env_str_n env_str_o env_str_p env_str_q emp_str_n pro_str_e pro_str_f pro_str_g pro_str_h pro_str_i pro_str_j pro_str_k pro_con_g row_id_kld sum_alc_con sum_cgov_con sum_cgov_str sum_com_con sum_com_str sum_div_con sum_div_str sum_emp_con sum_emp_str sum_env_con sum_env_str sum_gam_con sum_hum_con sum_hum_str sum_mil_con sum_nuc_con sum_pro_con sum_pro_str sum_tob_con cgov_agg com_agg div_agg emp_agg env_agg hum_agg pro_agg alc_agg gam_agg mil_agg nuc_agg tob_agg net_kld_str net_kld_con net_kld firm_kld {
 	capt n replace `variable'=. if ch==0
 	capt n replace `variable'="" if ch==0
@@ -546,6 +547,15 @@ order firm_kld firm_csrhub conm cusip ym
 rename conm firm_cstat
 
 drop _merge ch N
+
+* Create de-meaned and mean variables for random effects within-between modeling
+foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad size {
+	bysort cusip_n: egen `variable'_m = mean(`variable')
+	label var `variable'_m "CUSIP-level mean of `variable'"
+	bysort cusip_n: gen `variable'_dm = `variable' - `variable'_m
+	label var `variable'_dm "CUSIP-level de-meaned `variable'"
+}
+
 
 *	Save
 compress
