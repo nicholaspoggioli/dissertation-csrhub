@@ -1,5 +1,5 @@
 capt log close
-log using logs\mediation-analysis-20181113.txt, text replace
+log using logs\dissertation-chapter-3-analysis.txt, text replace
 
 
 				***=============================***
@@ -159,6 +159,17 @@ eststo nistrcon
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 ***=========================================================***
 *		DATA FROM CLEAN-ALL-CSTAT-VARIABLES-FROM-CUSIPS.DO	  *
 ***=========================================================***
@@ -166,9 +177,6 @@ use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 
 ***	Descriptive analysis
 corr revt ni tobinq roa net_kld_str net_kld_con over_rtg, means
-
-set scheme plotplainblind
-
 
 ///	Main CFP - CSR performance
 
@@ -391,6 +399,47 @@ replace naics_2=44 if naics_2==45												/*	Retail Trade	*/
 replace naics_2=48 if naics_2==49												/*	Transport and Warehousing	*/
 
 fvset base 51 naics_2
+
+***	Industry dummies
+bysort cusip_n: egen naics_2_m = mean(naics_2)
+by cusip_n: gen naics_2_dm = naics_2 - naics_2_m
+label var naics_2_m "CUSIP-level mean naics_2"
+label var naics_2_dm "CUSIP-level de-meaned naics_2 (always 0 unless firm moves sectors)"
+fvset base 51 naics_2_m
+
+
+xtset 
+foreach dv of varlist revt ni tobinq roa {
+	
+	xtreg `dv' i.naics_2_dm i.naics_2_m, re cluster(cusip_n) base
+	eststo rewb6_`dv'_1
+	xtreg `dv' i.naics_2_dm i.naics_2_m i.year, re cluster(cusip_n) base
+	eststo rewb6_`dv'_2
+}
+
+estout rewb6*, cells(b(star fmt(%9.3f)) z(par)) ///
+stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+labels("N" "CUSIPs"))      ///
+legend collabels(none) ///
+mlabel(,dep) ///
+drop(_cons) ///
+title("Random effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
