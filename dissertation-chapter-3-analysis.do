@@ -194,7 +194,6 @@ foreach dv of varlist revt ni tobinq roa {
 		eststo reg1yr_`dv'
 	}
 }
-eststo dir
 
 estout *, cells(b(star fmt(%9.3f)) z(par)) ///
 stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
