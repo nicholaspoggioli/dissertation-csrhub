@@ -55,7 +55,12 @@ binscatter over_rtg net_kld, nquantiles(30) ///
 graph combine overnetmean.gph overnetmedian.gph, col(1)
 
 
+					***===================================***
+					*	CHAPTER 3: MEDIATION ANALYSIS		*
+					***===================================***
+use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 
+graph matrix net_kld_str net_kld_con over_rtg revt ni at tobinq roa
 
 
 					***===================================***
