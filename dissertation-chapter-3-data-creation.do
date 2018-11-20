@@ -127,6 +127,10 @@ keep cusip ym conm tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
 	naics sic spcindcd spcseccd cstatvars in_cstat_kld_cusip in_cstat_csrhub_cusip ///
 	loc fic
 	
+*	Set panel
+encode cusip, gen(cusip_n)
+xtset cusip_n fyear, y
+	
 *	Generate variables
 gen tobinq = (at + (csho * prcc_f) - ceq) / at
 gen mkt2book = mkvalt / bkvlps
@@ -134,12 +138,12 @@ gen mkt2book = mkvalt / bkvlps
 *	ROA
 gen roa = ni / at
 
-sort cusip ym
-by cusip: gen lroa=roa[_n-1]
+xtset
+gen lroa = l.roa
 
 *	Net income
-sort cusip ym
-by cusip: gen lni=ni[_n-1]
+xtset
+gen lni = l.ni
 	
 *	Debt ratio
 gen debt = dltt / at
@@ -149,6 +153,9 @@ gen rd = xrd / sale
 
 *	Advertising
 gen ad = xad / sale
+
+*	Revenue growth
+gen revg = revt - l12.revt
 
 foreach var of varlist * {
 	local lab `: var label `var''
@@ -162,9 +169,11 @@ gen size = log(at)
 replace emp=.209 if cusip=="P16994132" & fyear==2004 & emp==2545.209			/*	Firm did not have 2.5 million employees in this year	*/
 replace emp=emp*1000
 
-*	Set panel
-encode cusip, gen(cusip_n)
-xtset cusip_n ym, m
+*	Generate standardized variables
+foreach variable of varlist revt tobinq mkt2book roa lroa ni lni debt rd ad revg emp {
+	egen z2`variable' = std(`variable')
+	label var z2`variable' "(CSTAT) Standardized value of `variable'"
+}
 
 *	Revenue growth
 gen revt_growth=revt-l12.revt
@@ -180,7 +189,7 @@ label var debt "(CSTAT) Debt ratio = dltt / at"
 label var rd "(CSTAT) R&D intensity = xrd / sale"
 label var ad "(CSTAT) Advertising intensity = xad / sale"
 label var emp "(CSTAT) Number of employees"
-label var size "(CSTAT) Firm size = logarithm of AT"
+label var size "(CSTAT) Firm size = logarithm of at"
 label var revt_growth "(CSTAT) Change in revenue from previous year = revt - revt from 12 months prior"
 
 compress
