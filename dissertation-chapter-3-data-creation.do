@@ -26,7 +26,7 @@ keep if N==1
 drop N
 
 gen in_cstat_csrhub_cusip=1
-label var in_cstat_csrhub_cusip "=1 if in CSTAT data created from unique CSRHub CUSIPs"
+label var in_cstat_csrhub_cusip "Indicator =1 if in CSTAT data created from unique CSRHub CUSIPs"
 
 *	save
 compress
@@ -62,7 +62,7 @@ drop if N>1
 drop N
 
 gen in_cstat_kld_cusip=1
-label var in_cstat_kld_cusip "=1 if in CSTAT data created from unique KLD CUSIPs"
+label var in_cstat_kld_cusip "Indicator =1 if in CSTAT data created from unique KLD CUSIPs"
 
 compress
 save data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018-clean.dta, replace
@@ -158,6 +158,7 @@ foreach var of varlist * {
 gen size = log(at)
 
 *	Employees
+replace emp=.209 if cusip=="P16994132" & fyear==2004 & emp==2545.209			/*	Firm did not have 2.5 million employees in this year	*/
 replace emp=emp*1000
 
 *	Set panel
