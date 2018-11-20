@@ -291,30 +291,34 @@ foreach v of varlist * {
 rename (cusipkld yearkld) (cusip year)
 */
 
+*	Assume cusip constant within firms that ever have a cusip					/*	Assumption	*/
+gen cusip_miss = (cusip=="")
+gsort firm -cusip
+by firm: replace cusip=cusip[_n-1] if cusip==""
+
+*	Keep unique cusip year
 bysort cusip year: gen N=_N
 tab N
 /*
-
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |     44,788       88.23       88.23
-          2 |         34        0.07       88.30
-          3 |         18        0.04       88.33
-          4 |          8        0.02       88.35
-          5 |         20        0.04       88.39
-          6 |         12        0.02       88.41
-          7 |         14        0.03       88.44
-          8 |         24        0.05       88.49
-         10 |         10        0.02       88.51
-         63 |         63        0.12       88.63
-         69 |         69        0.14       88.77
-         77 |         77        0.15       88.92
-        185 |        185        0.36       89.28
-        643 |        643        1.27       90.55
-        647 |        647        1.27       91.82
-        651 |        651        1.28       93.11
-        652 |        652        1.28       94.39
-       2847 |      2,847        5.61      100.00
+          1 |     49,265       97.05       97.05
+          2 |         60        0.12       97.17
+          3 |         36        0.07       97.24
+          4 |         24        0.05       97.29
+          5 |         40        0.08       97.37
+          6 |         12        0.02       97.39
+          7 |         21        0.04       97.43
+         16 |         16        0.03       97.46
+         20 |         20        0.04       97.50
+         50 |         50        0.10       97.60
+         52 |         52        0.10       97.70
+         69 |         69        0.14       97.84
+         72 |         72        0.14       97.98
+        113 |        113        0.22       98.20
+        126 |        126        0.25       98.45
+        131 |        131        0.26       98.71
+        655 |        655        1.29      100.00
 ------------+-----------------------------------
       Total |     50,762      100.00
 */
@@ -323,206 +327,348 @@ list firm cusip year if N>1 & cusip!="", sepby(cusip year)
        +---------------------------------------------------------------------------+
        |                                                    firm      cusip   year |
        |---------------------------------------------------------------------------|
-49664. |                                    DEXUS PROPERTY GROUP   AU000000   2013 |
-49665. |                                       RCR TOMLINSON LTD   AU000000   2013 |
-49666. |                             PREMIER INVESTMENTS LIMITED   AU000000   2013 |
-49667. |                                        AUSDRILL LIMITED   AU000000   2013 |
-49668. |                              ARISTOCRAT LEISURE LIMITED   AU000000   2013 |
-49669. |                                               BWP TRUST   AU000000   2013 |
-49670. |                                          NUFARM LIMITED   AU000000   2013 |
-49671. |                       PLATINUM ASSET MANAGEMENT LIMITED   AU000000   2013 |
-49672. |                                        INVOCARE LIMITED   AU000000   2013 |
-49673. |                                  PERSEUS MINING LIMITED   AU000000   2013 |
-49674. |                        ECHO ENTERTAINMENT GROUP LIMITED   AU000000   2013 |
-49675. |                                       PERPETUAL LIMITED   AU000000   2013 |
-49676. |                              DRILLSEARCH ENERGY LIMITED   AU000000   2013 |
-49677. |                                     INVESTA OFFICE FUND   AU000000   2013 |
-49678. |                                      DULUXGROUP LIMITED   AU000000   2013 |
-49679. |                                     STEADFAST GROUP LTD   AU000000   2013 |
-49680. |                            STW COMMUNICATIONS GROUP LTD   AU000000   2013 |
-49681. |      SHOPPING CENTRES AUSTRALASIA PROPERTY GROUP RE LTD   AU000000   2013 |
-49682. |                                             UGL LIMITED   AU000000   2013 |
-49683. |                                      FLEXIGROUP LIMITED   AU000000   2013 |
-49684. |                                   MEDUSA MINING LIMITED   AU000000   2013 |
-49685. |                           SILVER LAKE RESOURCES LIMITED   AU000000   2013 |
-49686. |                                        DECMIL GROUP LTD   AU000000   2013 |
-49687. |                          SOUTHERN CROSS MEDIA GROUP LTD   AU000000   2013 |
-49688. |                                          CUDECO LIMITED   AU000000   2013 |
-49689. |                                     HORIZON OIL LIMITED   AU000000   2013 |
-49690. |                                   TOLL HOLDINGS LIMITED   AU000000   2013 |
-49691. |                       AUTOMOTIVE HOLDINGS GROUP LIMITED   AU000000   2013 |
-49692. |                                   FLIGHT CENTRE LIMITED   AU000000   2013 |
-49693. |                            TEN NETWORK HOLDINGS LIMITED   AU000000   2013 |
-49694. |                                  PAPILLON RESOURCES LTD   AU000000   2013 |
-49695. |                                       GRAINCORP LIMITED   AU000000   2013 |
-49696. |                                            MIRVAC GROUP   AU000000   2013 |
-49697. |                               STOCKLAND CORPORATION LTD   AU000000   2013 |
-49698. |                                              DUET GROUP   AU000000   2013 |
-49699. |                             MACQUARIE ATLAS ROADS GROUP   AU000000   2013 |
-49700. |                                              NEXTDC LTD   AU000000   2013 |
-49701. |                                    NRW HOLDINGS LIMITED   AU000000   2013 |
-49702. |                                 GOODMAN FIELDER LIMITED   AU000000   2013 |
-49703. |                                      CHARTER HALL GROUP   AU000000   2013 |
-49704. |                                         BURU ENERGY LTD   AU000000   2013 |
-49705. |                                               APA GROUP   AU000000   2013 |
-49706. |                                   ABACUS PROPERTY GROUP   AU000000   2013 |
-49707. |                                               ACRUX LTD   AU000000   2013 |
-49708. |                              FEDERATION CENTRES LIMITED   AU000000   2013 |
-49709. |                                   INDEPENDENCE GROUP NL   AU000000   2013 |
-49710. |                         M2 TELECOMMUNICATIONS GROUP LTD   AU000000   2013 |
-49711. |                                 THE REJECT SHOP LIMITED   AU000000   2013 |
-49712. |                         SYDNEY AIRPORT HOLDINGS LIMITED   AU000000   2013 |
-49713. |                                             ASX LIMITED   AU000000   2013 |
-49714. |                                               GPT GROUP   AU000000   2013 |
-49715. |                                 GOODMAN GROUP PTY. LTD.   AU000000   2013 |
-49716. |                                   SANDFIRE RESOURCES NL   AU000000   2013 |
-49717. |                                       RIO TINTO LIMITED   AU000000   2013 |
-49718. |                               AUSTRALAND PROPERTY GROUP   AU000000   2013 |
-49719. |                                EVOLUTION MINING LIMITED   AU000000   2013 |
-49720. |                                             AWE LIMITED   AU000000   2013 |
-49721. |                                        TRANSURBAN GROUP   AU000000   2013 |
-49722. |                                          CARDNO LIMITED   AU000000   2013 |
-49723. |                                   BEADELL RESOURCES LTD   AU000000   2013 |
-49724. |                                    MINERAL DEPOSITS LTD   AU000000   2013 |
-49725. |                                   WESTERN AREAS LIMITED   AU000000   2013 |
-49726. |                                            ARB CORP LTD   AU000000   2013 |
-49727. |                                CHARTER HALL RETAIL REIT   AU000000   2013 |
-49728. |                                 REGIS RESOURCES LIMITED   AU000000   2013 |
-49729. |                                     OZ MINERALS LIMITED   AU000000   2013 |
-49730. |                        MERMAID MARINE AUSTRALIA LIMITED   AU000000   2013 |
-49731. |                                             ALS LIMITED   AU000000   2013 |
-49732. |                                   SKILLED GROUP LIMITED   AU000000   2013 |
+45430. |                               ROCKVILLE FINANCIAL, INC.   91030410   2013 |
+45431. |                          UNITED FINANCIAL BANCORP, INC.   91030410   2013 |
        |---------------------------------------------------------------------------|
-49837. |                                      EMPRESAS CMPC S.A.   CL000000   2013 |
-49838. |                                      AGUAS ANDINAS S.A.   CL000000   2013 |
+49063. |                                              NEXTDC LTD   AU000000   2013 |
+49064. |                              DRILLSEARCH ENERGY LIMITED   AU000000   2013 |
+49065. |                           SILVER LAKE RESOURCES LIMITED   AU000000   2013 |
+49066. |                                  PAPILLON RESOURCES LTD   AU000000   2013 |
+49067. |                                   FLIGHT CENTRE LIMITED   AU000000   2013 |
+49068. |                                          NUFARM LIMITED   AU000000   2013 |
+49069. |                        MERMAID MARINE AUSTRALIA LIMITED   AU000000   2013 |
+49070. |                                  PERSEUS MINING LIMITED   AU000000   2013 |
+49071. |                                EVOLUTION MINING LIMITED   AU000000   2013 |
+49072. |                                   SKILLED GROUP LIMITED   AU000000   2013 |
+49073. |                                CHARTER HALL RETAIL REIT   AU000000   2013 |
+49074. |                              FEDERATION CENTRES LIMITED   AU000000   2013 |
+49075. |                                      CHARTER HALL GROUP   AU000000   2013 |
+49076. |                                      DULUXGROUP LIMITED   AU000000   2013 |
+49077. |                                      FLEXIGROUP LIMITED   AU000000   2013 |
+49078. |                                   MEDUSA MINING LIMITED   AU000000   2013 |
+49079. |                                               ACRUX LTD   AU000000   2013 |
+49080. |                       AUTOMOTIVE HOLDINGS GROUP LIMITED   AU000000   2013 |
+49081. |                                               GPT GROUP   AU000000   2013 |
+49082. |                                              DUET GROUP   AU000000   2013 |
+49083. |                                   WESTERN AREAS LIMITED   AU000000   2013 |
+49084. |                        ECHO ENTERTAINMENT GROUP LIMITED   AU000000   2013 |
+49085. |                                     HORIZON OIL LIMITED   AU000000   2013 |
+49086. |                                        AUSDRILL LIMITED   AU000000   2013 |
+49087. |                                   ABACUS PROPERTY GROUP   AU000000   2013 |
+49088. |                            STW COMMUNICATIONS GROUP LTD   AU000000   2013 |
+49089. |                                          CARDNO LIMITED   AU000000   2013 |
+49090. |                                   TOLL HOLDINGS LIMITED   AU000000   2013 |
+49091. |                                 GOODMAN GROUP PTY. LTD.   AU000000   2013 |
+49092. |                                    NRW HOLDINGS LIMITED   AU000000   2013 |
+49093. |                                 REGIS RESOURCES LIMITED   AU000000   2013 |
+49094. |                             PREMIER INVESTMENTS LIMITED   AU000000   2013 |
+49095. |                                     OZ MINERALS LIMITED   AU000000   2013 |
+49096. |                             MACQUARIE ATLAS ROADS GROUP   AU000000   2013 |
+49097. |                                    MINERAL DEPOSITS LTD   AU000000   2013 |
+49098. |                                             ALS LIMITED   AU000000   2013 |
+49099. |                                             ASX LIMITED   AU000000   2013 |
+49100. |                                   INDEPENDENCE GROUP NL   AU000000   2013 |
+49101. |                                          CUDECO LIMITED   AU000000   2013 |
+49102. |                                             UGL LIMITED   AU000000   2013 |
+49103. |                                        TRANSURBAN GROUP   AU000000   2013 |
+49104. |                                     STEADFAST GROUP LTD   AU000000   2013 |
+49105. |                            TEN NETWORK HOLDINGS LIMITED   AU000000   2013 |
+49106. |                                        INVOCARE LIMITED   AU000000   2013 |
+49107. |                         SYDNEY AIRPORT HOLDINGS LIMITED   AU000000   2013 |
+49108. |                                        DECMIL GROUP LTD   AU000000   2013 |
+49109. |                                         BURU ENERGY LTD   AU000000   2013 |
+49110. |                                            ARB CORP LTD   AU000000   2013 |
+49111. |                                             AWE LIMITED   AU000000   2013 |
+49112. |                       PLATINUM ASSET MANAGEMENT LIMITED   AU000000   2013 |
+49113. |                                   SANDFIRE RESOURCES NL   AU000000   2013 |
+49114. |                              ARISTOCRAT LEISURE LIMITED   AU000000   2013 |
+49115. |                                     INVESTA OFFICE FUND   AU000000   2013 |
+49116. |                                               APA GROUP   AU000000   2013 |
+49117. |                                 GOODMAN FIELDER LIMITED   AU000000   2013 |
+49118. |                                       PERPETUAL LIMITED   AU000000   2013 |
+49119. |                               STOCKLAND CORPORATION LTD   AU000000   2013 |
+49120. |      SHOPPING CENTRES AUSTRALASIA PROPERTY GROUP RE LTD   AU000000   2013 |
+49121. |                                               BWP TRUST   AU000000   2013 |
+49122. |                                       RIO TINTO LIMITED   AU000000   2013 |
+49123. |                          SOUTHERN CROSS MEDIA GROUP LTD   AU000000   2013 |
+49124. |                               AUSTRALAND PROPERTY GROUP   AU000000   2013 |
+49125. |                                    DEXUS PROPERTY GROUP   AU000000   2013 |
+49126. |                                 THE REJECT SHOP LIMITED   AU000000   2013 |
+49127. |                                       GRAINCORP LIMITED   AU000000   2013 |
+49128. |                                   BEADELL RESOURCES LTD   AU000000   2013 |
+49129. |                                       RCR TOMLINSON LTD   AU000000   2013 |
+49130. |                                            MIRVAC GROUP   AU000000   2013 |
+49131. |                         M2 TELECOMMUNICATIONS GROUP LTD   AU000000   2013 |
        |---------------------------------------------------------------------------|
-49840. |            CHONGQING CHANGAN AUTOMOBILE COMPANY LIMITED   CNE00000   2013 |
-49841. |             YANTAI CHANGYU PIONEER WINE COMPANY LIMITED   CNE00000   2013 |
+49132. |                                     HORIZON OIL LIMITED   AU000000   2014 |
+49133. |                        ECHO ENTERTAINMENT GROUP LIMITED   AU000000   2014 |
+49134. |                                             AWE LIMITED   AU000000   2014 |
+49135. |                                 GOODMAN GROUP PTY. LTD.   AU000000   2014 |
+49136. |                                   ABACUS PROPERTY GROUP   AU000000   2014 |
+49137. |                                    DEXUS PROPERTY GROUP   AU000000   2014 |
+49138. |                                               APA GROUP   AU000000   2014 |
+49139. |                                   WESTERN AREAS LIMITED   AU000000   2014 |
+49140. |                                      FLEXIGROUP LIMITED   AU000000   2014 |
+49141. |                                        INVOCARE LIMITED   AU000000   2014 |
+49142. |                                     INVESTA OFFICE FUND   AU000000   2014 |
+49143. |                                   TOLL HOLDINGS LIMITED   AU000000   2014 |
+49144. |                                 GOODMAN FIELDER LIMITED   AU000000   2014 |
+49145. |                                             UGL LIMITED   AU000000   2014 |
+49146. |                              FEDERATION CENTRES LIMITED   AU000000   2014 |
+49147. |                                             ASX LIMITED   AU000000   2014 |
+49148. |                                        DECMIL GROUP LTD   AU000000   2014 |
+49149. |                                            MIRVAC GROUP   AU000000   2014 |
+49150. |                              DRILLSEARCH ENERGY LIMITED   AU000000   2014 |
+49151. |                                     STEADFAST GROUP LTD   AU000000   2014 |
+49152. |                                      CHARTER HALL GROUP   AU000000   2014 |
+49153. |                                EVOLUTION MINING LIMITED   AU000000   2014 |
+49154. |                                            ARB CORP LTD   AU000000   2014 |
+49155. |                             PREMIER INVESTMENTS LIMITED   AU000000   2014 |
+49156. |                                          CARDNO LIMITED   AU000000   2014 |
+49157. |                               STOCKLAND CORPORATION LTD   AU000000   2014 |
+49158. |                         SYDNEY AIRPORT HOLDINGS LIMITED   AU000000   2014 |
+49159. |                            TEN NETWORK HOLDINGS LIMITED   AU000000   2014 |
+49160. |                                       RIO TINTO LIMITED   AU000000   2014 |
+49161. |                                     OZ MINERALS LIMITED   AU000000   2014 |
+49162. |                              ARISTOCRAT LEISURE LIMITED   AU000000   2014 |
+49163. |                                               BWP TRUST   AU000000   2014 |
+49164. |                                              DUET GROUP   AU000000   2014 |
+49165. |                                             ALS LIMITED   AU000000   2014 |
+49166. |                       AUTOMOTIVE HOLDINGS GROUP LIMITED   AU000000   2014 |
+49167. |                                 REGIS RESOURCES LIMITED   AU000000   2014 |
+49168. |                                          CUDECO LIMITED   AU000000   2014 |
+49169. |                            STW COMMUNICATIONS GROUP LTD   AU000000   2014 |
+49170. |                             MACQUARIE ATLAS ROADS GROUP   AU000000   2014 |
+49171. |                                       RCR TOMLINSON LTD   AU000000   2014 |
+49172. |                                   SKILLED GROUP LIMITED   AU000000   2014 |
+49173. |                                   SANDFIRE RESOURCES NL   AU000000   2014 |
+49174. |                                       GRAINCORP LIMITED   AU000000   2014 |
+49175. |                                          NUFARM LIMITED   AU000000   2014 |
+49176. |                                CHARTER HALL RETAIL REIT   AU000000   2014 |
+49177. |                                       PERPETUAL LIMITED   AU000000   2014 |
+49178. |                                      DULUXGROUP LIMITED   AU000000   2014 |
+49179. |                                   INDEPENDENCE GROUP NL   AU000000   2014 |
+49180. |                                        TRANSURBAN GROUP   AU000000   2014 |
+49181. |                                               GPT GROUP   AU000000   2014 |
        |---------------------------------------------------------------------------|
-49842. | THE PEOPLE'S INSURANCE COMPANY (GROUP) OF CHINA LIMITED   CNE10000   2013 |
-49843. |                        SINOPEC ENGINEERING GROUP CO LTD   CNE10000   2013 |
-49844. |                              PETROCHINA COMPANY LIMITED   CNE10000   2013 |
-49845. |                                 CSR CORPORATION LIMITED   CNE10000   2013 |
-49846. |                   CHINA CINDA ASSET MANAGEMENT CO., LTD   CNE10000   2013 |
-49847. |                   NEW CHINA LIFE INSURANCE COMPANY LTD.   CNE10000   2013 |
+49371. |                                      AGUAS ANDINAS S.A.   CL000000   2013 |
+49372. |                                      EMPRESAS CMPC S.A.   CL000000   2013 |
        |---------------------------------------------------------------------------|
-49864. |                               TELEVISION FRANCAISE 1 SA   FR000005   2013 |
-49865. |                      ETABLISSEMENTS MAUREL ET PROM S.A.   FR000005   2013 |
+49373. |                                      AGUAS ANDINAS S.A.   CL000000   2014 |
+49374. |                                      EMPRESAS CMPC S.A.   CL000000   2014 |
        |---------------------------------------------------------------------------|
-49866. |                                                SEB S.A.   FR000012   2013 |
-49867. |                                             WENDEL S.A.   FR000012   2013 |
-49868. |                                              EURAZEO SA   FR000012   2013 |
-49869. |                                                TOTAL SA   FR000012   2013 |
-49870. |                                          KLEPIERRE S.A.   FR000012   2013 |
+49377. |             YANTAI CHANGYU PIONEER WINE COMPANY LIMITED   CNE00000   2013 |
+49378. |            CHONGQING CHANGAN AUTOMOBILE COMPANY LIMITED   CNE00000   2013 |
        |---------------------------------------------------------------------------|
-50549. |                                         WERELDHAVE N.V.   NL000028   2013 |
-50550. |                                              CORIO N.V.   NL000028   2013 |
-50551. |                            EUROCOMMERCIAL PROPERTIES NV   NL000028   2013 |
+49379. |                   NEW CHINA LIFE INSURANCE COMPANY LTD.   CNE10000   2013 |
+49380. | THE PEOPLE'S INSURANCE COMPANY (GROUP) OF CHINA LIMITED   CNE10000   2013 |
+49381. |                                 CSR CORPORATION LIMITED   CNE10000   2013 |
+49382. |                        SINOPEC ENGINEERING GROUP CO LTD   CNE10000   2013 |
+49383. |                   CHINA CINDA ASSET MANAGEMENT CO., LTD   CNE10000   2013 |
+49384. |                              PETROCHINA COMPANY LIMITED   CNE10000   2013 |
        |---------------------------------------------------------------------------|
-50597. |                                L E LUNDBERGFORETAGEN AB   SE000010   2013 |
-50598. |                                                 PEAB AB   SE000010   2013 |
-50599. |                             AKTIEBOLAGET INDUSTRIVARDEN   SE000010   2013 |
+49385. |                   NEW CHINA LIFE INSURANCE COMPANY LTD.   CNE10000   2014 |
+49386. |                   CHINA CINDA ASSET MANAGEMENT CO., LTD   CNE10000   2014 |
+49387. |                                 CSR CORPORATION LIMITED   CNE10000   2014 |
+49388. |                        SINOPEC ENGINEERING GROUP CO LTD   CNE10000   2014 |
+49389. |                              PETROCHINA COMPANY LIMITED   CNE10000   2014 |
        |---------------------------------------------------------------------------|
-50600. |                                           TRELLEBORG AB   SE000011   2013 |
-50601. |                                                 SAAB AB   SE000011   2013 |
-50602. |                                          NCC AKTIEBOLAG   SE000011   2013 |
-50603. |                                                RATOS AB   SE000011   2013 |
-50604. |                                   INVESTMENT AB ORESUND   SE000011   2013 |
+49417. |                               TELEVISION FRANCAISE 1 SA   FR000005   2013 |
+49418. |                      ETABLISSEMENTS MAUREL ET PROM S.A.   FR000005   2013 |
        |---------------------------------------------------------------------------|
-50606. |                                  AVANZA BANK HOLDING AB   SE000017   2013 |
-50607. |                                         HUFVUDSTADEN AB   SE000017   2013 |
+49420. |                                          KLEPIERRE S.A.   FR000012   2013 |
+49421. |                                                TOTAL SA   FR000012   2013 |
+49422. |                                              EURAZEO SA   FR000012   2013 |
+49423. |                                             WENDEL S.A.   FR000012   2013 |
+49424. |                                                SEB S.A.   FR000012   2013 |
        |---------------------------------------------------------------------------|
-50627. |                            FORMOSA PLASTICS CORPORATION   TW000130   2013 |
-50628. |                             NAN YA PLASTICS CORPORATION   TW000130   2013 |
+49425. |                                             WENDEL S.A.   FR000012   2014 |
+49426. |                                                SEB S.A.   FR000012   2014 |
+49427. |                                                TOTAL SA   FR000012   2014 |
+49428. |                                          KLEPIERRE S.A.   FR000012   2014 |
        |---------------------------------------------------------------------------|
-50634. |                              ETERNAL CHEMICAL CO., LTD.   TW000171   2013 |
-50635. |                          ORIENTAL UNION CHEMICAL CORP.,   TW000171   2013 |
+50413. |                                              CORIO N.V.   NL000028   2013 |
+50414. |                            EUROCOMMERCIAL PROPERTIES NV   NL000028   2013 |
+50415. |                                         WERELDHAVE N.V.   NL000028   2013 |
        |---------------------------------------------------------------------------|
-50641. |                                        TSRC CORPORATION   TW000210   2013 |
-50642. |                         NANKANG RUBBER TIRE CORP., LTD.   TW000210   2013 |
-50643. |                       CHENG SHIN RUBBER IND., CO., LTD.   TW000210   2013 |
+50416. |                                         WERELDHAVE N.V.   NL000028   2014 |
+50417. |                            EUROCOMMERCIAL PROPERTIES NV   NL000028   2014 |
+50418. |                                              CORIO N.V.   NL000028   2014 |
        |---------------------------------------------------------------------------|
-50644. |                                 CHINA MOTOR CORPORATION   TW000220   2013 |
-50645. |                                    HOTAI MOTOR CO.,LTD.   TW000220   2013 |
-50646. |                                     YULON MOTOR CO.,LTD   TW000220   2013 |
+50485. |                                                 PEAB AB   SE000010   2013 |
+50486. |                             AKTIEBOLAGET INDUSTRIVARDEN   SE000010   2013 |
+50487. |                                L E LUNDBERGFORETAGEN AB   SE000010   2013 |
        |---------------------------------------------------------------------------|
-50647. |                             FOXCONN TECHNOLOGY CO., LTD   TW000235   2013 |
-50648. |                                    INVENTEC CORPORATION   TW000235   2013 |
+50488. |                                                 PEAB AB   SE000010   2014 |
+50489. |                             AKTIEBOLAGET INDUSTRIVARDEN   SE000010   2014 |
        |---------------------------------------------------------------------------|
-50651. |                  CHENG UEI PRECISION INDUSTRY CO., LTD.   TW000239   2013 |
-50652. |                                     ADVANTECH CO., LTD.   TW000239   2013 |
+50490. |                                   INVESTMENT AB ORESUND   SE000011   2013 |
+50491. |                                           TRELLEBORG AB   SE000011   2013 |
+50492. |                                          NCC AKTIEBOLAG   SE000011   2013 |
+50493. |                                                RATOS AB   SE000011   2013 |
+50494. |                                                 SAAB AB   SE000011   2013 |
        |---------------------------------------------------------------------------|
-50653. |                                           MEDIATEK INC.   TW000245   2013 |
-50654. |                             TRANSCEND INFORMATION, INC.   TW000245   2013 |
+50495. |                                   INVESTMENT AB ORESUND   SE000011   2014 |
+50496. |                                          NCC AKTIEBOLAG   SE000011   2014 |
+50497. |                                                RATOS AB   SE000011   2014 |
+50498. |                                           TRELLEBORG AB   SE000011   2014 |
        |---------------------------------------------------------------------------|
-50657. |                                     CHINA AIRLINES LTD.   TW000261   2013 |
-50658. |                                 EVA AIRWAYS CORPORATION   TW000261   2013 |
-50659. |                                      WAN HAI LINES LTD.   TW000261   2013 |
+50501. |                                         HUFVUDSTADEN AB   SE000017   2013 |
+50502. |                                  AVANZA BANK HOLDING AB   SE000017   2013 |
        |---------------------------------------------------------------------------|
-50664. |                     TAISHIN FINANCIAL HOLDING CO., LTD.   TW000288   2013 |
-50665. |                      YUANTA FINANCIAL HOLDINGS CO., LTD   TW000288   2013 |
-50666. |               CHINA DEVELOPMENT FINANCIAL HOLDING CORP.   TW000288   2013 |
-50667. |                     HUA NAN FINANCIAL HOLDINGS CO.,LTD.   TW000288   2013 |
-50668. |                        MEGA FINANCIAL HOLDING CO., LTD.   TW000288   2013 |
+50503. |                                  AVANZA BANK HOLDING AB   SE000017   2014 |
+50504. |                                         HUFVUDSTADEN AB   SE000017   2014 |
        |---------------------------------------------------------------------------|
-50671. |                       PRESIDENT CHAIN STORE CORPORATION   TW000291   2013 |
-50672. |                              RUENTEX INDUSTRIES LIMITED   TW000291   2013 |
+50540. |                            FORMOSA PLASTICS CORPORATION   TW000130   2013 |
+50541. |                             NAN YA PLASTICS CORPORATION   TW000130   2013 |
        |---------------------------------------------------------------------------|
-50674. |                          NOVATEK MICROELECTRONICS CORP.   TW000303   2013 |
-50675. |                              UNIMICRON TECHNOLOGY CORP.   TW000303   2013 |
+50542. |                            FORMOSA PLASTICS CORPORATION   TW000130   2014 |
+50543. |                             NAN YA PLASTICS CORPORATION   TW000130   2014 |
        |---------------------------------------------------------------------------|
-50676. |                                 TAIWAN MOBILE CO., LTD.   TW000304   2013 |
-50677. |                           TRIPOD TECHNOLOGY CORPORATION   TW000304   2013 |
+50554. |                              ETERNAL CHEMICAL CO., LTD.   TW000171   2013 |
+50555. |                          ORIENTAL UNION CHEMICAL CORP.,   TW000171   2013 |
        |---------------------------------------------------------------------------|
-50731. |                                  OMNIA HOLDINGS LIMITED   ZAE00000   2013 |
-50732. |                             PICK N PAY HOLDINGS LIMITED   ZAE00000   2013 |
-50733. |                                   HUDACO INDUSTRIES LTD   ZAE00000   2013 |
-50734. |                                 ADCORP HOLDINGS LIMITED   ZAE00000   2013 |
-50735. |                 HOSKEN CONSOLIDATED INVESTMENTS LIMITED   ZAE00000   2013 |
+50567. |                                        TSRC CORPORATION   TW000210   2013 |
+50568. |                         NANKANG RUBBER TIRE CORP., LTD.   TW000210   2013 |
+50569. |                       CHENG SHIN RUBBER IND., CO., LTD.   TW000210   2013 |
        |---------------------------------------------------------------------------|
-50736. |                               SHOPRITE HOLDINGS LIMITED   ZAE00001   2013 |
-50737. |                                     SYCOM PROPERTY FUND   ZAE00001   2013 |
+50570. |                       CHENG SHIN RUBBER IND., CO., LTD.   TW000210   2014 |
+50571. |                         NANKANG RUBBER TIRE CORP., LTD.   TW000210   2014 |
+50572. |                                        TSRC CORPORATION   TW000210   2014 |
        |---------------------------------------------------------------------------|
-50738. |                                      GROUP FIVE LIMITED   ZAE00002   2013 |
-50739. |                                    SPUR CORPORATION LTD   ZAE00002   2013 |
-50740. |                                    INVICTA HOLDINGS LTD   ZAE00002   2013 |
+50573. |                                 CHINA MOTOR CORPORATION   TW000220   2013 |
+50574. |                                     YULON MOTOR CO.,LTD   TW000220   2013 |
+50575. |                                    HOTAI MOTOR CO.,LTD.   TW000220   2013 |
        |---------------------------------------------------------------------------|
-50744. |              FOUNTAINHEAD PROPERTY TRUST MANAGEMENT LTD   ZAE00009   2013 |
-50745. |                              METAIR INVESTMENTS LIMITED   ZAE00009   2013 |
-50746. |                                        RAUBEX GROUP LTD   ZAE00009   2013 |
-50747. |                                  TONGAAT HULETT LIMITED   ZAE00009   2013 |
+50576. |                                 CHINA MOTOR CORPORATION   TW000220   2014 |
+50577. |                                    HOTAI MOTOR CO.,LTD.   TW000220   2014 |
        |---------------------------------------------------------------------------|
-50749. |                              ADCOCK INGRAM HOLDINGS LTD   ZAE00012   2013 |
-50750. |                          STEFANUTTI STOCKS HOLDINGS LTD   ZAE00012   2013 |
+50578. |                                    INVENTEC CORPORATION   TW000235   2013 |
+50579. |                             FOXCONN TECHNOLOGY CO., LTD   TW000235   2013 |
        |---------------------------------------------------------------------------|
-50751. |                    RAND MERCHANT INSURANCE HOLDINGS LTD   ZAE00015   2013 |
-50752. |                                               MPACT LTD   ZAE00015   2013 |
+50580. |                             FOXCONN TECHNOLOGY CO., LTD   TW000235   2014 |
+50581. |                                    INVENTEC CORPORATION   TW000235   2014 |
        |---------------------------------------------------------------------------|
-50754. |                            VUKILE PROPERTY FUND LIMITED   ZAE00018   2013 |
-50755. |                    PINNACLE TECHNOLOGY HOLDINGS LIMITED   ZAE00018   2013 |
+50585. |                  CHENG UEI PRECISION INDUSTRY CO., LTD.   TW000239   2013 |
+50586. |                                     ADVANTECH CO., LTD.   TW000239   2013 |
        |---------------------------------------------------------------------------|
-50756. |                  RESILIENT PROPERTY INCOME FUND LIMITED   ZAE00019   2013 |
-50757. |                            FORTRESS INCOME FUND LIMITED   ZAE00019   2013 |
+50587. |                  CHENG UEI PRECISION INDUSTRY CO., LTD.   TW000239   2014 |
+50588. |                                     ADVANTECH CO., LTD.   TW000239   2014 |
        |---------------------------------------------------------------------------|
-50758. |                                     EMIRA PROPERTY FUND   ZAE00020   2013 |
-50759. |                           SA CORPORATE REAL ESTATE FUND   ZAE00020   2013 |
-50760. |                                ARROWHEAD PROPERTIES LTD   ZAE00020   2013 |
-50761. |                               REBOSIS PROPERTY FUND LTD   ZAE00020   2013 |
+50589. |                             TRANSCEND INFORMATION, INC.   TW000245   2013 |
+50590. |                                           MEDIATEK INC.   TW000245   2013 |
+       |---------------------------------------------------------------------------|
+50591. |                             TRANSCEND INFORMATION, INC.   TW000245   2014 |
+50592. |                                           MEDIATEK INC.   TW000245   2014 |
+       |---------------------------------------------------------------------------|
+50597. |                                 EVA AIRWAYS CORPORATION   TW000261   2013 |
+50598. |                                      WAN HAI LINES LTD.   TW000261   2013 |
+50599. |                                     CHINA AIRLINES LTD.   TW000261   2013 |
+       |---------------------------------------------------------------------------|
+50600. |                                     CHINA AIRLINES LTD.   TW000261   2014 |
+50601. |                                 EVA AIRWAYS CORPORATION   TW000261   2014 |
+50602. |                                      WAN HAI LINES LTD.   TW000261   2014 |
+       |---------------------------------------------------------------------------|
+50611. |                      YUANTA FINANCIAL HOLDINGS CO., LTD   TW000288   2013 |
+50612. |                     HUA NAN FINANCIAL HOLDINGS CO.,LTD.   TW000288   2013 |
+50613. |                        MEGA FINANCIAL HOLDING CO., LTD.   TW000288   2013 |
+50614. |               CHINA DEVELOPMENT FINANCIAL HOLDING CORP.   TW000288   2013 |
+50615. |                     TAISHIN FINANCIAL HOLDING CO., LTD.   TW000288   2013 |
+       |---------------------------------------------------------------------------|
+50616. |                     TAISHIN FINANCIAL HOLDING CO., LTD.   TW000288   2014 |
+50617. |                      YUANTA FINANCIAL HOLDINGS CO., LTD   TW000288   2014 |
+50618. |               CHINA DEVELOPMENT FINANCIAL HOLDING CORP.   TW000288   2014 |
+       |---------------------------------------------------------------------------|
+50623. |                              RUENTEX INDUSTRIES LIMITED   TW000291   2013 |
+50624. |                       PRESIDENT CHAIN STORE CORPORATION   TW000291   2013 |
+       |---------------------------------------------------------------------------|
+50625. |                       PRESIDENT CHAIN STORE CORPORATION   TW000291   2014 |
+50626. |                              RUENTEX INDUSTRIES LIMITED   TW000291   2014 |
+       |---------------------------------------------------------------------------|
+50629. |                          NOVATEK MICROELECTRONICS CORP.   TW000303   2013 |
+50630. |                              UNIMICRON TECHNOLOGY CORP.   TW000303   2013 |
+       |---------------------------------------------------------------------------|
+50631. |                              UNIMICRON TECHNOLOGY CORP.   TW000303   2014 |
+50632. |                          NOVATEK MICROELECTRONICS CORP.   TW000303   2014 |
+       |---------------------------------------------------------------------------|
+50633. |                                 TAIWAN MOBILE CO., LTD.   TW000304   2013 |
+50634. |                           TRIPOD TECHNOLOGY CORPORATION   TW000304   2013 |
+       |---------------------------------------------------------------------------|
+50704. |                             PICK N PAY HOLDINGS LIMITED   ZAE00000   2013 |
+50705. |                 HOSKEN CONSOLIDATED INVESTMENTS LIMITED   ZAE00000   2013 |
+50706. |                                  OMNIA HOLDINGS LIMITED   ZAE00000   2013 |
+50707. |                                   HUDACO INDUSTRIES LTD   ZAE00000   2013 |
+50708. |                                 ADCORP HOLDINGS LIMITED   ZAE00000   2013 |
+       |---------------------------------------------------------------------------|
+50709. |                 HOSKEN CONSOLIDATED INVESTMENTS LIMITED   ZAE00000   2014 |
+50710. |                                   HUDACO INDUSTRIES LTD   ZAE00000   2014 |
+50711. |                                  OMNIA HOLDINGS LIMITED   ZAE00000   2014 |
+50712. |                                 ADCORP HOLDINGS LIMITED   ZAE00000   2014 |
+50713. |                             PICK N PAY HOLDINGS LIMITED   ZAE00000   2014 |
+       |---------------------------------------------------------------------------|
+50714. |                               SHOPRITE HOLDINGS LIMITED   ZAE00001   2013 |
+50715. |                                     SYCOM PROPERTY FUND   ZAE00001   2013 |
+       |---------------------------------------------------------------------------|
+50717. |                                      GROUP FIVE LIMITED   ZAE00002   2013 |
+50718. |                                    SPUR CORPORATION LTD   ZAE00002   2013 |
+50719. |                                    INVICTA HOLDINGS LTD   ZAE00002   2013 |
+       |---------------------------------------------------------------------------|
+50720. |                                    SPUR CORPORATION LTD   ZAE00002   2014 |
+50721. |                                    INVICTA HOLDINGS LTD   ZAE00002   2014 |
+50722. |                                      GROUP FIVE LIMITED   ZAE00002   2014 |
+       |---------------------------------------------------------------------------|
+50729. |                              METAIR INVESTMENTS LIMITED   ZAE00009   2013 |
+50730. |                                  TONGAAT HULETT LIMITED   ZAE00009   2013 |
+50731. |              FOUNTAINHEAD PROPERTY TRUST MANAGEMENT LTD   ZAE00009   2013 |
+50732. |                                        RAUBEX GROUP LTD   ZAE00009   2013 |
+       |---------------------------------------------------------------------------|
+50733. |              FOUNTAINHEAD PROPERTY TRUST MANAGEMENT LTD   ZAE00009   2014 |
+50734. |                                  TONGAAT HULETT LIMITED   ZAE00009   2014 |
+50735. |                                        RAUBEX GROUP LTD   ZAE00009   2014 |
+50736. |                              METAIR INVESTMENTS LIMITED   ZAE00009   2014 |
+       |---------------------------------------------------------------------------|
+50739. |                          STEFANUTTI STOCKS HOLDINGS LTD   ZAE00012   2013 |
+50740. |                              ADCOCK INGRAM HOLDINGS LTD   ZAE00012   2013 |
+       |---------------------------------------------------------------------------|
+50742. |                                               MPACT LTD   ZAE00015   2013 |
+50743. |                    RAND MERCHANT INSURANCE HOLDINGS LTD   ZAE00015   2013 |
+       |---------------------------------------------------------------------------|
+50744. |                                               MPACT LTD   ZAE00015   2014 |
+50745. |                    RAND MERCHANT INSURANCE HOLDINGS LTD   ZAE00015   2014 |
+       |---------------------------------------------------------------------------|
+50748. |                    PINNACLE TECHNOLOGY HOLDINGS LIMITED   ZAE00018   2013 |
+50749. |                            VUKILE PROPERTY FUND LIMITED   ZAE00018   2013 |
+       |---------------------------------------------------------------------------|
+50751. |                  RESILIENT PROPERTY INCOME FUND LIMITED   ZAE00019   2013 |
+50752. |                            FORTRESS INCOME FUND LIMITED   ZAE00019   2013 |
+       |---------------------------------------------------------------------------|
+50753. |                            FORTRESS INCOME FUND LIMITED   ZAE00019   2014 |
+50754. |                  RESILIENT PROPERTY INCOME FUND LIMITED   ZAE00019   2014 |
+       |---------------------------------------------------------------------------|
+50755. |                                ARROWHEAD PROPERTIES LTD   ZAE00020   2013 |
+50756. |                               REBOSIS PROPERTY FUND LTD   ZAE00020   2013 |
+50757. |                                     EMIRA PROPERTY FUND   ZAE00020   2013 |
+50758. |                           SA CORPORATE REAL ESTATE FUND   ZAE00020   2013 |
+       |---------------------------------------------------------------------------|
+50759. |                                ARROWHEAD PROPERTIES LTD   ZAE00020   2014 |
+50760. |                               REBOSIS PROPERTY FUND LTD   ZAE00020   2014 |
+50761. |                                     EMIRA PROPERTY FUND   ZAE00020   2014 |
        +---------------------------------------------------------------------------+
 */
 drop if N>1
+*(1,497 observations deleted)
 drop firm N firm_n entity_type stnd_firm
 
 merge 1:m cusip year using data/csrhub-with-cstat-from-csrhub-kld-cusips.dta, update assert(1 2 3 4 5) gen(_merge3)
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                       770,485
-        from master                    30,424  (_merge3==1)
-        from using                    740,061  (_merge3==2)
+    not matched                       770,714
+        from master                    34,559  (_merge3==1)
+        from using                    736,155  (_merge3==2)
 
-    matched                           153,922
-        not updated                   153,922  (_merge3==3)
+    matched                           157,828
+        not updated                   157,828  (_merge3==3)
         missing updated                     0  (_merge3==4)
         nonmissing conflict                 0  (_merge3==5)
     -----------------------------------------
@@ -540,6 +686,7 @@ drop stnd_firm
 encode cusip9, gen(cusip_n)
 bysort cusip_n ym: gen N=_N
 drop if N>1
+*(34,559 observations deleted)
 xtset cusip_n ym, m
 
 order firm_kld firm_csrhub conm cusip ym
