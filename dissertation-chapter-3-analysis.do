@@ -371,9 +371,10 @@ title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Erro
 
 
 
-/*
-///	Introducting control variables
-	1) Barnett and Salomon (2012) model CFP -> f(CSP) with control variables:
+
+///	Introducing control variables
+
+/***	1) Barnett and Salomon (2012) model CFP -> f(CSP) with control variables:
 		a.	Firm size		(CSTAT EMP)
 		b.	Debt 			(CSTAT DLTT / AT)
 		c.	Ad intensity	(CSTAT XAD / SALE)		Missing assumed = 0
@@ -461,6 +462,50 @@ order(*net_kld_str *net_kld_con *over_rtg) ///
 drop(_cons) ///
 indicate(Year FEs = *.year) ///
 title("Fixed effects regressions. Panel: CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+
+
+
+
+
+/***	1) 	Barnett and Salomon (2012) model CFP -> f(CSP) with control variables:
+			a.	Firm size		(CSTAT EMP)
+			b.	Debt 			(CSTAT DLTT / AT)
+			c.	Ad intensity	(CSTAT XAD / SALE)		Missing assumed = 0
+			d.	R&D intensity	(CSTAT XRD / SALE)
+		
+		2)	Variables from other studies of the CFP -> f (CSR) model
+			e.	Industry
+			f.	Firm age
+			g.	Industry average
+				i.		Advertising intensity
+				ii.		Firm size
+				iii.	Risk
+			h.	CapEx / Assets
+			i.	CSP		(Environment)
+			j.	CSP		(ESG)
+			k.	CSP		(Governance)
+			l.	CSP		(Social)
+			m.	Dividends
+			n.	Insider ownership and square of this term
+			o.	Leverage
+			p.	Liquidity
+			q.	Positive earnings in previous year
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
