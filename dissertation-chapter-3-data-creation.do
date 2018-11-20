@@ -26,7 +26,7 @@ keep if N==1
 drop N
 
 gen in_cstat_csrhub_cusip=1
-label var in_cstat_csrhub_cusip "=1 if in CSTAT data created from unique CSRHub CUSIPs"
+label var in_cstat_csrhub_cusip "Indicator =1 if in CSTAT data created from unique CSRHub CUSIPs"
 
 *	save
 compress
@@ -62,7 +62,7 @@ drop if N>1
 drop N
 
 gen in_cstat_kld_cusip=1
-label var in_cstat_kld_cusip "=1 if in CSTAT data created from unique KLD CUSIPs"
+label var in_cstat_kld_cusip "Indicator =1 if in CSTAT data created from unique KLD CUSIPs"
 
 compress
 save data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018-clean.dta, replace
@@ -124,7 +124,8 @@ use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, cle
 keep cusip ym conm tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
 	revt ni sale at xad xrd emp dltt csho prcc_f ceq at mkvalt bkvlps ///
 	gp unnp unnpl drc drlt dvrre lcoxdr loxdr nfsr revt ris urevub ///
-	naics sic spcindcd spcseccd cstatvars in_cstat_kld_cusip in_cstat_csrhub_cusip
+	naics sic spcindcd spcseccd cstatvars in_cstat_kld_cusip in_cstat_csrhub_cusip ///
+	loc fic
 	
 *	Generate variables
 gen tobinq = (at + (csho * prcc_f) - ceq) / at
@@ -158,6 +159,7 @@ foreach var of varlist * {
 gen size = log(at)
 
 *	Employees
+replace emp=.209 if cusip=="P16994132" & fyear==2004 & emp==2545.209			/*	Firm did not have 2.5 million employees in this year	*/
 replace emp=emp*1000
 
 *	Set panel

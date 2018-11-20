@@ -6,9 +6,10 @@ log using logs\dissertation-chapter-3-analysis.txt, text replace
 				***		RUN MEDIATION ANALYSIS	***
 				***=============================***
 
-				
+/*				
 ***=============================================***
 ***		DATA FROM CHAPTER 2 DATA CREATION FILE	***
+***		Uses string matching on firm name to match datasets
 ***=============================================***
 ///	LOAD DATA
 use data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, clear
@@ -152,6 +153,7 @@ xtreg ni over_rtg_dm net_kld_str_dm net_kld_con_dm over_rtg_m net_kld_str_m net_
 eststo nistrcon
 
 
+*/
 
 
 
@@ -170,10 +172,10 @@ eststo nistrcon
 
 
 
-
-***=========================================================***
-*		DATA FROM CLEAN-ALL-CSTAT-VARIABLES-FROM-CUSIPS.DO	  *
-***=========================================================***
+***===========================================================***
+*		DATA FROM CLEAN-ALL-CSTAT-VARIABLES-FROM-CUSIPS.DO	  	*
+*		Uses exact matching on CUSIPs to match datasets			*
+***===========================================================***
 use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 
 ***	Descriptive analysis
@@ -366,6 +368,110 @@ mlabel(,dep) ///
 drop(_cons) ///
 indicate(Year FEs = *.year) ///
 title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+
+
+/*
+///	Introducting control variables
+	1) Barnett and Salomon (2012) model CFP -> f(CSP) with control variables:
+		a.	Firm size		(CSTAT EMP)
+		b.	Debt 			(CSTAT DLTT / AT)
+		c.	Ad intensity	(CSTAT XAD / SALE)		Missing assumed = 0
+		d.	R&D intensity	(CSTAT XRD / SALE)
+*/
+
+***	Lagged B&S model, without lagged DV because independent variables are lagged
+drop fm
+mark fm
+markout fm revt ni tobinq roa l12.net_kld_str l12.net_kld_con l12.over_rtg l12.emp l12.debt l12.ad l12.rd year
+
+
+local d = 0
+foreach dv of varlist revt ni tobinq roa {
+	local d = `d' + 1
+	local i = 0
+	foreach iv of varlist net_kld_str net_kld_con over_rtg {
+		local i = `i' + 1
+	
+		qui xtreg `dv' l12.`iv' if fm==1, fe cluster(cusip_n)
+		eststo fm_`d'_`i'_1
+
+		qui xtreg `dv' l12.`iv' i.year if fm==1, fe cluster(cusip_n)
+		eststo fm_`d'_`i'_1
+
+		qui xtreg `dv' l12.`iv' l12.emp i.year if fm==1, fe cluster(cusip_n)
+		eststo fm_`d'_`i'_3
+
+		qui xtreg `dv' l12.`iv' l12.emp l12.debt i.year if fm==1, fe cluster(cusip_n)
+		eststo fm_`d'_`i'_4
+
+		qui xtreg `dv' l12.`iv' l12.emp l12.debt l12.ad i.year if fm==1, fe cluster(cusip_n)
+		eststo fm_`d'_`i'_5
+
+		qui xtreg `dv' l12.`iv' l12.emp l12.debt l12.ad l12.rd i.year if fm==1, fe cluster(cusip_n)
+		eststo fm_`d'_`i'_6
+	}
+}
+
+
+*	Compare model progression by DV for net_kld_str
+forvalues model = 1/4 {
+	estout fm_`model'_1*, cells(b(star) z(par fmt(%9.4f))) ///
+	stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+	labels("N" "CUSIPs"))      ///
+	legend collabels(none) ///
+	mlabel(,dep) ///
+	drop(_cons) ///
+	indicate(Year FEs = *.year) ///
+	title("Fixed effects regressions. Panel: CUSIP-yearmonth. Errors clustered by CUSIP.")
+}
+
+*	Compare model progression by DV for net_kld_con
+forvalues model = 1/4 {
+	estout fm_`model'_2*, cells(b(star) z(par fmt(%9.4f))) ///
+	stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+	labels("N" "CUSIPs"))      ///
+	legend collabels(none) ///
+	mlabel(,dep) ///
+	drop(_cons) ///
+	indicate(Year FEs = *.year) ///
+	title("Fixed effects regressions. Panel: CUSIP-yearmonth. Errors clustered by CUSIP.")
+}
+
+*	Compare model progression by DV for over_rtg
+forvalues model = 1/4 {
+	estout fm_`model'_3*, cells(b(star) z(par fmt(%9.4f))) ///
+	stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+	labels("N" "CUSIPs"))      ///
+	legend collabels(none) ///
+	mlabel(,dep) ///
+	drop(_cons) ///
+	indicate(Year FEs = *.year) ///
+	title("Fixed effects regressions. Panel: CUSIP-yearmonth. Errors clustered by CUSIP.")
+}
+
+
+*	Compare full models for each DV
+estout fm_1*6 fm_2*6 fm_3*6 fm_4*6, cells(b(star) z(par fmt(%9.4f))) ///
+stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+labels("N" "CUSIPs"))      ///
+legend collabels(none) ///
+mlabel(,dep) ///
+order(*net_kld_str *net_kld_con *over_rtg) ///
+drop(_cons) ///
+indicate(Year FEs = *.year) ///
+title("Fixed effects regressions. Panel: CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+
+
+
+
+
+
+
+
+
+
 
 
 
