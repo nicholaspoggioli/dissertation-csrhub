@@ -6,9 +6,10 @@ log using logs\dissertation-chapter-3-analysis.txt, text replace
 				***		RUN MEDIATION ANALYSIS	***
 				***=============================***
 
-				
+/*				
 ***=============================================***
 ***		DATA FROM CHAPTER 2 DATA CREATION FILE	***
+***		Uses string matching on firm name to match datasets
 ***=============================================***
 ///	LOAD DATA
 use data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, clear
@@ -152,6 +153,7 @@ xtreg ni over_rtg_dm net_kld_str_dm net_kld_con_dm over_rtg_m net_kld_str_m net_
 eststo nistrcon
 
 
+*/
 
 
 
@@ -170,10 +172,10 @@ eststo nistrcon
 
 
 
-
-***=========================================================***
-*		DATA FROM CLEAN-ALL-CSTAT-VARIABLES-FROM-CUSIPS.DO	  *
-***=========================================================***
+***===========================================================***
+*		DATA FROM CLEAN-ALL-CSTAT-VARIABLES-FROM-CUSIPS.DO	  	*
+*		Uses exact matching on CUSIPs to match datasets			*
+***===========================================================***
 use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 
 ***	Descriptive analysis
