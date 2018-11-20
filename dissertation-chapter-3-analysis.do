@@ -177,6 +177,7 @@ eststo nistrcon
 use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
 
 ***	Descriptive analysis
+d
 corr revt ni tobinq roa net_kld_str net_kld_con over_rtg, means
 
 ///	Main CFP - CSR performance
@@ -208,9 +209,9 @@ title("Fixed effects regressions. Panel is CUSIP-yearmonth. Errors clustered by 
 eststo clear
 foreach dv of varlist revt ni tobinq roa {
 		
-	qui xtreg `dv' net_kld_str net_kld_con, fe cluster(cusip_n)
+	xtreg `dv' net_kld_str net_kld_con, fe cluster(cusip_n)
 	eststo reg2_`dv'
-	qui xtreg `dv' net_kld_str net_kld_con i.year, fe cluster(cusip_n)
+	xtreg `dv' net_kld_str net_kld_con i.year, fe cluster(cusip_n)
 	eststo reg2yr_`dv'
 	
 }
