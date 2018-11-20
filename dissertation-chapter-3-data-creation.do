@@ -26,7 +26,7 @@ keep if N==1
 drop N
 
 gen in_cstat_csrhub_cusip=1
-label var in_cstat_csrhub_cusip "(CSTAT) =1 if in CSTAT data created from unique CSRHub CUSIPs"
+label var in_cstat_csrhub_cusip "=1 if in CSTAT data created from unique CSRHub CUSIPs"
 
 *	save
 compress
@@ -40,7 +40,7 @@ use data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018.dta, clear
 
 *	generate ym variable
 gen ym=ym(year(datadate),month(datadate))
-label var ym "(CSTAT) Year-month = datadate year and datadate month"
+label var ym "Year-month = datadate year and datadate month"
 
 order conm cusip tic datadate fyear fyr
 
@@ -62,7 +62,7 @@ drop if N>1
 drop N
 
 gen in_cstat_kld_cusip=1
-label var in_cstat_kld_cusip "(CSTAT) =1 if in CSTAT data created from unique KLD CUSIPs"
+label var in_cstat_kld_cusip "=1 if in CSTAT data created from unique KLD CUSIPs"
 
 compress
 save data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018-clean.dta, replace
@@ -89,7 +89,7 @@ merge 1:1 cusip ym using data/cstat-all-variables-for-all-cusip9-in-csrhub-data-
     -----------------------------------------
 */
 
-label var cstatvars "(CSTAT) Merge indicator for CSTAT data of KLD CUSIPs to CSRHub CUSIPs"
+label var cstatvars "Merge indicator for CSTAT data of KLD CUSIPs to CSRHub CUSIPs"
 
 *	Save full dataset
 save data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, replace
@@ -124,7 +124,7 @@ use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, cle
 keep cusip ym conm tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
 	revt ni sale at xad xrd emp dltt csho prcc_f ceq at mkvalt bkvlps ///
 	gp unnp unnpl drc drlt dvrre lcoxdr loxdr nfsr revt ris urevub ///
-	naics sic spcindcd spcseccd cstatvars
+	naics sic spcindcd spcseccd cstatvars in_cstat_kld_cusip in_cstat_csrhub_cusip
 	
 *	Generate variables
 gen tobinq = (at + (csho * prcc_f) - ceq) / at
@@ -531,13 +531,13 @@ gen ch=(fyr==month & fyr!=. & month!=.)
 
 * Change non-matching ym to missing for KLD data
 foreach variable of varlist year ticker cusip companyid env_str_a env_str_b env_str_c env_str_d env_str_f env_str_x env_con_a env_con_b env_con_c env_con_d env_con_e env_con_x com_str_a com_str_b com_str_c com_str_x com_con_a com_con_b com_con_d com_con_x hum_con_a hum_con_b emp_str_a emp_str_b emp_str_c emp_str_d emp_str_f emp_str_x emp_con_a emp_con_b emp_con_c emp_con_x div_str_a div_str_b div_str_c div_str_d div_str_e div_str_f div_str_x div_con_a div_con_x pro_str_a pro_str_b pro_str_c pro_str_x pro_con_a pro_con_d pro_con_e pro_con_x cgov_str_a cgov_str_c cgov_str_x cgov_con_b cgov_con_f alc_con_a gam_con_a mil_con_a mil_con_b mil_con_c mil_con_x nuc_con_a nuc_con_c nuc_con_d nuc_con_x tob_con_a emp_con_d cgov_con_x div_con_b com_str_d com_str_f hum_str_a hum_str_x hum_con_c hum_con_d hum_con_x div_str_g cgov_str_d alc_con_x gam_con_x hum_con_f fir_con_a tob_con_x env_con_f hum_str_d hum_con_g hum_str_g emp_str_g com_str_g cgov_str_e cgov_con_g cgov_con_h cgov_con_i env_str_g cgov_str_f cgov_con_j env_con_g env_con_h env_con_i com_str_h hum_con_h emp_str_h emp_con_f div_str_h div_con_c pro_str_d cgov_con_k env_str_h env_str_i env_str_j env_con_j env_con_k hum_con_j hum_con_k emp_str_i emp_str_j emp_str_k emp_str_l emp_con_g div_con_d pro_con_f cgov_str_g cgov_str_h cgov_con_l cgov_con_m env_str_k env_str_l env_str_m env_str_n env_str_o env_str_p env_str_q emp_str_n pro_str_e pro_str_f pro_str_g pro_str_h pro_str_i pro_str_j pro_str_k pro_con_g row_id_kld sum_alc_con sum_cgov_con sum_cgov_str sum_com_con sum_com_str sum_div_con sum_div_str sum_emp_con sum_emp_str sum_env_con sum_env_str sum_gam_con sum_hum_con sum_hum_str sum_mil_con sum_nuc_con sum_pro_con sum_pro_str sum_tob_con cgov_agg com_agg div_agg emp_agg env_agg hum_agg pro_agg alc_agg gam_agg mil_agg nuc_agg tob_agg net_kld_str net_kld_con net_kld firm_kld {
-	capt n replace `variable'=. if ch==0
-	capt n replace `variable'="" if ch==0
+	capt n replace `variable'=. if ch==0 & _merge3==3
+	capt n replace `variable'="" if ch==0 & _merge3==3
 }
 
 drop stnd_firm
 
-encode cusip, gen(cusip_n)
+encode cusip9, gen(cusip_n)
 bysort cusip_n ym: gen N=_N
 drop if N>1
 xtset cusip_n ym, m
