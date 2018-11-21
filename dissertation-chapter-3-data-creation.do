@@ -193,11 +193,17 @@ gen mkt2book = mkvalt / bkvlps
 gen roa = ni / at
 
 xtset
-gen lroa = l.roa
+gen lroa = L.roa
 
 *	Net income
 xtset
-gen lni = l.ni
+gen lni = L.ni
+
+*	Net income growth
+gen ni_growth = ni - L.ni
+
+*	Net income percent growth
+gen nipct = ((ni - L.ni) / L.ni) * 100
 	
 *	Debt ratio
 gen debt = dltt / at
@@ -209,12 +215,42 @@ gen rd = xrd / sale
 gen ad = xad / sale
 
 *	Revenue growth
-gen revg = revt - l12.revt
+gen revg = revt - L.revt
 
-foreach var of varlist * {
-	local lab `: var label `var''
-	label var `var' "(CSTAT) `lab'"
-}
+*	Revenue percent growth
+gen revpct = ((revt - L.revt) / L.revt) * 100
+
+gsort -revpct
+list conm cusip fyear revt revg revpct in 1/20
+/*
+     +-------------------------------------------------------------------------------+
+     |                       conm       cusip   fyear      revt      revg     revpct |
+     |-------------------------------------------------------------------------------|
+  1. |           WYNN RESORTS LTD   983134107    2005   721.981   721.786   370146.7 |
+  2. |    TELECORP PCS INC  -CL A   879300101    1999    87.682    87.653   302251.7 |
+  3. |         STEEL DYNAMICS INC   858119100    1996   252.617    252.48     184292 |
+  4. |  ALJ REGIONAL HOLDINGS INC   001627108    1997     6.439     6.435     160875 |
+  5. |  HUGHES COMMUNICATIONS INC   444398101    2006   858.699   858.084   139525.9 |
+     |-------------------------------------------------------------------------------|
+  6. |           NMI HOLDINGS INC   629209305    2013     7.089     7.083     118050 |
+  7. |                 SOLEXA INC   83420X105    2004     7.093     7.086   101228.6 |
+  8. |        TG THERAPEUTICS INC   88322Q108    1998       2.5     2.497   83233.34 |
+  9. | PACIFIC MERCANTILE BANCORP   694552100    1999     2.232     2.229      74300 |
+ 10. |        CLOVIS ONCOLOGY INC   189464100    2017    55.511    55.433   71067.95 |
+     |-------------------------------------------------------------------------------|
+ 11. |         CANO PETROLEUM INC   137801106    2005     5.482     5.474      68425 |
+ 12. |            RING ENERGY INC   76680V108    2012     1.757     1.754   58466.67 |
+ 13. |     APPLIED ENERGETICS INC   03819M106    1993      2.91     2.905      58100 |
+ 14. |                 EGAIN CORP   28225C806    1999     1.019     1.017      50850 |
+ 15. |              DENDREON CORP   24823Q107    2010    48.057    47.956   47481.19 |
+     |-------------------------------------------------------------------------------|
+ 16. |  PARATEK PHARMACEUTCLS INC   699374302    2017    12.616    12.587   43403.45 |
+ 17. |       ACACIA RESEARCH CORP   003881307    2001    24.636    24.579   43121.05 |
+ 18. |  GLADSTONE COMMERCIAL CORP   376536108    2004     4.927     4.915   40958.33 |
+ 19. |                   MPC CORP   553166109    2005   187.496   187.038   40837.99 |
+ 20. |  WESTPORT FUEL SYSTEMS INC   960908309    2001     31.37     31.29    39112.5 |
+     +-------------------------------------------------------------------------------+
+*/
 
 *	Firm size
 gen size = log(at)
@@ -223,14 +259,17 @@ gen size = log(at)
 replace emp=.209 if cusip=="P16994132" & fyear==2004 & emp==2545.209			/*	Firm did not have 2.5 million employees in this year	*/
 replace emp=emp*1000
 
+*	Label variables
+foreach var of varlist * {
+	local lab `: var label `var''
+	label var `var' "(CSTAT) `lab'"
+}
+
 *	Generate standardized variables
 foreach variable of varlist revt tobinq mkt2book roa lroa ni lni debt rd ad revg emp {
 	egen z2`variable' = std(`variable')
 	label var z2`variable' "(CSTAT) Standardized value of `variable'"
 }
-
-*	Revenue growth
-gen revt_growth=revt-l12.revt
 
 *	Save
 label var roa "(CSTAT) Return on assets = ni / at"
@@ -239,12 +278,16 @@ label var mkt2book "(CSTAT) Market to book ratio = mkvalt / bkvlps"
 label var ym "(CSTAT) Fiscal year and end-of-fiscal-year month"
 label var lroa "(CSTAT) Lagged roa, 1 year"
 label var lni "(CSTAT) Lagged ni, 1 year"
+label var ni_growth "(CSTAT) 
+label var nipct "(CSTAT) Change in net income from previous year = ni - L.ni"
+label var revpct "(CSTAT) Percent change in net income from previous year = ((ni - L.ni) / L.ni) * 100"
 label var debt "(CSTAT) Debt ratio = dltt / at"
 label var rd "(CSTAT) R&D intensity = xrd / sale"
 label var ad "(CSTAT) Advertising intensity = xad / sale"
 label var emp "(CSTAT) Number of employees"
 label var size "(CSTAT) Firm size = logarithm of at"
-label var revt_growth "(CSTAT) Change in revenue from previous year = revt - revt from 12 months prior"
+label var revg "(CSTAT) Change in revenue from previous year = revt - L.revt"
+label var revpct "(CSTAT) Percent change in revenue from previous year = ((revt - L.revt) / L.revt) * 100"
 
 compress
 save data/cstat-subset-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, replace
