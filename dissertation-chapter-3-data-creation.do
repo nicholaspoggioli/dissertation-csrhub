@@ -91,25 +91,16 @@ drop if cusip==""
 
 sort cusip datadate
 by cusip: gen n=_n
-keep if n==1
-drop n
-compress
-save "data\cstat-all-variables-for-all-cusip9-in-kld-and-csrhub-data-1950-2018-unique-cusip-datadate.dta" , replace
 
-use "data\cstat-all-variables-for-all-cusip9-in-kld-and-csrhub-data-1950-2018-unique-cusip-datadate.dta", clear
+gen yr_start=year(datadate) if n==1
+by cusip: replace yr_start = yr_start[_n-1] if yr_start==.
+gen age = year(datadate) - yr_start + 1
 
-sort cusip datadate
-gen yr_start=year(datadate)
-gen yr_end=year(dldte)
-gen age_at_fail = yr_end - yr_start
-gen age_in_2018 = 2018 - yr_start if costat=="A"
 
 label var yr_start "(CSTAT) First year in CSTAT data"
-label var yr_end "(CSTAT) Final year in CSTAT, from dldte variable for costat=='I'"
-label var age_at_fail "(CSTAT) Years old at failure = yr_end - yr_start"
-label var age_in_2018 "(CSTAT) Years old in 2018 = 2018 - yr_start if costat=='A'"
+label var age "(CSTAT) Years in data: year(datadate) - yr_start"
 
-keep cusip datadate costat dldte yr_start yr_end age_at_fail age_in_2018
+keep cusip datadate costat yr_start age
 
 compress
 save "data/cstat-all-variables-for-all-cusip9-in-kld-and-csrhub-data-1950-2018-age-variables.dta", replace
@@ -167,11 +158,28 @@ use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, cle
 		Firm size				size		=	log(AT)
 */
 
+*	merge age variables
+merge 1:1 cusip datadate using "data/cstat-all-variables-for-all-cusip9-in-kld-and-csrhub-data-1950-2018-age-variables.dta", ///
+	keepusing(yr_start age) gen(m2)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        34,883
+        from master                         3  (m2==1)
+        from using                     34,880  (m2==2)
+
+    matched                           114,191  (m2==3)
+    -----------------------------------------
+*/
+drop if m2==2
+drop m2
+
+*	keep needed cstat variables
 keep cusip ym conm tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
 	revt ni sale at xad xrd emp dltt csho prcc_f ceq at mkvalt bkvlps ///
 	gp unnp unnpl drc drlt dvrre lcoxdr loxdr nfsr revt ris urevub ///
 	naics sic spcindcd spcseccd cstatvars in_cstat_kld_cusip in_cstat_csrhub_cusip ///
-	loc fic
+	loc fic age yr_start
 	
 *	Set panel
 encode cusip, gen(cusip_n)
