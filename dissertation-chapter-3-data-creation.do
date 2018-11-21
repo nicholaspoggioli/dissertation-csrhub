@@ -67,6 +67,52 @@ label var in_cstat_kld_cusip "Indicator =1 if in CSTAT data created from unique 
 compress
 save data/cstat-all-variables-for-all-cusip9-in-kld-data-1990-2018-clean.dta, replace
 
+***===============================================***
+*	CREATE CSTAT AGE VARIABLE		*
+***===============================================***
+use "D:\Dropbox\papers\active\dissertation-csrhub\project\data\cstat-all-variables-for-all-cusip9-in-kld-data-1950-2018.dta"
+
+merge 1:1 cusip datadate using D:\Dropbox\papers\active\dissertation-csrhub\project\data\cstat-all-variables-for-all-cusip9-in-csrhub-data-1950-2018.dta, update assert(1 2 3 4 5)
+/*
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        52,307
+        from master                    29,745  (_merge==1)
+        from using                     22,562  (_merge==2)
+
+    matched                            96,767
+        not updated                    96,767  (_merge==3)
+        missing updated                     0  (_merge==4)
+        nonmissing conflict                 0  (_merge==5)
+    -----------------------------------------
+*/
+drop if cusip==""
+
+sort cusip datadate
+by cusip: gen n=_n
+keep if n==1
+drop n
+compress
+save "data\cstat-all-variables-for-all-cusip9-in-kld-and-csrhub-data-1950-2018-unique-cusip-datadate.dta" , replace
+
+use "data\cstat-all-variables-for-all-cusip9-in-kld-and-csrhub-data-1950-2018-unique-cusip-datadate.dta", clear
+
+sort cusip datadate
+gen yr_start=year(datadate)
+gen yr_end=year(dldte)
+gen age_at_fail = yr_end - yr_start
+gen age_in_2018 = 2018 - yr_start if costat=="A"
+
+label var yr_start "(CSTAT) First year in CSTAT data"
+label var yr_end "(CSTAT) Final year in CSTAT, from dldte variable for costat=='I'"
+label var age_at_fail "(CSTAT) Years old at failure = yr_end - yr_start"
+label var age_in_2018 "(CSTAT) Years old in 2018 = 2018 - yr_start if costat=='A'"
+
+keep cusip datadate costat dldte yr_start yr_end age_at_fail age_in_2018
+
+compress
+save "data/cstat-all-variables-for-all-cusip9-in-kld-and-csrhub-data-1950-2018-age-variables.dta", replace
 
 ***===============================================***
 *	MERGE CSTAT data from CSRHUB and KLD CUSIPs		*
