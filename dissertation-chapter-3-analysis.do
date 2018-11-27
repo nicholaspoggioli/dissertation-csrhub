@@ -3,7 +3,7 @@ log using logs\dissertation-chapter-3-analysis.txt, text replace
 
 
 				***=============================***
-				***		RUN MEDIATION ANALYSIS	***
+				***		 MEDIATION ANALYSIS		***
 				***=============================***
 
 /*				
