@@ -7,10 +7,10 @@ log using logs\dissertation-chapter-3-analysis.txt, text replace
 				***=============================***
 
 /*				
-***=============================================***
-***		DATA FROM CHAPTER 2 DATA CREATION FILE	***
-***		Uses string matching on firm name to match datasets
-***=============================================***
+***===========================================================***
+***		DATA FROM CHAPTER 2 DATA CREATION FILE					*
+***		Uses string matching on firm name to match datasets		*
+***===========================================================***
 ///	LOAD DATA
 use data\csrhub-kld-cstat-with-crosswalk-exact-stnd_firm-ym-matches-clean.dta, clear
 
@@ -921,20 +921,102 @@ eststo nic3
 	
 	
 	
-	
-	
-	
+				***=======================================***
+				*		 IDENTIFICATION STRATEGY			*
+				*	Capture effect of exogenous change		*
+				*	in CSR performance on stakeholder		*
+				*	perceptions and financial performance	*
+				***=======================================***
+/*	PLAN
+		-	Create exogenous change in CSR performance variable
+		-	Propensity score match using CSTAT data on propensity to
+			have exogenous change in CSR performance variable
+		-	Run difference-in-differences regressions using treated and control groups
+*/
+
+///	Load data
+use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
+
+///	Create exogenous change in CSR performance variable
+sum over_rtg, d
+*	Overall standard deviation: 				7.6225
+
+xtsum over_rtg
+/*	523,303 cusip-yearmonths
+	8,781 cusips
+	Average yearmonths for a cusip: ~60
+
+	Minimum deviation from within-cusip average:	16.99357 - global mean 52.10112 = -35.10755
+		In the data: 	over_rtg	over_rtg_m	over_rtg_dm	ym		cusip_n
+						23.4304		58.53795	-35.10755	2009m6	349380000
+
+	Maximum deviation from within-cusip average:	81.90155 - global mean 52.10112 = 29.80043
+		In the data: 	over_rtg	over_rtg_m	over_rtg_dm	ym		cusip_n
+						74.3148		44.51437	29.80043	2017m7	100011000
+
+	Average within-cusip standard deviation:		4.73081
+
+	Between std. dev. is higher than the within. This implies that two cusips drawn 
+	at random would vary more on over_rtg than would a single cusip in two randomly
+	selected yearmonths.
+*/
+
+*	Plot within-cusip deviations on over_rtg with lines for 1, 2, and 3 standard deviations
+set scheme plotplainblind
+xtsum over_rtg
+local sd1p = `r(sd_w)'
+local sd1n = `r(sd_w)' * -1
+local sd2p = `r(sd_w)' * 2
+local sd2n = `r(sd_w)' * -2
+local sd3p = `r(sd_w)' * 3
+local sd3n = `r(sd_w)' * -3
+scatter over_rtg_dm cusip_n, sort mlabsize(tiny) m(p) mcolor(black%50) ///
+	yline(`sd1p') ///
+	yline(`sd1n') ///
+	yline(`sd2p') ///
+	yline(`sd2n') ///
+	yline(`sd3p') ///
+	yline(`sd3n')
+
+*	Define exogenous change as a 1-month change in over_rtg_dm >= 3 standard deviations of within-firm over_rtg std. dev.
+xtset
+xtsum over_rtg
+gen treat_date = (abs(over_rtg_dm-l.over_rtg_dm) >= 3*`r(sd_w)') & over_rtg_dm!=. & l.over_rtg_dm!=.
+label var treat_date "Indicator =1 if ym of treatment"
+
+by cusip_n: gen trt_date = ym if treat_date==1
+sort cusip_n trt_date
+by cusip_n: replace trt_date = trt_date[_n-1] if _n!=1
+
+by cusip_n: gen post=(ym>=trt_date)
+label var post "Indicator =1 if on or after date of treatment"
+
+xtset
+by cusip_n: egen treated= max(post)
+label var treated "Indicator = 1 if cusip_n ever treated"
+
+*	Check if any cusip treated more than once
+bysort cusip_n: egen sumtrt=sum(treat_date)
+tab sumtrt
+/*
+     sumtrt |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |    865,285       96.79       96.79
+          1 |     27,324        3.06       99.85
+          2 |      1,184        0.13       99.98
+          3 |         89        0.01       99.99
+          4 |        101        0.01      100.00
+------------+-----------------------------------
+      Total |    893,983      100.00
+*/
+codebook cusip_n if sumtrt>1
+*	15 cusip_n with >1 treatment
+codebook cusip_n if sumtrt==1
+*	290 cusip_n treated once
+drop trt_date sumtrt
 
 
-
-
-
-
-
-
-
-
-
+///	Create control group
 
 
 
