@@ -373,6 +373,9 @@ title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Erro
 
 
 ///	Introducing control variables
+capt log close
+log using logs/control-variable-analysis.txt, text replace
+
 
 /***	1) Barnett and Salomon (2012) model CFP -> f(CSP) with control variables:
 		a.	Firm size		(CSTAT EMP)
@@ -382,7 +385,7 @@ title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Erro
 */
 
 ***	Lagged B&S model, without lagged DV because independent variables are lagged
-drop fm
+capt n drop fm
 mark fm
 markout fm revt ni tobinq roa l12.net_kld_str l12.net_kld_con l12.over_rtg l12.emp l12.debt l12.ad l12.rd year
 
@@ -465,6 +468,51 @@ title("Fixed effects regressions. Panel: CUSIP-yearmonth. Errors clustered by CU
 
 
 
+***	REWB MODELS
+
+xtreg revt net_kld*_dm emp_dm net_kld*_m emp_m i.year, re cluster(cusip_n)
+
+xtreg revt net_kld*_dm emp_dm debt_dm net_kld*_m emp_m debt_m i.year, re cluster(cusip_n)
+
+xtreg revt net_kld*_dm emp_dm debt_dm rd_dm net_kld*_m emp_m debt_m rd_m i.year, re cluster(cusip_n)
+
+xtreg revt net_kld*_dm emp_dm debt_dm rd_dm ad_dm net_kld*_m emp_m debt_m rd_m ad_m i.year, re cluster(cusip_n)
+
+xtreg revt net_kld*_dm debt_dm rd_dm ad_dm size_dm net_kld*_m debt_m rd_m ad_m size_m i.year, re cluster(cusip_n)
+
+
+xtreg revg net_kld*_dm emp_dm net_kld*_m emp_m i.year, re cluster(cusip_n)
+
+xtreg revg net_kld*_dm emp_dm debt_dm net_kld*_m emp_m debt_m i.year, re cluster(cusip_n)
+
+xtreg revg net_kld*_dm emp_dm debt_dm rd_dm net_kld*_m emp_m debt_m rd_m i.year, re cluster(cusip_n)
+
+xtreg revg net_kld*_dm emp_dm debt_dm rd_dm ad_dm net_kld*_m emp_m debt_m rd_m ad_m i.year, re cluster(cusip_n)
+
+xtreg revg net_kld*_dm debt_dm rd_dm ad_dm size_dm net_kld*_m debt_m rd_m ad_m size_m i.year, re cluster(cusip_n)
+
+
+
+
+xtreg f12.revt net_kld*_dm emp_dm net_kld*_m emp_m i.year, re cluster(cusip_n)
+
+xtreg f12.revt net_kld*_dm emp_dm debt_dm net_kld*_m emp_m debt_m i.year, re cluster(cusip_n)
+
+xtreg f12.revt net_kld*_dm emp_dm debt_dm rd_dm net_kld*_m emp_m debt_m rd_m i.year, re cluster(cusip_n)
+
+xtreg f12.revt net_kld*_dm emp_dm debt_dm rd_dm ad_dm net_kld*_m emp_m debt_m rd_m ad_m i.year, re cluster(cusip_n)
+
+xtreg f12.revt net_kld*_dm debt_dm rd_dm ad_dm size_dm net_kld*_m debt_m rd_m ad_m size_m i.year, re cluster(cusip_n)
+
+
+
+
+
+
+
+
+
+capt log close
 
 
 
@@ -492,6 +540,7 @@ title("Fixed effects regressions. Panel: CUSIP-yearmonth. Errors clustered by CU
 			p.	Liquidity
 			q.	Positive earnings in previous year
 */
+
 
 
 
