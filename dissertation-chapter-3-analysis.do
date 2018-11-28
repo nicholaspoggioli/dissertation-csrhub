@@ -634,6 +634,46 @@ drop trt_date sumtrt
 				*				with Alfie					*
 				***=======================================***
 
+///	Variation in over_rtg within firms
+
+xtsum over_rtg
+/*	523,303 cusip-yearmonths
+	8,781 cusips
+	Average yearmonths for a cusip: ~60
+
+	Minimum deviation from within-cusip average:	16.99357 - global mean 52.10112 = -35.10755
+		In the data: 	over_rtg	over_rtg_m	over_rtg_dm	ym		cusip_n
+						23.4304		58.53795	-35.10755	2009m6	349380000
+
+	Maximum deviation from within-cusip average:	81.90155 - global mean 52.10112 = 29.80043
+		In the data: 	over_rtg	over_rtg_m	over_rtg_dm	ym		cusip_n
+						74.3148		44.51437	29.80043	2017m7	100011000
+
+	Average within-cusip standard deviation:		4.73081
+
+	Between std. dev. is higher than the within. This implies that two cusips drawn 
+	at random would vary more on over_rtg than would a single cusip in two randomly
+	selected yearmonths.
+*/
+
+*	Generate standard deviation variable
+bysort cusip_n: egen ovr_std = sd(over_rtg)
+replace ovr_std=. if over_rtg==.
+
+*	Histogram
+histogram ovr_std, bin(100)
+
+*	Correlation with number of observations
+bysort cusip_n ovr_std: gen N=_N
+replace N=. if over_rtg==.
+
+corr ovr_std N
+/*
+             |  ovr_std        N
+-------------+------------------
+     ovr_std |   1.0000
+           N |   0.2045   1.0000
+*/
 
 
 
@@ -641,11 +681,8 @@ drop trt_date sumtrt
 
 
 
-
-
-
-
-
+///	Percent change in KLD
+xtset
 
 
 
