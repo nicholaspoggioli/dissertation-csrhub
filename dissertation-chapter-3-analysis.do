@@ -559,6 +559,7 @@ xtsum over_rtg
 *	Plot within-cusip deviations on over_rtg with lines for 1, 2, and 3 standard deviations
 gen one_month_change_over_rtg_dm = over_rtg_dm - l.over_rtg_dm
 
+/*
 set scheme plotplainblind
 xtsum over_rtg
 local sd1p = `r(sd_w)'
@@ -574,26 +575,27 @@ scatter one_month_change_over_rtg_dm cusip_n, sort mlabsize(tiny) m(p) mcolor(bl
 	yline(`sd2n') ///
 	yline(`sd3p') ///
 	yline(`sd3n')
+*/
 
 *	Define exogenous change as a 1-month change in over_rtg_dm >= 3 standard deviations of within-firm over_rtg std. dev.
 xtset
 xtsum over_rtg
-gen treat_date = (abs(over_rtg_dm-l.over_rtg_dm) >= 3*`r(sd_w)') & over_rtg_dm!=. & l.over_rtg_dm!=.
-label var treat_date "Indicator =1 if ym of treatment"
+gen treat3_date = (abs(over_rtg_dm-l.over_rtg_dm) >= 3*`r(sd_w)') & over_rtg_dm!=. & l.over_rtg_dm!=.
+label var treat3_date "Indicator =1 if ym of 3 std dev treatment"
 
-by cusip_n: gen trt_date = ym if treat_date==1
+by cusip_n: gen trt_date = ym if treat3_date==1
 sort cusip_n trt_date
 by cusip_n: replace trt_date = trt_date[_n-1] if _n!=1
 
-by cusip_n: gen post=(ym>=trt_date)
-label var post "Indicator =1 if on or after date of treatment"
+by cusip_n: gen post3=(ym>=trt_date)
+label var post3 "Indicator =1 if on or after date of 3 std dev treatment"
 
 xtset
-by cusip_n: egen treated= max(post)
-label var treated "Indicator = 1 if cusip_n ever treated"
+by cusip_n: egen treated3= max(post)
+label var treated3 "Indicator = 1 if cusip_n ever 3 std dev treated"
 
 *	Check if any cusip treated more than once
-bysort cusip_n: egen sumtrt=sum(treat_date)
+bysort cusip_n: egen sumtrt=sum(treat3_date)
 tab sumtrt
 /*
      sumtrt |      Freq.     Percent        Cum.
@@ -612,6 +614,61 @@ codebook cusip_n if sumtrt==1
 *	290 cusip_n treated once
 drop trt_date sumtrt
 
+*	Define exogenous change as a 1-month change in over_rtg_dm >= 2 standard deviations of within-firm over_rtg std. dev.
+xtset
+xtsum over_rtg
+gen treat2_date = (abs(over_rtg_dm-l.over_rtg_dm) >= 2*`r(sd_w)') & over_rtg_dm!=. & l.over_rtg_dm!=.
+label var treat2_date "Indicator =1 if ym of 2 std dev treatment"
+
+by cusip_n: gen trt_date = ym if treat2_date==1
+sort cusip_n trt_date
+by cusip_n: replace trt_date = trt_date[_n-1] if _n!=1
+
+by cusip_n: gen post2=(ym>=trt_date)
+label var post2 "Indicator =1 if on or after date of 2 std dev treatment"
+
+xtset
+by cusip_n: egen treated2= max(post)
+label var treated2 "Indicator = 1 if cusip_n ever 2 std dev treated"
+
+*	Check if any cusip treated more than once
+bysort cusip_n: egen sumtrt=sum(treat2_date)
+tab sumtrt
+/*
+     sumtrt |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |    756,231       84.59       84.59
+          1 |    115,579       12.93       97.52
+          2 |     20,143        2.25       99.77
+          3 |      1,545        0.17       99.95
+          4 |        209        0.02       99.97
+          5 |        192        0.02       99.99
+          7 |         84        0.01      100.00
+------------+-----------------------------------
+      Total |    893,983      100.00
+*/
+codebook cusip_n if sumtrt>1
+*	227 cusip_n with >1 treatment
+codebook cusip_n if sumtrt==1
+*	1,261 cusip_n treated once
+drop trt_date sumtrt
+
+
+///	Treatment group characteristics
+*	3 std dev
+tabstat revt ni roa emp debt rd ad, by(treated3) stat(mean sd p50 min max N) longstub
+
+set scheme plotplainblind
+graph bar (sum) treat3_date, over(year) ///
+	ti("Count of treated firms by year")
+
+*	2 std dev
+tabstat revt ni roa emp debt rd ad, by(treated2) stat(mean sd p50 min max N) longstub
+
+set scheme plotplainblind
+graph bar (sum) treat2_date, over(year) ///
+	ti("Count of 2 std dev treated firms by year")	
+
 
 ///	Create control group
 
@@ -622,7 +679,9 @@ drop trt_date sumtrt
 
 
 
-
+///	Difference-in-differences estimation
+*https://www.statalist.org/forums/forum/general-stata-discussion/general/1323707-fixed-effect-difference-in-differences-model
+xtreg over_rtg i.post#i.treated i.year, cluster(cusip_n)
 
 
 
@@ -681,8 +740,9 @@ corr ovr_std N
 
 
 
-///	Percent change in KLD
-xtset
+
+
+
 
 
 
