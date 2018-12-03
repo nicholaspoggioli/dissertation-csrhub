@@ -294,7 +294,7 @@ save data/cstat-subset-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta,
 
 
 ***===================================================================***
-*	MERGE CSTAT data from CSRHUB and KLD with CSRHub data		*
+*	MERGE CSTAT data from CSRHUB and KLD with CSRHub data				*
 ***===================================================================***
 ***	
 use data/csrhub-all.dta, clear
@@ -803,7 +803,12 @@ rename conm firm_cstat
 
 drop _merge ch N
 
-* Create de-meaned and mean variables for random effects within-between modeling
+
+***=======================***
+*	CREATE NEW VARIABLES	*
+***=======================***
+
+/// Create de-meaned and mean variables for random effects within-between modeling
 foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad size {
 	bysort cusip_n: egen `variable'_m = mean(`variable')
 	label var `variable'_m "CUSIP-level mean of `variable'"
@@ -812,10 +817,30 @@ foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad size {
 }
 
 
+
+
+
+
+
 *	Save
 compress
 label data "CUSIPs from KLD and CSRHUB matched to CSTAT"
 save data/csrhub-kld-cstat-matched-on-cusip.dta, replace
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
