@@ -828,6 +828,48 @@ save data/csrhub-kld-cstat-matched-on-cusip.dta, replace
 ///	LOAD DATA
 use data/csrhub-all.dta, clear
 
+drop firm_n csrhub_cr
+
+***	Keep unique cusip ym
+bysort cusip ym: gen N=_N
+drop if N>1
+drop N
+
+***	Set panel
+encode cusip, gen(cusip_n)
+xtset cusip_n ym
+
+***	Create last month of year variable
+gsort cusip -ym
+by cusip: gen last_ob = (_n==1)
+label var last_ob "(CSRHUB) =1 if last ym CUSIP appears in CSRHUB data"
+
+gen right_censor = (ym==692)
+label var right_censor "(CSRHUB) =1 if last ym for CUSIP is 2017m9, the last ym in data"
+
+*	Genearate last month of year variable for each rating
+foreach variable of varlist over_rtg board_rtg cmty_rtg com_dev_phl_rtg comp_ben_rtg ///
+	div_lab_rtg emp_rtg enrgy_climchge_rtg enviro_pol_rpt_rtg enviro_rtg ///
+	gov_rtg humrts_supchain_rtg industry_avg_rtg ldrship_ethics_rtg ///
+	over_pct_rank prod_rtg resource_mgmt_rtg train_hlth_safe_rtg trans_report_rtg {
+
+	capt drop var maxmth
+	mark var
+	markout var `variable'
+	
+	sort cusip year month
+	
+	markout var year month `variable'
+	
+	by cusip year: egen maxmth=max(month) if var==1
+
+	gen `variable'_lym = `variable' if month==maxmth
+	label var `variable'_lym "(CSRHUB) Last ym of `variable' for each year"
+}
+
+
+
+
 ///	CREATE END OF YEAR, MEAN, AND MEDIAN VARIABLES FOR EACH CUSIP-YEAR
 
 
