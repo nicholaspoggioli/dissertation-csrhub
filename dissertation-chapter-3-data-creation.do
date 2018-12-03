@@ -866,6 +866,21 @@ foreach variable of varlist over_rtg board_rtg cmty_rtg com_dev_phl_rtg comp_ben
 	gen `variable'_lym = `variable' if month==maxmth
 	label var `variable'_lym "(CSRHUB) Last ym of `variable' for each year"
 }
+drop var maxmth
+
+
+***	Collapse to year level
+foreach variable of varlist *rtg {
+	gen `variable'_mean = `variable'
+	gen `variable'_med = `variable'
+}
+collapse (max) *lym (mean) *_mean (median) *_med, by(cusip year)
+
+order *, alpha
+order cusip year
+
+* code for a comparison histogram with transparency
+tw hist humrts_supchain_rtg_med, bin(100) fcolor(orange%50) || hist humrts_supchain_rtg_mean, bin(100) fcolor(none)
 
 
 
