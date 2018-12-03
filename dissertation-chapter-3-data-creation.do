@@ -133,7 +133,6 @@ save data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, re
 
 */
 
-
 ***	Subset to needed variables
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
 /*	CSTAT variables
@@ -804,11 +803,9 @@ rename conm firm_cstat
 drop _merge ch N
 
 
-***=======================***
-*	CREATE NEW VARIABLES	*
-***=======================***
 
-/// Create de-meaned and mean variables for random effects within-between modeling
+///	CREATE NEW VARIABLES
+*** Create de-meaned and mean variables for random effects within-between modeling
 foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad size {
 	bysort cusip_n: egen `variable'_m = mean(`variable')
 	label var `variable'_m "CUSIP-level mean of `variable'"
@@ -816,23 +813,22 @@ foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad size {
 	label var `variable'_dm "CUSIP-level de-meaned `variable'"
 }
 
-
-
-
-
-
-
-*	Save
+///	Save CUSIP-yearmonth level data
 compress
-label data "CUSIPs from KLD and CSRHUB matched to CSTAT"
+label data "CUSIP-yearmonth level CSRHub-CSTAT-KLD dataset"
 save data/csrhub-kld-cstat-matched-on-cusip.dta, replace
 
 
 
 
+***=======================***
+*	CREATE YEAR LEVEL DATA	*
+***=======================***
 
+///	LOAD DATA
+use data/csrhub-all.dta, clear
 
-
+///	CREATE END OF YEAR, MEAN, AND MEDIAN VARIABLES FOR EACH CUSIP-YEAR
 
 
 
