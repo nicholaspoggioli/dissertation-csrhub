@@ -821,6 +821,11 @@ save data/csrhub-kld-cstat-matched-on-cusip.dta, replace
 
 
 
+
+
+
+
+
 ***=======================***
 *	CREATE YEAR LEVEL DATA	*
 ***=======================***
@@ -879,39 +884,16 @@ collapse (max) *lym (mean) *_mean (median) *_med, by(cusip year)
 order *, alpha
 order cusip year
 
-* code for a comparison histogram with transparency
-tw hist humrts_supchain_rtg_med, bin(100) fcolor(orange%50) || hist humrts_supchain_rtg_mean, bin(100) fcolor(none)
+***	Match 8 digit CUSIPS for merge with KLD
 
 
+***	Save year-level CSRHub data
+save data/csrhub-all-year-level.dta, replace
 
 
-///	CREATE END OF YEAR, MEAN, AND MEDIAN VARIABLES FOR EACH CUSIP-YEAR
-
-
-
-
-
-
-
-
-
-
-
-/*	EXPLORATORY DATA ANALYSIS
-
-set scheme plotplainblind
-
-gen logrev=log(revt)
-replace net_kld_con=net_kld_con*-1
-graph matrix revt logrev tobinq mkt2book over_rtg net_kld net_kld_str net_kld_con
-
-
-binscatter logrev net_kld, nq(31) xlabel(-20(5)20) line(none) by(year) legend(off) ylabel(-4(2)14)
-binscatter logrev net_kld, nq(31) xlabel(-20(5)20) line(none) by(year) legend(off) ylabel(-4(2)14) medians
-
-binscatter revt net_kld, nq(31) xlabel(-20(5)20) line(none) by(year) legend(off) medians
-*/
-
+***=======================***
+*	MERGE YEAR LEVEL DATA	*
+***=======================***
 
 
 
