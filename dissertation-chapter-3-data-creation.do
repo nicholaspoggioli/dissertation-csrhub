@@ -907,7 +907,7 @@ drop N
 gen cusip9 = cusip
 label var cusip9 "(CSRHub) CUSIP 9-digit"
 
-replace cusip = substr(cusip,2,8)
+replace cusip = substr(isin,3,8)
 label var cusip "(CSRHub) CUSIP 8-digit created from cusip9"
 
 /// Keep unique cusip year observations
@@ -915,12 +915,21 @@ bysort cusip year: gen N=_N
 tab N
 /*          N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |     83,653       99.56       99.56
-          2 |        332        0.40       99.96
-          3 |         33        0.04      100.00
-          4 |          4        0.00      100.00
+          1 |     78,804       93.80       93.80
+          2 |      2,504        2.98       96.78
+          3 |        918        1.09       97.87
+          4 |        776        0.92       98.80
+          5 |        495        0.59       99.39
+          6 |        174        0.21       99.59
+          7 |        105        0.12       99.72
+          8 |         80        0.10       99.81
+          9 |         45        0.05       99.87
+         10 |         40        0.05       99.92
+         11 |         22        0.03       99.94
+         12 |         36        0.04       99.98
+         13 |         13        0.02      100.00
 ------------+-----------------------------------
-      Total |     84,022      100.00
+      Total |     84,012      100.00
 */
 drop if N>1
 drop N
@@ -1156,9 +1165,71 @@ drop N
 drop firm	/*	Avoids conflicts with the firm variable in csrhub-all-year-level	*/
 
 merge 1:1 cusip year using data/csrhub-all-year-level.dta, update assert(1 2 3 4 5)
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                        94,862
+        from master                    30,422  (_merge==1)
+        from using                     64,440  (_merge==2)
+
+    matched                            14,364
+        not updated                    14,364  (_merge==3)
+        missing updated                     0  (_merge==4)
+        nonmissing conflict                 0  (_merge==5)
+    -----------------------------------------
+*/
+codebook cusip if _merge==3
+codebook cusip if firm_kld!="" & year > 2008 & year < 2016
+*	242 cusip matched between CSRHub and KLD
+*		That's 3,389 / 6,981 = 49% of CUSIPs in KLD matched to CSRHub
+drop _merge
+
+
+tempfile d1
+save `d1'
 
 
 
+///	MERGE WITH CSTAT YEARLY
+use data/cstat-subset-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
 
+gen year = year(datadate)
+rename cusip cusip9
+
+gen cusip=substr(cusip9,1,8)
+drop if cusip==""
+bysort cusip year: gen N=_N
+tab N
+/*          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    113,801       99.66       99.66
+          2 |        390        0.34      100.00
+------------+-----------------------------------
+      Total |    114,191      100.00
+*/
+drop if N>1
+drop N
+
+
+merge 1:1 cusip year using `d1', update assert(1 2 3 4 5)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       132,775
+        from master                    68,675  (_merge==1)
+        from using                     64,100  (_merge==2)
+
+    matched                            45,126
+        not updated                    45,126  (_merge==3)
+        missing updated                     0  (_merge==4)
+        nonmissing conflict                 0  (_merge==5)
+    -----------------------------------------
+*/
+drop _merge
+
+///	SAVE
+compress
+drop cusip_n
+order cusip year conm firm_kld firm
+save data/csrhub-kld-cstat-year-level.dta, replace
 
 *END
