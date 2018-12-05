@@ -557,6 +557,7 @@ xtsum over_rtg
 */
 
 *	Plot within-cusip deviations on over_rtg with lines for 1, 2, and 3 standard deviations
+xtset cusip_n year
 gen one_month_change_over_rtg_dm = over_rtg_dm - l.over_rtg_dm
 
 /*
@@ -583,11 +584,11 @@ xtsum over_rtg
 gen treat3_date = (abs(over_rtg_dm-l.over_rtg_dm) >= 3*`r(sd_w)') & over_rtg_dm!=. & l.over_rtg_dm!=.
 label var treat3_date "Indicator =1 if ym of 3 std dev treatment"
 
-by cusip_n: gen trt_date = ym if treat3_date==1
+by cusip_n: gen trt_date = year if treat3_date==1
 sort cusip_n trt_date
 by cusip_n: replace trt_date = trt_date[_n-1] if _n!=1
 
-by cusip_n: gen post3=(ym>=trt_date)
+by cusip_n: gen post3=(year>=trt_date)
 label var post3 "Indicator =1 if on or after date of 3 std dev treatment"
 
 xtset
@@ -670,7 +671,9 @@ graph bar (sum) treat2_date, over(year) ///
 	ti("Count of 2 std dev treated firms by year")	
 
 
-///	Create control group
+///	Compare treated to non-treated
+tabstat revt revg ni ni_growth at emp xad xrd age tobinq mkt2book roa revpct, ///
+	by(treated) stat(mean sd p50 min max N) long
 
 
 
@@ -679,9 +682,6 @@ graph bar (sum) treat2_date, over(year) ///
 
 
 
-///	Difference-in-differences estimation
-*https://www.statalist.org/forums/forum/general-stata-discussion/general/1323707-fixed-effect-difference-in-differences-model
-xtreg over_rtg i.post#i.treated i.year, cluster(cusip_n)
 
 
 
