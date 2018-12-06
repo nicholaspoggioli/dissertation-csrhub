@@ -1,3 +1,5 @@
+/*
+
 ***===============================***
 *	CREATE YEAR LEVEL CSRHUB DATA	*
 ***===============================***
@@ -467,7 +469,66 @@ order cusip year conm firm_kld firm
 sort cusip year
 save data/csrhub-kld-cstat-year-level.dta, replace
 
+*/
 
+
+***=======================***
+*	CREATE MATCHED SAMPLES	*
+***=======================***
+/*	TREATMENT: 	CSR performance
+	OUTCOME:	Corporate financial performance
+	
+	IDENTIFICATION PROBLEM: 
+		Firms choose CSR performance, suggesting firm choices confound
+		the effect of CSR on CFP.
+	
+	IDENTIFICATION STRATEGY:
+		- Find a way to identify CSR performance that is exogenous to firm choice
+		- The way I use is to identify "extreme" changes in CSR performance
+		- The assumption is that firms cannot control extreme changes in CSR
+		  performance. Because firms have no or less control over extreme changes,
+		  the changes should be uncorrelated with corporate financial performance
+		- Any correlation between CSR and CFP that remains for "exogenous" CSR
+		  changes identifies the independent causal relationship between CSR and CFP
+	
+	PLAN:
+		- Create treatment groups based on year-on-year deviation in CSRHub rating
+		- Create control groups using propensity score matching on likelihood of
+		  experiencing treatment
+		  
+*/	
+
+///	LOAD DATA
+use data/csrhub-kld-cstat-year-level.dta, clear
+
+///	IDENTIFY MATCHING VARIABLES
+
+/*	Matching uses observables to match treated with control units in an attempt
+	to eliminate confounds between treatment and outcome.
+	
+	I need to identify observables that are possible confounds and use them to
+	match treated and control units.
+	
+	I first use the teffects package in Stata 15.1, which allows matching using
+	propensity score and nearest neighbor.
+	
+	I use the following Compustat variables to match firms:
+		- year at bkvlps csho dltt emp ni age tobinq roa
+*/
+
+///	PROPENSITY SCORE MATCHING
+
+***	Treatment is 4 standard deviations
+
+*	psmatch2
+psmatch2 trt4 at ni gp bkvlps csho dltt emp age tobinq year, ///
+	outcome(revt) logit ties ate neighbor(5)
+
+*	tseffects (see https://www.stata.com/statalist/archive/2014-03/msg00088.html)
+teffects psmatch (revt) (trt4 at bkvlps csho dltt emp ni age tobinq roa, logit), ///
+	osample(trt4_violation)
+	
+compress
 
 
 
