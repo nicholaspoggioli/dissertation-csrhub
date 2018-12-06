@@ -1,1 +1,1 @@
-use data/csrhub-kld-cstat-year-level.dta
+use data/csrhub-kld-cstat-year-level.dta, clear
