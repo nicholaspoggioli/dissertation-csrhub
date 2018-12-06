@@ -457,105 +457,14 @@ foreach threshold in 4 3 2 {
 	bysort cusip_n: egen sumtrt=sum(trt`threshold'_date)
 	tab sumtrt
 
-	codebook cusip_n if sumtrt>1
-	*	15 cusip_n with >1 treatment
-	codebook cusip_n if sumtrt==1
-	*	290 cusip_n treated once
 	drop trt_date sumtrt
 }	
-	
-
-*	Check if any cusip treated more than once
-bysort cusip_n: egen sumtrt=sum(treat3_date)
-tab sumtrt
-/*
-     sumtrt |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          0 |    865,285       96.79       96.79
-          1 |     27,324        3.06       99.85
-          2 |      1,184        0.13       99.98
-          3 |         89        0.01       99.99
-          4 |        101        0.01      100.00
-------------+-----------------------------------
-      Total |    893,983      100.00
-*/
-codebook cusip_n if sumtrt>1
-*	15 cusip_n with >1 treatment
-codebook cusip_n if sumtrt==1
-*	290 cusip_n treated once
-drop trt_date sumtrt
-
-*	Define exogenous change as a 1-month change in over_rtg_dm >= 2 standard deviations of within-firm over_rtg std. dev.
-xtset
-xtsum over_rtg
-gen treat2_date = (abs(over_rtg_dm-l.over_rtg_dm) >= 2*`r(sd_w)') & over_rtg_dm!=. & l.over_rtg_dm!=.
-label var treat2_date "Indicator =1 if ym of 2 std dev treatment"
-
-by cusip_n: gen trt_date = ym if treat2_date==1
-sort cusip_n trt_date
-by cusip_n: replace trt_date = trt_date[_n-1] if _n!=1
-
-by cusip_n: gen post2=(ym>=trt_date)
-label var post2 "Indicator =1 if on or after date of 2 std dev treatment"
-
-xtset
-by cusip_n: egen treated2= max(post)
-label var treated2 "Indicator = 1 if cusip_n ever 2 std dev treated"
-
-*	Check if any cusip treated more than once
-bysort cusip_n: egen sumtrt=sum(treat2_date)
-tab sumtrt
-/*
-     sumtrt |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          0 |    756,231       84.59       84.59
-          1 |    115,579       12.93       97.52
-          2 |     20,143        2.25       99.77
-          3 |      1,545        0.17       99.95
-          4 |        209        0.02       99.97
-          5 |        192        0.02       99.99
-          7 |         84        0.01      100.00
-------------+-----------------------------------
-      Total |    893,983      100.00
-*/
-codebook cusip_n if sumtrt>1
-*	227 cusip_n with >1 treatment
-codebook cusip_n if sumtrt==1
-*	1,261 cusip_n treated once
-drop trt_date sumtrt
-
-
-///	Treatment group characteristics
-*	3 std dev
-tabstat revt ni roa emp debt rd ad, by(treated3) stat(mean sd p50 min max N) longstub
-
-set scheme plotplainblind
-graph bar (sum) treat3_date, over(year) ///
-	ti("Count of treated firms by year")
-
-*	2 std dev
-tabstat revt ni roa emp debt rd ad, by(treated2) stat(mean sd p50 min max N) longstub
-
-set scheme plotplainblind
-graph bar (sum) treat2_date, over(year) ///
-	ti("Count of 2 std dev treated firms by year")	
-
-
-///	Compare treated to non-treated
-tabstat revt revg ni ni_growth at emp xad xrd age tobinq mkt2book roa revpct, ///
-	by(treated) stat(mean sd p50 min max N) long
-
-
-
-
-
-
-
 
 ///	SAVE
 compress
 drop cusip_n
 order cusip year conm firm_kld firm
+sort cusip year
 save data/csrhub-kld-cstat-year-level.dta, replace
 
 
