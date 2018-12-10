@@ -813,15 +813,17 @@ drop _merge ch N
 *** Create de-meaned and mean variables for random effects within-between modeling
 foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad size {
 	bysort cusip_n: egen `variable'_m = mean(`variable')
+	replace `variable'_m = . if over_rtg==.
 	label var `variable'_m "CUSIP-level mean of `variable'"
 	bysort cusip_n: gen `variable'_dm = `variable' - `variable'_m
+	replace `variable'_dm = . if over_rtg==.
 	label var `variable'_dm "CUSIP-level de-meaned `variable'"
 }
 
 ///	Save CUSIP-yearmonth level data
 compress
 label data "CUSIP-yearmonth level CSRHub-CSTAT-KLD dataset"
-save data/csrhub-kld-cstat-matched-on-cusip.dta, replace
+save data/csrhub-kld-cstat-month-level.dta, replace
 
 
 
