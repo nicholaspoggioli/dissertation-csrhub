@@ -487,9 +487,9 @@ drop cusip_n
 save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 
 
-***===========================***
-*	EXPLORATORY DATA ANALYSIS	*
-***===========================***
+***===============================================================***
+*	EXPLORATORY DATA ANALYSIS OF TREATMENT AND NON-TREATMENT FIRMS	*
+***===============================================================***
 set scheme plotplainblind
 
 ///	LOAD DATA
@@ -501,13 +501,54 @@ xtset cusip_n year, y
 ///	Check if treated firms are just those that have high standard deviations in their own scores
 bysort cusip: egen over_std=sd(over_rtg)
 replace over_std=. if over_rtg==.
+histogram over_std, bin(100) normal ///
+	ti("Distribution of within-firm CSRHub overall rating standard deviations") ///
+	saving(graphics/hist-over_std, replace)
 
 foreach value in 4 3 2 {
-	graph box over_std, over(trt`value') saving(trt`value', replace) ti("`value'-standard deviation treatment") nodraw
+	graph box over_std, over(trt`value') saving(graphics/trt`value', replace) ti("`value'-standard deviation treatment") nodraw
 }
-gr combine trt4.gph trt3.gph trt2.gph, r(1) c(3)
+gr combine graphics/trt4.gph graphics/trt3.gph graphics/trt2.gph, r(1) c(3) ///
+	saving(graphics/trt-combined, replace) nodraw
 
-histogram over_std, bin(100) normal
+	
+	
+///	Financial performance differences in raw data
+capt matrix drop A
+foreach cfp in revt ni tobinq {
+	foreach threshold in 4 3 2 {
+		ttest `cfp', by(trt`threshold')
+		capt noisily confirm matrix A
+		if (_rc!=0) {
+			matrix define A = (r(mu_1), r(mu_2), r(mu_1)-r(mu_2), r(t), r(p))
+			matrix colnames A = Mu_0 Mu_1 Difference T-stat P-value
+			matrix rownames A = "ttest_`cfp'_trt`threshold'"
+			}
+		else {
+			local matrownames `:rownames A'
+			mat A = (A \ r(mu_1), r(mu_2), r(mu_1)-r(mu_2), r(t), r(p))
+			mat rownames A = `matrownames' ttest_`cfp'_trt`threshold'
+		}
+	}
+}
+
+putexcel set tables-and-figures/ttestresults, replace
+putexcel A1=matrix(A), names 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -543,6 +584,11 @@ histogram over_std, bin(100) normal
 		- Create treatment groups based on year-on-year deviation in CSRHub rating
 		- Create control groups using propensity score matching on likelihood of
 		  experiencing treatment
+		  
+	CHARACTERISTICS TO MATCH ON
+		- Within-firm standard deviation in overall rating. Exploratory data analysis
+		  above shows difference between treated and non-treated firms. Need to
+		  match this difference for causal inference.
 		  
 */	
 
