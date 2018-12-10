@@ -354,6 +354,7 @@ drop _merge
 tempfile d1
 save `d1'
 
+
 ///	MERGE WITH CSTAT YEARLY
 use data/cstat-subset-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
 
@@ -408,13 +409,26 @@ foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad size {
 	label var `variable'_dm "CUSIP-level de-meaned `variable'"
 }
 
+///	SAVE
+compress
+drop cusip_n
+order cusip year conm firm_kld firm
+sort cusip year
+save data/csrhub-kld-cstat-year-level.dta, replace
+
+*/
+
 
 
 
 ***===========================***
 *	CREATE TREATMENT VARIABLES	*
 ***===========================***
+use data/csrhub-kld-cstat-year-level.dta, clear
+
+encode cusip, gen(cusip_n)
 xtset cusip_n year
+
 gen one_year_change_over_rtg_dm = over_rtg_dm - l.over_rtg_dm
 
 /*
@@ -443,8 +457,10 @@ foreach threshold in 4 3 2 {
 	xtset
 	xtsum over_rtg
 
-	gen trt`threshold'_date = (abs(over_rtg_dm-l.over_rtg_dm) >= `threshold'*`r(sd_w)') & over_rtg_dm!=. & l.over_rtg_dm!=.
+	gen trt`threshold'_date = (abs(over_rtg_dm-l.over_rtg_dm) >= `threshold'*`r(sd_w)') & ///
+		over_rtg_dm!=. & l.over_rtg_dm!=. & over_rtg!=.
 	label var trt`threshold'_date "Indicator =1 if year of `threshold' std dev treatment"
+	replace trt`threshold'_date=. if over_rtg==.
 
 	by cusip_n: gen trt_date = year if trt`threshold'_date==1
 	sort cusip_n trt_date
@@ -452,10 +468,12 @@ foreach threshold in 4 3 2 {
 
 	by cusip_n: gen post`threshold'=(year>=trt_date)
 	label var post`threshold' "Indicator =1 if post-treatment for `threshold' std dev treatment"
-
+	replace post`threshold'=. if over_rtg==.
+	
 	by cusip_n: egen trt`threshold'= max(post`threshold')
 	label var trt`threshold' "Indicator = 1 if treatment group for `threshold' std dev treated"
-		
+	replace trt`threshold'=. if over_rtg==.
+	
 	bysort cusip_n: egen sumtrt=sum(trt`threshold'_date)
 	tab sumtrt
 
@@ -464,12 +482,42 @@ foreach threshold in 4 3 2 {
 
 ///	SAVE
 compress
+xtset
 drop cusip_n
-order cusip year conm firm_kld firm
-sort cusip year
-save data/csrhub-kld-cstat-year-level.dta, replace
+save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 
-*/
+
+***===========================***
+*	EXPLORATORY DATA ANALYSIS	*
+***===========================***
+set scheme plotplainblind
+
+///	LOAD DATA
+use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
+encode cusip, gen(cusip_n)
+xtset cusip_n year, y
+
+///	Check if treated firms are just those that have high standard deviations in their own scores
+bysort cusip: egen over_std=sd(over_rtg)
+replace over_std=. if over_rtg==.
+
+foreach value in 4 3 2 {
+	graph box over_std, over(trt`value') saving(trt`value', replace) ti("`value'-standard deviation treatment") nodraw
+}
+gr combine trt4.gph trt3.gph trt2.gph, r(1) c(3)
+
+histogram over_std, bin(100) normal
+
+
+
+
+
+
+
+
+
+
 
 
 ***=======================***
