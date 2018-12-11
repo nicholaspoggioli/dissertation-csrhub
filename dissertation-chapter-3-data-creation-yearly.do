@@ -102,6 +102,10 @@ tab N
 drop if N>1
 drop N
 
+***	Indicator variable
+gen in_csrhub=1
+label var in_csrhub "Indicator = 1 if in CSRHub data"
+
 ***	Save year-level CSRHub data
 compress
 save data/csrhub-all-year-level.dta, replace
@@ -329,6 +333,11 @@ list firm cusip year N if N>1, sepby(cusip)
 drop if N>1
 drop N
 
+***	Generate indicator variable
+gen in_kld = 1
+label var in_kld "Indicator = 1 if in KLD data"
+
+
 ///	MERGE WITH CSRHUB YEARLY
 drop firm	/*	Avoids conflicts with the firm variable in csrhub-all-year-level	*/
 
@@ -375,7 +384,11 @@ tab N
 drop if N>1
 drop N
 
+***	Generate indicator variable
+gen in_cstat = 1
+label var in_cstat "Indicator = 1 if in CSTAT data"
 
+***	Merge
 merge 1:1 cusip year using `d1', update assert(1 2 3 4 5)
 /*
     Result                           # of obs.
@@ -390,7 +403,10 @@ merge 1:1 cusip year using `d1', update assert(1 2 3 4 5)
         nonmissing conflict                 0  (_merge==5)
     -----------------------------------------
 */
+
+***	Drop variables
 drop _merge cusip_n
+drop in_cstat_csrhub_cusip in_cstat_kld_cusip
 
 
 
