@@ -460,7 +460,7 @@ local sd3p = `r(sd_w)' * 4
 local sd3n = `r(sd_w)' * -4
 scatter one_year_change_over_rtg_dm cusip_n, sort mlabsize(tiny) m(p) mcolor(black%30) ///
 	yline(`sd1p') ///
-	yline(`sd1n') ///
+	yline(`sd1n') /// 
 	yline(`sd2p') ///
 	yline(`sd2n') ///
 	yline(`sd4p') ///
