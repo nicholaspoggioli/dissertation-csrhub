@@ -633,47 +633,8 @@ graph combine graphics/treated-cusips-per-year-4sd-balanced-panel.gph ///
 *	CREATE MATCHED SAMPLES	*
 ***=======================***
 
-/// CFP = f(CSR)
-
 ***	Load data
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
-
-*	Keep if matched in CSTAT and CSRHub
-keep if in_cstat==1 & in_csrhub==1
-
-***	Match using propensity score to be treated (https://youtu.be/7RT8zFC5Rac)
-*	Syntax of psmatch2
-*		psmatch2 <treatment indicator> <matching variables ...>, out(<propensity score name>) common
-
-*	Estimate propensity score and match
-psmatch2 trt2 at emp ni xad xrd, out(revt) common
-
-*	Evaluate match graphically
-psgraph
-
-*	Evaluate match with statistical tests
-pstest at emp ni
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -704,40 +665,6 @@ pstest at emp ni
 		  match this difference for causal inference.
 		  
 */	
-
-///	LOAD DATA
-use data/csrhub-kld-cstat-year-level.dta, clear
-
-///	IDENTIFY MATCHING VARIABLES
-
-/*	Matching uses observables to match treated with control units in an attempt
-	to eliminate confounds between treatment and outcome.
-	
-	I need to identify observables that are possible confounds and use them to
-	match treated and control units.
-	
-	I first use the teffects package in Stata 15.1, which allows matching using
-	propensity score and nearest neighbor.
-	
-	I use the following Compustat variables to match firms:
-		- year at bkvlps csho dltt emp ni age tobinq roa
-*/
-
-///	PROPENSITY SCORE MATCHING
-
-***	Treatment is 4 standard deviations
-
-*	psmatch2
-psmatch2 trt4 at ni gp bkvlps csho dltt emp age tobinq year, ///
-	outcome(revt) logit ties ate neighbor(5)
-
-*	tseffects (see https://www.stata.com/statalist/archive/2014-03/msg00088.html)
-teffects psmatch (revt) (trt4 at bkvlps csho dltt emp ni age tobinq roa, logit), ///
-	osample(trt4_violation)
-	
-compress
-
-
 
 
 
