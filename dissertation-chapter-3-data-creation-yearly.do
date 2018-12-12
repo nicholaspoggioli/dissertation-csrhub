@@ -604,7 +604,7 @@ keep if N==10
 drop N
 
 foreach threshold in 4 3 2 {
-	graph bar (count) cusip_n if trt`threshold'_date==1, over(year, label(angle(90))) ///
+	graph bar (count) cusip_n if trt`threshold'_date==1, over(year, label((2008(1)2017), angle(90))) ///
 		ti("Count of `threshold'sd treated CUSIPs per year") ///
 		yti("CUSIPs treated at `threshold'sd") ///
 		blabel(total, size(vsmall)) ///
@@ -632,9 +632,42 @@ graph combine graphics/treated-cusips-per-year-4sd-balanced-panel.gph ///
 ***=======================***
 *	CREATE MATCHED SAMPLES	*
 ***=======================***
-
-***	Load data
+*	Load data
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
+///	USE THE STRATEGY IN:
+*	Sianesi, B. (2004). An Evaluation of the Swedish System of Active Labor 
+*	Market Programs in the 1990s. The Review of Economics and Statistics, 86(1), 133–155.
+
+***	Generate needed variables
+gen ch1 = year if trt2_date==1
+by cusip: egen trt2_year=min(ch1)
+replace trt2_year=. if over_rtg==.
+
+*	Generate indicator for control group
+gen control2 = (year<trt2_year)
+replace control2 = . if trt2_year==.
+
+*	Generate propensity score for all years
+forvalues year = 2008/2017 {
+	foreach threshold in 4 3 2 {
+		display("threshold: `threshold' in year `year'")
+		capt n probit trt`threshold'_date emp at csho if year==`year'
+		capt n predict ps`threshold'_`year' if e(sample), pr
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
