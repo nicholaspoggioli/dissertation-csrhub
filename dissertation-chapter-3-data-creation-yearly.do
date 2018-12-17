@@ -494,7 +494,34 @@ foreach threshold in 4 3 2 {
 	tab sumtrt
 
 	drop trt_date sumtrt
+	
+	/*	Generate exclusive treatment groups rather than overlapping
+	gen trt`threshold'_only=trt`threshold'
+	label var trt`threshold'_only "Indicator = 1 if treated ONLY at `threshold' sd"
+	gen trt`threshold'_only_date = year if trt`threshold'_date==1
+	label var trt`threshold'_only_date "Year of treatment at ONLY `threshold' sd"
+	sort cusip_n trt`threshold'_only_date
+	by cusip_n: replace trt`threshold'_only_date = trt`threshold'_only_date[_n-1] if _n!=1
+	gen post`threshold'_only = (year >= trt`threshold'_only_date)
+	label var post`threshold'_only "Indicator =1 if after year of ONLY `threshold' sd treatment"
+	replace post`threshold'_only = . if trt`threshold'==.
+	drop trt`threshold'_only_date
+	*/
 }	
+
+***	Create binary treatment variables without overlap
+gen trt4_only=trt4
+label var trt4_only "Indicator = 1 if treated ONLY at 4 sd"
+gen trt4_only_date = year if trt4_date==1
+label var trt4_only_date "Year of treatment at ONLY 4 sd"
+sort cusip_n trt4_only_date
+by cusip_n: replace trt4_only_date = trt4_only_date[_n-1] if _n!=1
+gen post4_only = (year >= trt4_only_date)
+label var post4_only "Indicator =1 if after year of ONLY 4 sd treatment"
+replace post4_only = . if trt4==.
+
+
+
 
 
 
@@ -540,7 +567,7 @@ use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 encode cusip, gen(cusip_n)
 xtset cusip_n year, y
 
-///	Check if treated firms are just those that have high standard deviations in their own scores
+///	CHECK IF TREATED FIRMS ARE JUST THOSE THAT HAVE HIGH STANDARD DEVIATIONS IN THEIR OWN SCORES
 bysort cusip: egen over_std=sd(over_rtg)
 replace over_std=. if over_rtg==.
 histogram over_std, bin(100) normal ///
@@ -554,8 +581,7 @@ gr combine graphics/trt4.gph graphics/trt3.gph graphics/trt2.gph, r(1) c(3) ///
 	saving(graphics/trt-combined, replace) nodraw
 
 	
-	
-///	Financial performance differences in raw data
+///	FINANCIAL PERFORMANCE DIFFERENCES IN RAW DATA
 capt matrix drop A
 foreach cfp in revt ni tobinq {
 	foreach threshold in 4 3 2 {
