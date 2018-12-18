@@ -445,65 +445,127 @@ use data/csrhub-kld-cstat-year-level.dta, clear
 encode cusip, gen(cusip_n)
 xtset cusip_n year
 
-///	TREATMENT IS 1-year change in over_rtg_dm >= _ standard deviations of within-firm over_rtg std. dev.
 
-***	Binary thresholds with overlap and no overlap between groups
+
+///	TREATMENT IS THE CHANGE IN CSRHUB OVERALL RATING EXCEEDING THE GLOBAL
+*	STANDARD DEVIATION OF CSRHUB OVERALL RATING
+
+***	Binary thresholds with overlap between groups using global within-firm over_rtg standard deviation
 foreach threshold in 4 3 2 {
-	xtset
-	xtsum over_rtg
+	qui xtset
+	qui xtsum over_rtg
 	
 	*Overlap
-	gen trt`threshold'_date = (abs(over_rtg_dm-l.over_rtg_dm) >= `threshold'*`r(sd_w)') & ///
+	gen trt`threshold'_year_sdg = (abs(over_rtg_dm-l.over_rtg_dm) > `threshold'*`r(sd_w)') & ///
 		over_rtg_dm!=. & l.over_rtg_dm!=. & over_rtg!=.
-	label var trt`threshold'_date "Indicator =1 if year of `threshold' std dev treatment"
-	replace trt`threshold'_date=. if over_rtg==.
+	label var trt`threshold'_year "Indicator =1 if year of `threshold' global std dev treatment"
+	replace trt`threshold'_year_sdg=. if over_rtg==.
 
-	by cusip_n: gen trt_date = year if trt`threshold'_date==1
-	sort cusip_n trt_date
-	by cusip_n: replace trt_date = trt_date[_n-1] if _n!=1
+	by cusip_n: gen trt_year_sdg = year if trt`threshold'_year_sdg==1
+	sort cusip_n trt_year_sdg
+	by cusip_n: replace trt_year_sdg = trt_year_sdg[_n-1] if _n!=1
+	replace trt_year_sdg = . if over_rtg==.
+	
+	qui xtset
+	
+	by cusip_n: gen post`threshold'_sdg=(year>trt_year_sdg)
+	label var post`threshold'_sdg "Indicator =1 if post-treatment year for `threshold' global std dev treatment"
+	replace post`threshold'_sdg=. if over_rtg==.
+	
+	
+	by cusip_n: egen trt`threshold'_sdg= max(post`threshold'_sdg)
+	label var trt`threshold'_sdg "Indicator = 1 if treatment group for `threshold' global std dev treated"
+	replace trt`threshold'_sdg=. if over_rtg==.
+	
+	bysort cusip_n: egen sumtrt=sum(trt`threshold'_year_sdg)
 
-	by cusip_n: gen post`threshold'=(year>=trt_date)
-	label var post`threshold' "Indicator =1 if post-treatment for `threshold' std dev treatment"
-	replace post`threshold'=. if over_rtg==.
-	
-	by cusip_n: egen trt`threshold'= max(post`threshold')
-	label var trt`threshold' "Indicator = 1 if treatment group for `threshold' std dev treated"
-	replace trt`threshold'=. if over_rtg==.
-	
-	bysort cusip_n: egen sumtrt=sum(trt`threshold'_date)
-	tab sumtrt
-
-	drop trt_date sumtrt
-	
-	
-	*No overlap
-	gen trt`threshold'_only=trt`threshold'
-	label var trt`threshold'_only "Indicator = 1 if treated ONLY at `threshold' sd"
-	
-	gen trt`threshold'_only_date = year if trt`threshold'_date==1
-	label var trt`threshold'_only_date "Year of treatment at ONLY `threshold' sd"
-	
-	sort cusip_n trt`threshold'_only_date
-	by cusip_n: replace trt`threshold'_only_date = trt`threshold'_only_date[_n-1] if _n!=1
-	
-	gen post`threshold'_only = (year >= trt`threshold'_only_date)
-	label var post`threshold'_only "Indicator =1 if after year of ONLY `threshold' sd treatment"
-	replace post`threshold'_only = . if trt`threshold'==.
-	
-	drop trt`threshold'_only_date
-	*/
+	drop trt_year sumtrt
 }	
 
 ***	Binary thresholds without overlap between groups
-gen trt4_only=trt4
-label var trt4_only "Indicator = 1 if treated ONLY at 4 sd"
-gen trt4_only_date = year if trt4_date==1
-label var trt4_only_date "Year of treatment at ONLY 4 sd"
-sort cusip_n trt4_only_date
-by cusip_n: replace trt4_only_date = trt4_only_date[_n-1] if _n!=1
-gen post4_only = (year >= trt4_only_date)
-label var post4_only "Indicator =1 if after year of ONLY 4 sd treatment"
-replace post4_only = . if trt4==.
+gen trt4_year_only_sdg = trt4_year_sdg
+label var trt4_year_only_sdg "Indicator =1 if year of ONLY 4 global std dev treatment"
+gen post4_only_sdg = post4_sdg
+label var post4_only_sdg "Indicator =1 if post-treatment year of ONLY 4 global std dev treatment"
+gen trt4_only_sdg = trt4_sdg
+label var trt4_only_sdg "Indicator = 1 if treatment group of ONLY 4 global std dev treated"
+
+foreach threshold in 3 2 {
+	local y = `threshold' + 1
+
+	gen trt`threshold'_year_only_sdg = trt`threshold'_year_sdg
+	label var trt`threshold'_year_only_sdg "Indicator =1 if year of ONLY `threshold' global std dev treatment"
+	gen post`threshold'_only_sdg = post`threshold'_sdg
+	label var post`threshold'_only_sdg "Indicator =1 if post-treatment year of ONLY `threshold' global std dev treatment"
+	gen trt`threshold'_only_sdg = trt`threshold'_sdg
+	label var trt`threshold'_only_sdg "Indicator = 1 if treatment group of ONLY `threshold' global std dev treated"
+	
+	replace trt`threshold'_year_only_sdg = 0 if trt`y'_year_sdg==1
+	replace post`threshold'_only_sdg = 0 if post`y'_sdg == 1
+	replace trt`threshold'_only_sdg = 0 if trt`y'_sdg == 1
+}
+
+
+
+///	TREATMENT IS THE CHANGE IN CSRHUB OVERALL RATING EXCEEDING EACH FIRM'S
+*	STANDARD DEVIATION OF CSRHUB OVERALL RATING
+
+***	Binary thresholds with OVERLAP between groups using firm-specific within-firm over_rtg standard deviation
+by cusip_n: egen sdw = sd(over_rtg)
+label var sdw "Within-firm standard deviation of over_rtg for each cusip_n"
+replace sdw=. if over_rtg==.
+
+foreach threshold in 4 3 2 {
+	qui xtset
+	
+	gen trt`threshold'_year_sdw = (abs(over_rtg_dm-l.over_rtg_dm) > `threshold'*sdw) & ///
+		over_rtg_dm!=. & l.over_rtg_dm!=. & over_rtg!=.
+	label var trt`threshold'_year_sdw "Indicator =1 if year of `threshold' std dev treatment for within-firm std dev"
+	replace trt`threshold'_year_sdw=. if over_rtg==.
+
+	by cusip_n: gen trt_year = year if trt`threshold'_year_sdw==1
+	sort cusip_n trt_year
+	by cusip_n: replace trt_year = trt_year[_n-1] if _n!=1
+	replace trt_year = . if over_rtg==.
+	
+	qui xtset
+	
+	by cusip_n: gen post`threshold'_sdw=(year>trt_year)
+	label var post`threshold'_sdw "Indicator =1 if post-treatment for `threshold' within-firm std dev treatment"
+	replace post`threshold'_sdw=. if over_rtg==.
+	
+	by cusip_n: egen trt`threshold'_sdw= max(post`threshold'_sdw)
+	label var trt`threshold'_sdw "Indicator = 1 if treatment group for `threshold' within-firm std dev treated"
+	replace trt`threshold'_sdw=. if over_rtg==.
+	
+	bysort cusip_n: egen sumtrt=sum(trt`threshold'_year_sdw)
+	
+	drop trt_year sumtrt
+}
+
+
+***	Binary thresholds without overlap between groups
+gen trt4_year_only_sdw = trt4_year_sdw
+label var trt4_year_only_sdw "Indicator =1 if year of ONLY 4 firm's std dev treatment"
+gen post4_only_sdw = post4_sdw
+label var post4_only_sdw "Indicator =1 if post-treatment year of ONLY 4 firm's std dev treatment"
+gen trt4_only_sdw = trt4_sdw
+label var trt4_only_sdw "Indicator = 1 if treatment group of ONLY 4 firm's std dev treated"
+
+foreach threshold in 3 2 {
+	local y = `threshold' + 1
+
+	gen trt`threshold'_year_only_sdw = trt`threshold'_year_sdw
+	label var trt`threshold'_year_only_sdw "Indicator =1 if year of ONLY `threshold' firm's std dev treatment"
+	gen post`threshold'_only_sdw = post`threshold'_sdw
+	label var post`threshold'_only_sdw "Indicator =1 if post-treatment year of ONLY `threshold' firm's std dev treatment"
+	gen trt`threshold'_only_sdw = trt`threshold'_sdw
+	label var trt`threshold'_only_sdw "Indicator = 1 if treatment group of ONLY `threshold' firm's std dev treated"
+	
+	replace trt`threshold'_year_only_sdw = 0 if trt`y'_year_sdw==1
+	replace post`threshold'_only_sdw = 0 if post`y'_sdw == 1
+	replace trt`threshold'_only_sdw = 0 if trt`y'_sdw == 1
+}
 
 
 
