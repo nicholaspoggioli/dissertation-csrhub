@@ -445,34 +445,14 @@ use data/csrhub-kld-cstat-year-level.dta, clear
 encode cusip, gen(cusip_n)
 xtset cusip_n year
 
-gen one_year_change_over_rtg_dm = over_rtg_dm - l.over_rtg_dm
-
-/*
-set scheme plotplainblind
-xtsum over_rtg
-local sd1p = `r(sd_w)'
-local sd1n = `r(sd_w)' * -1
-local sd2p = `r(sd_w)' * 2
-local sd2n = `r(sd_w)' * -2
-local sd3p = `r(sd_w)' * 3
-local sd3n = `r(sd_w)' * -3
-local sd3p = `r(sd_w)' * 4
-local sd3n = `r(sd_w)' * -4
-scatter one_year_change_over_rtg_dm cusip_n, sort mlabsize(tiny) m(p) mcolor(black%30) ///
-	yline(`sd1p') ///
-	yline(`sd1n') /// 
-	yline(`sd2p') ///
-	yline(`sd2n') ///
-	yline(`sd4p') ///
-	yline(`sd4n')
-*/
-
-
 ///	TREATMENT IS 1-year change in over_rtg_dm >= _ standard deviations of within-firm over_rtg std. dev.
+
+***	Binary thresholds with overlap and no overlap between groups
 foreach threshold in 4 3 2 {
 	xtset
 	xtsum over_rtg
-
+	
+	*Overlap
 	gen trt`threshold'_date = (abs(over_rtg_dm-l.over_rtg_dm) >= `threshold'*`r(sd_w)') & ///
 		over_rtg_dm!=. & l.over_rtg_dm!=. & over_rtg!=.
 	label var trt`threshold'_date "Indicator =1 if year of `threshold' std dev treatment"
@@ -495,21 +475,26 @@ foreach threshold in 4 3 2 {
 
 	drop trt_date sumtrt
 	
-	/*	Generate exclusive treatment groups rather than overlapping
+	
+	*No overlap
 	gen trt`threshold'_only=trt`threshold'
 	label var trt`threshold'_only "Indicator = 1 if treated ONLY at `threshold' sd"
+	
 	gen trt`threshold'_only_date = year if trt`threshold'_date==1
 	label var trt`threshold'_only_date "Year of treatment at ONLY `threshold' sd"
+	
 	sort cusip_n trt`threshold'_only_date
 	by cusip_n: replace trt`threshold'_only_date = trt`threshold'_only_date[_n-1] if _n!=1
+	
 	gen post`threshold'_only = (year >= trt`threshold'_only_date)
 	label var post`threshold'_only "Indicator =1 if after year of ONLY `threshold' sd treatment"
 	replace post`threshold'_only = . if trt`threshold'==.
+	
 	drop trt`threshold'_only_date
 	*/
 }	
 
-***	Create binary treatment variables without overlap
+***	Binary thresholds without overlap between groups
 gen trt4_only=trt4
 label var trt4_only "Indicator = 1 if treated ONLY at 4 sd"
 gen trt4_only_date = year if trt4_date==1
@@ -566,6 +551,29 @@ use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
 encode cusip, gen(cusip_n)
 xtset cusip_n year, y
+
+/// WITHIN-FIRM OVERALL RATING STANDARD DEVIATION
+gen one_year_change_over_rtg_dm = over_rtg_dm - l.over_rtg_dm
+
+/*
+set scheme plotplainblind
+xtsum over_rtg
+local sd1p = `r(sd_w)'
+local sd1n = `r(sd_w)' * -1
+local sd2p = `r(sd_w)' * 2
+local sd2n = `r(sd_w)' * -2
+local sd3p = `r(sd_w)' * 3
+local sd3n = `r(sd_w)' * -3
+local sd3p = `r(sd_w)' * 4
+local sd3n = `r(sd_w)' * -4
+scatter one_year_change_over_rtg_dm cusip_n, sort mlabsize(tiny) m(p) mcolor(black%30) ///
+	yline(`sd1p') ///
+	yline(`sd1n') /// 
+	yline(`sd2p') ///
+	yline(`sd2n') ///
+	yline(`sd4p') ///
+	yline(`sd4n')
+*/
 
 ///	CHECK IF TREATED FIRMS ARE JUST THOSE THAT HAVE HIGH STANDARD DEVIATIONS IN THEIR OWN SCORES
 bysort cusip: egen over_std=sd(over_rtg)
