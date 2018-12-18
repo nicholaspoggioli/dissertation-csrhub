@@ -365,7 +365,7 @@ save `d1'
 
 
 ///	MERGE WITH CSTAT YEARLY
-use data/cstat-subset-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
+use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
 
 gen year = year(datadate)
 rename cusip cusip9
@@ -475,7 +475,7 @@ foreach threshold in 4 3 2 {
 	
 	by cusip_n: egen trt`threshold'_sdg= max(post`threshold'_sdg)
 	label var trt`threshold'_sdg "Indicator = 1 if treatment group for `threshold' global std dev treated"
-	replace trt`threshold'_sdg=. if over_rtg==.
+*	replace trt`threshold'_sdg=. if over_rtg==.
 	
 	bysort cusip_n: egen sumtrt=sum(trt`threshold'_year_sdg)
 
@@ -536,7 +536,7 @@ foreach threshold in 4 3 2 {
 	
 	by cusip_n: egen trt`threshold'_sdw= max(post`threshold'_sdw)
 	label var trt`threshold'_sdw "Indicator = 1 if treatment group for `threshold' within-firm std dev treated"
-	replace trt`threshold'_sdw=. if over_rtg==.
+*	replace trt`threshold'_sdw=. if over_rtg==.
 	
 	bysort cusip_n: egen sumtrt=sum(trt`threshold'_year_sdw)
 	
@@ -584,6 +584,90 @@ label var in_all "Indicator = 1 if in CSRHub, CSTAT, and KLD data"
 
 compress
 save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/***===============================================================**
+*	MATCHING STRATEGY												*
+*																	*
+*	1) Specify the model determining treatment status				*
+*	2) Use the model to predict which firms will be treated			*
+*	3) Match on the predicted likelihood of being treated			*
+*	4) Compare outcomes across matched treated and control units	*
+*																	*
+***==============================================================***/
+
+///	LOAD DATA
+use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
+***	Drop CSTAT variables
+
+* Duplicates
+drop sale /* same as revt	*/
+
+/* Many missing values
+acqmeth adrr bspr compst curuscn ltcm ogm stalt udpl acco acdo acodo acominc acoxar acqao acqcshi acqgdwl acqic acqintan acqinvt acqlntal acqniintc acqppe acqsc adpac aedi afudcc afudci amc amdc 
+drop drc
+drop dvrre
+drop nfsr 
+drop ris 
+drop unnp 
+drop unnpl 
+drop urevub
+*/
+
+
+/// GENERATE PROPENSITY SCORES PREDICTING TREATMENT AT BEGINNING OF CSRHUB DATA IN 2008
+
+***	Specify the model predicting treatment
+/*	COMPUSTAT
+	-	fyear
+	fyr 
+	curcd
+	at 
+	bkvlps 
+	ceq 
+	csho 
+	dltt 
+	drc 
+	drlt 
+	emp 
+	gp 
+	lcoxdr 
+	loxdr 
+	ni 
+	revt 
+	sale:	same as revt
+*/
+
+forvalues year = 1990/2018 {
+	foreach threshold in 4 3 2 {
+		display("threshold: `threshold' in year `year'")
+		capt n probit trt`threshold'_sdg emp at csho if year==`year'
+		capt n predict ps`threshold'_`year'_sdg if e(sample), pr
+	}
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -714,54 +798,6 @@ graph combine graphics/treated-cusips-per-year-4sd-balanced-panel.gph ///
 	altshrink ///
 	ycommon xcommon ///
 	ti("CUSIPs in all years of CSRHub data")
-
-
-
-
-
-
-
-
-
-
-
-/***===============================================================**
-*	MATCHING STRATEGY												*
-*																	*
-*	1) Specify the model determining treatment status				*
-*	2) Use the model to predict which firms will be treated			*
-*	3) Match on the predicted likelihood of being treated			*
-*	4) Compare outcomes across matched treated and control units	*
-*																	*
-***==============================================================***/
-
-///	Load data
-use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
-
-///	USE THE STRATEGY IN:
-*	Sianesi, B. (2004). An Evaluation of the Swedish System of Active Labor 
-*	Market Programs in the 1990s. The Review of Economics and Statistics, 86(1), 133–155.
-
-***	Generate propensity score for all years
-forvalues year = 2008/2017 {
-	foreach threshold in 4 3 2 {
-		display("threshold: `threshold' in year `year'")
-		capt n probit trt`threshold'_date emp at csho if year==`year'
-		capt n predict ps`threshold'_`year' if e(sample), pr
-	}
-}
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

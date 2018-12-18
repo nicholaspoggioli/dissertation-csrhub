@@ -173,13 +173,6 @@ merge 1:1 cusip datadate using "data/cstat-all-variables-for-all-cusip9-in-kld-a
 drop if m2==2
 drop m2
 
-*	keep needed cstat variables
-keep cusip ym conm tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
-	revt ni sale at xad xrd emp dltt csho prcc_f ceq at mkvalt bkvlps ///
-	gp unnp unnpl drc drlt dvrre lcoxdr loxdr nfsr revt ris urevub ///
-	naics sic spcindcd spcseccd cstatvars in_cstat_kld_cusip in_cstat_csrhub_cusip ///
-	loc fic age yr_start
-	
 *	Set panel
 encode cusip, gen(cusip_n)
 xtset cusip_n fyear, y
@@ -287,6 +280,17 @@ label var emp "(CSTAT) Number of employees"
 label var size "(CSTAT) Firm size = logarithm of at"
 label var revg "(CSTAT) Change in revenue from previous year = revt - L.revt"
 label var revpct "(CSTAT) Percent change in revenue from previous year = ((revt - L.revt) / L.revt) * 100"
+
+*	Save all CSTAT variables
+compress
+save data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, replace
+
+*	Save subset of CSTAT variables
+keep cusip ym conm tic datadate fyear fyr gvkey curcd apdedate fdate pdate ///
+	revt ni sale at xad xrd emp dltt csho prcc_f ceq at mkvalt bkvlps ///
+	gp unnp unnpl drc drlt dvrre lcoxdr loxdr nfsr revt ris urevub ///
+	naics sic spcindcd spcseccd cstatvars in_cstat_kld_cusip in_cstat_csrhub_cusip ///
+	loc fic age yr_start
 
 compress
 save data/cstat-subset-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, replace
