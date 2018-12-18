@@ -725,26 +725,24 @@ graph combine graphics/treated-cusips-per-year-4sd-balanced-panel.gph ///
 
 
 
-***=======================***
-*	CREATE MATCHED SAMPLES	*
-***=======================***
-*	Load data
+/***===============================================================**
+*	MATCHING STRATEGY												*
+*																	*
+*	1) Specify the model determining treatment status				*
+*	2) Use the model to predict which firms will be treated			*
+*	3) Match on the predicted likelihood of being treated			*
+*	4) Compare outcomes across matched treated and control units	*
+*																	*
+***==============================================================***/
+
+///	Load data
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
 ///	USE THE STRATEGY IN:
 *	Sianesi, B. (2004). An Evaluation of the Swedish System of Active Labor 
 *	Market Programs in the 1990s. The Review of Economics and Statistics, 86(1), 133–155.
 
-***	Generate needed variables
-gen ch1 = year if trt2_date==1
-by cusip: egen trt2_year=min(ch1)
-replace trt2_year=. if over_rtg==.
-
-*	Generate indicator for control group
-gen control2 = (year<trt2_year)
-replace control2 = . if trt2_year==.
-
-*	Generate propensity score for all years
+***	Generate propensity score for all years
 forvalues year = 2008/2017 {
 	foreach threshold in 4 3 2 {
 		display("threshold: `threshold' in year `year'")
@@ -767,33 +765,6 @@ forvalues year = 2008/2017 {
 
 
 
-/*	TREATMENT: 	CSR performance
-	OUTCOME:	Corporate financial performance
-	
-	IDENTIFICATION PROBLEM: 
-		Firms choose CSR performance, suggesting firm choices confound
-		the effect of CSR on CFP.
-	
-	IDENTIFICATION STRATEGY:
-		- Find a way to identify CSR performance that is exogenous to firm choice
-		- The way I use is to identify "extreme" changes in CSR performance
-		- The assumption is that firms cannot control extreme changes in CSR
-		  performance. Because firms have no or less control over extreme changes,
-		  the changes should be uncorrelated with corporate financial performance
-		- Any correlation between CSR and CFP that remains for "exogenous" CSR
-		  changes identifies the independent causal relationship between CSR and CFP
-	
-	PLAN:
-		- Create treatment groups based on year-on-year deviation in CSRHub rating
-		- Create control groups using propensity score matching on likelihood of
-		  experiencing treatment
-		  
-	CHARACTERISTICS TO MATCH ON
-		- Within-firm standard deviation in overall rating. Exploratory data analysis
-		  above shows difference between treated and non-treated firms. Need to
-		  match this difference for causal inference.
-		  
-*/	
 
 
 
