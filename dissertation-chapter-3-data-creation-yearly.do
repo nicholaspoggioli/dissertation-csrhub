@@ -447,9 +447,7 @@ xtset cusip_n year
 
 
 
-///	TREATMENT IS THE CHANGE IN CSRHUB OVERALL RATING EXCEEDING THE GLOBAL
-*	STANDARD DEVIATION OF CSRHUB OVERALL RATING
-
+///	TREATMENT IS CHANGE IN CSRHUB OVERALL RATING EXCEEDING THE GLOBAL STANDARD DEVIATION OF CSRHUB OVERALL RATING
 ***	Binary thresholds with overlap between groups using global within-firm over_rtg standard deviation
 foreach threshold in 4 3 2 {
 	qui xtset
@@ -505,11 +503,31 @@ foreach threshold in 3 2 {
 	replace trt`threshold'_only_sdg = 0 if trt`y'_sdg == 1
 }
 
+***	Continuous treatment variable
+xtsum over_rtg
+gen sdg = `r(sd_w)'
+label var sdg "Global within-firm standard deviation of over_rtg"
+
+xtset
+gen trt_cont_sdg = .
+foreach threshold in 0 1 2 3 4 5 6 7 {
+	by cusip_n: replace trt_cont_sdg = `threshold' if ((abs(over_rtg - l.over_rtg) >= `threshold'*sdg) & over_rtg!=. & over_rtg[_n-1]!=. & year-year[_n-1]==1)
+}
+label var trt_cont_sdg "Continuous treatment=over_rtg standard deviations from global std dev"
+
+***	Continuous treatment variable with direction of change
+xtset
+gen trt_cont_sdg_dir = .
+foreach threshold in 0 1 2 3 4 5 6 7 {
+	replace trt_cont_sdg_dir = trt_cont_sdg if trt_cont_sdg == `threshold'
+	by cusip_n: replace trt_cont_sdg_dir = trt_cont_sdg_dir * -1 if trt_cont_sdg == `threshold' & (over_rtg - l.over_rtg) < 0
+}
+label var trt_cont_sdg "Continuous treatment=over_rtg standard deviations from global std dev"
 
 
-///	TREATMENT IS THE CHANGE IN CSRHUB OVERALL RATING EXCEEDING EACH FIRM'S
-*	STANDARD DEVIATION OF CSRHUB OVERALL RATING
 
+
+///	TREATMENT IS THE CHANGE IN CSRHUB OVERALL RATING EXCEEDING EACH FIRM'S STANDARD DEVIATION OF CSRHUB OVERALL RATING
 ***	Binary thresholds with OVERLAP between groups using firm-specific within-firm over_rtg standard deviation
 by cusip_n: egen sdw = sd(over_rtg)
 label var sdw "Within-firm standard deviation of over_rtg for each cusip_n"
@@ -568,31 +586,29 @@ foreach threshold in 3 2 {
 }
 
 
-///	CONTINUOUS TREATMENT VARIABLES
-***	Global within-firm standard deviation
-xtsum over_rtg
-gen sdg = `r(sd_w)'
-label var sdg "Global within-firm standard deviation of over_rtg"
-
-drop trt_cont_sdg
-
-xtset
-gen trt_cont_sdg = .
-foreach threshold in 1 2 3 4 5 6 7 {
-	by cusip_n: replace trt_cont_sdg = `threshold' if ((abs(over_rtg - l.over_rtg) >= `threshold'*sdg) & over_rtg!=. & over_rtg[_n-1]!=. & year-year[_n-1]==1)
-}
-label var trt_cont_sdg "Continuous treatment=standard deviations of over_rtg from global over_rtg sd"
-
-***	Firm-specific within-firm standard deviation
+***	Continuous treatment variable
 xtset
 by cusip_n: gen yoy = abs(over_rtg - l.over_rtg)
 
-drop trt_cont_sdw
-
 gen trt_cont_sdw = .
-foreach threshold in 1 2 3 4 5 6 7 {
+foreach threshold in 0 1 2 3 4 5 6 7 {
 	replace trt_cont_sdw = `threshold' if yoy >= sdw * `threshold' & yoy!=. & sdw!=0
 }
+label var trt_cont_sdw "Continuous treatment=over_rtg standard deviations from firm std dev"
+
+drop yoy
+
+***	Continuous treatment variable with direction of change
+xtset
+gen trt_cont_sdw_dir = .
+foreach threshold in 0 1 2 3 4 5 6 7 {
+	replace trt_cont_sdw_dir = trt_cont_sdw if trt_cont_sdw == `threshold'
+	by cusip_n: replace trt_cont_sdw_dir = trt_cont_sdw_dir * -1 if trt_cont_sdw == `threshold' & (over_rtg - l.over_rtg) < 0
+}
+label var trt_cont_sdw "Continuous treatment=over_rtg standard deviations from firm std dev"
+
+
+
 
 
 ///	SAVE
