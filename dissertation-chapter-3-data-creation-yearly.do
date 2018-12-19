@@ -568,8 +568,31 @@ foreach threshold in 3 2 {
 }
 
 
+///	CONTINUOUS TREATMENT VARIABLES
+***	Global within-firm standard deviation
+xtsum over_rtg
+gen sdg = `r(sd_w)'
+label var sdg "Global within-firm standard deviation of over_rtg"
 
+drop trt_cont_sdg
 
+xtset
+gen trt_cont_sdg = .
+foreach threshold in 1 2 3 4 5 6 7 {
+	by cusip_n: replace trt_cont_sdg = `threshold' if ((abs(over_rtg - l.over_rtg) >= `threshold'*sdg) & over_rtg!=. & over_rtg[_n-1]!=. & year-year[_n-1]==1)
+}
+label var trt_cont_sdg "Continuous treatment=standard deviations of over_rtg from global over_rtg sd"
+
+***	Firm-specific within-firm standard deviation
+xtset
+by cusip_n: gen yoy = abs(over_rtg - l.over_rtg)
+
+drop trt_cont_sdw
+
+gen trt_cont_sdw = .
+foreach threshold in 1 2 3 4 5 6 7 {
+	replace trt_cont_sdw = `threshold' if yoy >= sdw * `threshold' & yoy!=. & sdw!=0
+}
 
 
 ///	SAVE
