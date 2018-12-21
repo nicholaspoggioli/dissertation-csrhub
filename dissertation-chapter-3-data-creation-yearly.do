@@ -652,13 +652,13 @@ save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
-***	Drop CSTAT variables
+///	DROP UNNEEDED COMPUSTAT VARIABLES
 
 * Duplicates
 drop sale /* same as revt	*/
 
 /* Many missing values
-acqmeth adrr bspr compst curuscn ltcm ogm stalt udpl acco acdo acodo acominc acoxar acqao acqcshi acqgdwl acqic acqintan acqinvt acqlntal acqniintc acqppe acqsc adpac aedi afudcc afudci amc amdc 
+drop acqmeth adrr bspr compst curuscn ltcm ogm stalt udpl acco acdo acodo acominc acoxar acqao acqcshi acqgdwl acqic acqintan acqinvt acqlntal acqniintc acqppe acqsc adpac aedi afudcc afudci amc amdc 
 drop drc
 drop dvrre
 drop nfsr 
@@ -669,27 +669,29 @@ drop urevub
 */
 
 
-/// GENERATE PROPENSITY SCORES PREDICTING TREATMENT AT BEGINNING OF CSRHUB DATA IN 2008
+/// GENERATE PROPENSITY SCORES PREDICTING TREATMENT IN EACH YEAR 2008 - 2017
 
 ***	Specify the model predicting treatment
-/*	COMPUSTAT
-	-	fyear
-	fyr 
-	curcd
-	at 
-	bkvlps 
-	ceq 
-	csho 
-	dltt 
-	drc 
-	drlt 
-	emp 
-	gp 
-	lcoxdr 
-	loxdr 
-	ni 
-	revt 
-	sale:	same as revt
+/*	Pr (treatment | X) = 
+
+fyear fyr bkvlps csho ap recch xacc aocidergl aocipen acominc aqc apdedate xad ///
+stkcpa am au rank auop auopic capx caps ch dv chech che ceql ceqt cshi csho ///
+cshtr_c cshtr_f cshfd cshpri cstke cstkcv ceq cshr cstk cibegni ipodate citotal ///
+dcpstk pnca cogs loc fic lct incorp dd2 dd3 dd4 dd5 drc drlt txdb dp optdr dvt ///
+ebitda ebit epspx fincf txr txt txpd ivch invt xopr pi rect naics sic
+*/
+
+
+
+
+	
+	
+	
+	
+	
+	
+	
+	
 */
 
 forvalues year = 1990/2018 {
