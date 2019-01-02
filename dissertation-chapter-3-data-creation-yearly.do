@@ -449,9 +449,113 @@ encode cusip, gen(cusip_n)
 xtset cusip_n year
 
 
+///	Binary +/- deviation from standard deviation
+
+***	Global standard deviation
+
+*	Generate global within-firm standard deviation of over_rtg
+qui xtset
+qui xtsum over_rtg
+gen sdg = `r(sd_w)'
+label var sdg "global within-firm standard deviation of over_rtg"
+replace sdg = . if over_rtg==.
+
+*	Generate year-on-year change in over_rtg
+gen over_rtg_yoy = over_rtg - l.over_rtg
+
+*	Generate treatment variables
+foreach threshold in 4 3 2 {
+	*	Treatment event
+	gen trt`threshold'_sdg_pos = over_rtg_yoy > (`threshold' * sdg) & over_rtg_yoy!=.
+	label var trt`threshold'_sdg_pos "Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdg and positive"
+	gen trt`threshold'_sdg_neg = over_rtg_yoy < (-`threshold' * sdg) & over_rtg_yoy!=.
+	label var trt`threshold'_sdg_neg "Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdg and negative"
+
+	*	Treatment year
+	by cusip_n: gen trt_yr_sdg_pos = year if trt`threshold'_sdg_pos==1
+	sort cusip_n trt_yr_sdg_pos
+	by cusip_n: replace trt_yr_sdg_pos = trt_yr_sdg_pos[_n-1] if _n!=1
+	replace trt_yr_sdg_pos = . if over_rtg==.
+
+	by cusip_n: gen trt_yr_sdg_neg = year if trt`threshold'_sdg_neg==1
+	sort cusip_n trt_yr_sdg_neg
+	by cusip_n: replace trt_yr_sdg_neg = trt_yr_sdg_neg[_n-1] if _n!=1
+	replace trt_yr_sdg_neg = . if over_rtg==.
+	
+	*	Post-treatment years
+	by cusip_n: gen post`threshold'_sdg_pos=(year>trt_yr_sdg_pos)
+	label var post`threshold'_sdg_pos ///
+		"Indicator =1 if post-treatment year for `threshold' global std dev treatment"
+	replace post`threshold'_sdg_pos=. if over_rtg==.
+	
+	by cusip_n: gen post`threshold'_sdg_neg=(year>trt_yr_sdg_neg)
+	label var post`threshold'_sdg_neg ///
+		"Indicator =1 if post-treatment year for `threshold' global std dev treatment"
+	replace post`threshold'_sdg_neg=. if over_rtg==.
+	
+	*	Treated firms
+	by cusip_n: egen trt`threshold'_sdg_pos_grp= max(post`threshold'_sdg_pos)
+	label var trt`threshold'_sdg_pos_grp ///
+		"Indicator = 1 if treatment group for `threshold' global std dev treated"
+	
+	by cusip_n: egen trt`threshold'_sdg_neg_grp= max(post`threshold'_sdg_neg)
+	label var trt`threshold'_sdg_neg_grp ///
+		"Indicator = 1 if treatment group for `threshold' global std dev treated"
+	
+	qui xtset
+	drop trt_yr_sdg_*
+}
 
 
+***	Firm-specific within-firm standard deviation
 
+*	Generate firm-specific within-firm over_rtg standard deviation
+by cusip_n: egen sdw = sd(over_rtg)
+label var sdw "Within-firm standard deviation of over_rtg for each cusip_n"
+replace sdw=. if over_rtg==.
+
+*	Generate treatment variables
+foreach threshold in 4 3 2 {
+	*	Treatment event
+	gen trt`threshold'_sdw_pos = over_rtg_yoy > (`threshold' * sdw) & over_rtg_yoy!=.
+	label var trt`threshold'_sdw_pos "Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdw and positive"
+	gen trt`threshold'_sdw_neg = over_rtg_yoy < (-`threshold' * sdw) & over_rtg_yoy!=.
+	label var trt`threshold'_sdw_neg "Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdw and negative"
+
+	*	Treatment year
+	by cusip_n: gen trt_yr_sdw_pos = year if trt`threshold'_sdw_pos==1
+	sort cusip_n trt_yr_sdw_pos
+	by cusip_n: replace trt_yr_sdw_pos = trt_yr_sdw_pos[_n-1] if _n!=1
+	replace trt_yr_sdw_pos = . if over_rtg==.
+
+	by cusip_n: gen trt_yr_sdw_neg = year if trt`threshold'_sdw_neg==1
+	sort cusip_n trt_yr_sdw_neg
+	by cusip_n: replace trt_yr_sdw_neg = trt_yr_sdw_neg[_n-1] if _n!=1
+	replace trt_yr_sdw_neg = . if over_rtg==.
+	
+	*	Post-treatment years
+	by cusip_n: gen post`threshold'_sdw_pos=(year>trt_yr_sdw_pos)
+	label var post`threshold'_sdw_pos ///
+		"Indicator =1 if post-treatment year for `threshold' std dev of sdw"
+	replace post`threshold'_sdw_pos=. if over_rtg==.
+	
+	by cusip_n: gen post`threshold'_sdw_neg=(year>trt_yr_sdw_neg)
+	label var post`threshold'_sdw_neg ///
+		"Indicator =1 if post-treatment year for `threshold' std dev of sdw"
+	replace post`threshold'_sdw_neg=. if over_rtg==.
+	
+	*	Treated firms
+	by cusip_n: egen trt`threshold'_sdw_pos_grp= max(post`threshold'_sdw_pos)
+	label var trt`threshold'_sdw_pos_grp ///
+		"Indicator = 1 if treatment group for `threshold' std dev of sdw"
+	
+	by cusip_n: egen trt`threshold'_sdw_neg_grp= max(post`threshold'_sdw_neg)
+	label var trt`threshold'_sdw_neg_grp ///
+		"Indicator = 1 if treatment group for `threshold' std dev of sdw"
+	
+	qui xtset
+	drop trt_yr_sdw_*
+}
 
 
 
