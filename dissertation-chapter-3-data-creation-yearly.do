@@ -506,6 +506,31 @@ foreach threshold in 4 3 2 {
 	drop trt_yr_sdg_*
 }
 
+/*	Remove overlap in treatment groups											/*	Still needs to be done */
+gen trt4_year_only_sdg = trt4_year_sdg
+label var trt4_year_only_sdg "Indicator =1 if year of ONLY 4 global std dev treatment"
+gen post4_only_sdg = post4_sdg
+label var post4_only_sdg "Indicator =1 if post-treatment year of ONLY 4 global std dev treatment"
+gen trt4_only_sdg = trt4_sdg
+label var trt4_only_sdg "Indicator = 1 if treatment group of ONLY 4 global std dev treated"
+
+foreach threshold in 3 2 {
+	local y = `threshold' + 1
+
+	gen trt`threshold'_year_only_sdg = trt`threshold'_year_sdg
+	label var trt`threshold'_year_only_sdg "Indicator =1 if year of ONLY `threshold' global std dev treatment"
+	gen post`threshold'_only_sdg = post`threshold'_sdg
+	label var post`threshold'_only_sdg "Indicator =1 if post-treatment year of ONLY `threshold' global std dev treatment"
+	gen trt`threshold'_only_sdg = trt`threshold'_sdg
+	label var trt`threshold'_only_sdg "Indicator = 1 if treatment group of ONLY `threshold' global std dev treated"
+	
+	replace trt`threshold'_year_only_sdg = 0 if trt`y'_year_sdg==1
+	replace post`threshold'_only_sdg = 0 if post`y'_sdg == 1
+	replace trt`threshold'_only_sdg = 0 if trt`y'_sdg == 1
+}
+*/
+
+
 
 ***	Firm-specific within-firm standard deviation
 
@@ -517,8 +542,10 @@ replace sdw=. if over_rtg==.
 *	Generate treatment variables
 foreach threshold in 4 3 2 {
 	*	Treatment event
-	gen trt`threshold'_sdw_pos = over_rtg_yoy > (`threshold' * sdw) & over_rtg_yoy!=.
-	label var trt`threshold'_sdw_pos "Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdw and positive"
+	gen trt`threshold'_sdw_pos = over_rtg_yoy > (`threshold' * sdw) & ///
+		over_rtg_yoy!=.
+	label var trt`threshold'_sdw_pos ///
+		"Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdw and positive"
 	gen trt`threshold'_sdw_neg = over_rtg_yoy < (-`threshold' * sdw) & over_rtg_yoy!=.
 	label var trt`threshold'_sdw_neg "Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdw and negative"
 
@@ -558,53 +585,7 @@ foreach threshold in 4 3 2 {
 }
 
 
-
-
-
-
-
-
-
-///	TREATMENT IS CHANGE IN CSRHUB OVERALL RATING EXCEEDING THE GLOBAL STANDARD 
-///	DEVIATION OF CSRHUB OVERALL RATING
-
-***	Binary thresholds with overlap between groups using global within-firm 
-***	over_rtg standard deviation
-foreach threshold in 4 3 2 {
-	qui xtset
-	qui xtsum over_rtg
-	
-	*Overlap
-	gen trt`threshold'_year_sdg = (abs(over_rtg_dm-l.over_rtg_dm) > ///
-		`threshold'*`r(sd_w)') & over_rtg_dm!=. & l.over_rtg_dm!=. & over_rtg!=.
-	label var trt`threshold'_year ///
-		"Indicator =1 if year of `threshold' global std dev treatment"
-	replace trt`threshold'_year_sdg=. if over_rtg==.
-
-	by cusip_n: gen trt_year_sdg = year if trt`threshold'_year_sdg==1
-	sort cusip_n trt_year_sdg
-	by cusip_n: replace trt_year_sdg = trt_year_sdg[_n-1] if _n!=1
-	replace trt_year_sdg = . if over_rtg==.
-	
-	qui xtset
-	
-	by cusip_n: gen post`threshold'_sdg=(year>trt_year_sdg)
-	label var post`threshold'_sdg ///
-		"Indicator =1 if post-treatment year for `threshold' global std dev treatment"
-	replace post`threshold'_sdg=. if over_rtg==.
-	
-	
-	by cusip_n: egen trt`threshold'_sdg= max(post`threshold'_sdg)
-	label var trt`threshold'_sdg ///
-		"Indicator = 1 if treatment group for `threshold' global std dev treated"
-*	replace trt`threshold'_sdg=. if over_rtg==.
-	
-	bysort cusip_n: egen sumtrt=sum(trt`threshold'_year_sdg)
-
-	drop trt_year sumtrt
-}	
-
-***	Binary thresholds without overlap between groups
+/*	Remove overlap in treatment groups											/*	Still needs to be done */
 gen trt4_year_only_sdg = trt4_year_sdg
 label var trt4_year_only_sdg "Indicator =1 if year of ONLY 4 global std dev treatment"
 gen post4_only_sdg = post4_sdg
@@ -626,27 +607,142 @@ foreach threshold in 3 2 {
 	replace post`threshold'_only_sdg = 0 if post`y'_sdg == 1
 	replace trt`threshold'_only_sdg = 0 if trt`y'_sdg == 1
 }
+*/
 
-***	Continuous treatment variable
-xtsum over_rtg
-gen sdg = `r(sd_w)'
-label var sdg "Global within-firm standard deviation of over_rtg"
+///	Continuous measure number of standard deviations
 
+***	Combined
 xtset
-gen trt_cont_sdg = .
-foreach threshold in 0 1 2 3 4 5 6 7 {
-	by cusip_n: replace trt_cont_sdg = `threshold' if ((abs(over_rtg - l.over_rtg) >= `threshold'*sdg) & over_rtg!=. & over_rtg[_n-1]!=. & year-year[_n-1]==1)
-}
-label var trt_cont_sdg "Continuous treatment=over_rtg standard deviations from global std dev"
+gen trt_cont_sdg = over_rtg_yoy / sdg
+label var trt_cont_sdg "Continuous treatment = over_rtg_yoy / sdg"
 
-***	Continuous treatment variable with direction of change
+gen trt_cont_sdw = over_rtg_yoy / sdw
+label var trt_cont_sdw "Continuous treatment = over_rtg_yoy / sdw"
+
+***	Positive and negative
+
+*	sdg
+gen trt_cont_sdg_pos = trt_cont_sdg
+replace trt_cont_sdg_pos = . if trt_cont_sdg_pos < 0
+
+gen trt_cont_sdg_neg = trt_cont_sdg
+replace trt_cont_sdg_neg = . if trt_cont_sdg_neg > 0
+
+*	sdw
+gen trt_cont_sdw_pos = trt_cont_sdw
+replace trt_cont_sdw_pos = . if trt_cont_sdw_pos < 0
+
+gen trt_cont_sdw_neg = trt_cont_sdw
+replace trt_cont_sdw_neg = . if trt_cont_sdw_neg > 0
+
+
+
+
+
+
+
+///	Categorical measure standard deviations rounded to integer
+
+***	Global standard deviation
 xtset
-gen trt_cont_sdg_dir = .
+gen trt_cat_sdg_pos = .
+gen trt_cat_sdg_neg = .
+
 foreach threshold in 0 1 2 3 4 5 6 7 {
-	replace trt_cont_sdg_dir = trt_cont_sdg if trt_cont_sdg == `threshold'
-	by cusip_n: replace trt_cont_sdg_dir = trt_cont_sdg_dir * -1 if trt_cont_sdg == `threshold' & (over_rtg - l.over_rtg) < 0
+	replace trt_cat_sdg_pos = `threshold' if over_rtg_yoy >= `threshold'*sdg
+	replace trt_cat_sdg_pos = . if over_rtg_yoy == .
+	replace trt_cat_sdg_neg = (-1*`threshold') if over_rtg_yoy <= `threshold'*(-1*sdg)
+	replace trt_cat_sdg_neg = . if over_rtg_yoy == .
 }
-label var trt_cont_sdg "Continuous treatment=over_rtg standard deviations from global std dev"
+label var trt_cat_sdg_pos "Categorical treatment = integer of over_rtg_yoy positive std dev from sdg"
+label var trt_cat_sdg_neg "Categorical treatment = integer of over_rtg_yoy negative std dev from sdg"
+
+***	These variables should be mutually exclusive except where year-on-year 
+***		over_rtg change is zero
+tab trt_cat_sdg_pos trt_cat_sdg_neg
+/*
+           | trt_cat_sd
+trt_cat_sd |   g_neg
+     g_pos |         0 |     Total
+-----------+-----------+----------
+         0 |       514 |       514 
+-----------+-----------+----------
+     Total |       514 |       514
+*/
+sum over_rtg_yoy if trt_cat_sdg_pos==0 & trt_cat_sdg_neg==0
+/*
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+over_rtg_yoy |        514           0           0          0          0
+*/
+
+
+***	Firm-specific standard deviation
+xtset
+gen trt_cat_sdw_pos = .
+gen trt_cat_sdw_neg = .
+
+foreach threshold in 0 1 2 3 4 5 6 7 {
+	replace trt_cat_sdw_pos = `threshold' if over_rtg_yoy >= `threshold'*sdw
+	replace trt_cat_sdw_pos = . if over_rtg_yoy == .
+	replace trt_cat_sdw_neg = (-1*`threshold') if over_rtg_yoy <= `threshold'*(-1*sdw)
+	replace trt_cat_sdw_neg = . if over_rtg_yoy == .
+}
+label var trt_cat_sdw_pos "Categorical treatment = integer of over_rtg_yoy positive std dev from sdw"
+label var trt_cat_sdw_neg "Categorical treatment = integer of over_rtg_yoy negative std dev from sdw"
+
+***	These variables should be mutually exclusive except where year-on-year 
+***		over_rtg change is zero
+tab trt_cat_sdw_pos trt_cat_sdw_neg
+/*
+
+Categorica |
+         l |
+ treatment |
+ = integer |
+        of |
+over_rtg_y | Categorical treatment
+        oy |     = integer of
+  positive | over_rtg_yoy negative
+   std dev |   std dev from sdw
+  from sdw |        -7          0 |     Total
+-----------+----------------------+----------
+         0 |         0        393 |       393 
+         7 |       121          0 |       121 
+-----------+----------------------+----------
+     Total |       121        393 |       514 
+
+*/
+sum over_rtg_yoy if trt_cat_sdw_pos==7 & trt_cat_sdw_neg==-7
+/*
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+         sdw |        121           0           0          0          0
+*/
+
+*	No values of the trt_cat_sdw variables are greater than 3 or less than -3
+replace trt_cat_sdw_pos = . if trt_cat_sdw_pos > 3
+replace trt_cat_sdw_neg = . if trt_cat_sdw_neg < -3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
