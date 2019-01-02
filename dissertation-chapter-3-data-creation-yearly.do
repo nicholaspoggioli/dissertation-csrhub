@@ -437,9 +437,12 @@ save data/csrhub-kld-cstat-year-level.dta, replace
 
 
 
-***===========================***
-*	CREATE TREATMENT VARIABLES	*
-***===========================***
+/***======================================================***
+*	CREATE TREATMENT VARIABLES
+*		- Binary +/- deviation from standard deviation
+*		- Continuous measure number of standard deviations
+*		- Categorical measure standard deviations rounded to integer
+***======================================================***/
 use data/csrhub-kld-cstat-year-level.dta, clear
 
 encode cusip, gen(cusip_n)
@@ -447,16 +450,31 @@ xtset cusip_n year
 
 
 
-///	TREATMENT IS CHANGE IN CSRHUB OVERALL RATING EXCEEDING THE GLOBAL STANDARD DEVIATION OF CSRHUB OVERALL RATING
-***	Binary thresholds with overlap between groups using global within-firm over_rtg standard deviation
+
+
+
+
+
+
+
+
+
+
+
+///	TREATMENT IS CHANGE IN CSRHUB OVERALL RATING EXCEEDING THE GLOBAL STANDARD 
+///	DEVIATION OF CSRHUB OVERALL RATING
+
+***	Binary thresholds with overlap between groups using global within-firm 
+***	over_rtg standard deviation
 foreach threshold in 4 3 2 {
 	qui xtset
 	qui xtsum over_rtg
 	
 	*Overlap
-	gen trt`threshold'_year_sdg = (abs(over_rtg_dm-l.over_rtg_dm) > `threshold'*`r(sd_w)') & ///
-		over_rtg_dm!=. & l.over_rtg_dm!=. & over_rtg!=.
-	label var trt`threshold'_year "Indicator =1 if year of `threshold' global std dev treatment"
+	gen trt`threshold'_year_sdg = (abs(over_rtg_dm-l.over_rtg_dm) > ///
+		`threshold'*`r(sd_w)') & over_rtg_dm!=. & l.over_rtg_dm!=. & over_rtg!=.
+	label var trt`threshold'_year ///
+		"Indicator =1 if year of `threshold' global std dev treatment"
 	replace trt`threshold'_year_sdg=. if over_rtg==.
 
 	by cusip_n: gen trt_year_sdg = year if trt`threshold'_year_sdg==1
@@ -467,12 +485,14 @@ foreach threshold in 4 3 2 {
 	qui xtset
 	
 	by cusip_n: gen post`threshold'_sdg=(year>trt_year_sdg)
-	label var post`threshold'_sdg "Indicator =1 if post-treatment year for `threshold' global std dev treatment"
+	label var post`threshold'_sdg ///
+		"Indicator =1 if post-treatment year for `threshold' global std dev treatment"
 	replace post`threshold'_sdg=. if over_rtg==.
 	
 	
 	by cusip_n: egen trt`threshold'_sdg= max(post`threshold'_sdg)
-	label var trt`threshold'_sdg "Indicator = 1 if treatment group for `threshold' global std dev treated"
+	label var trt`threshold'_sdg ///
+		"Indicator = 1 if treatment group for `threshold' global std dev treated"
 *	replace trt`threshold'_sdg=. if over_rtg==.
 	
 	bysort cusip_n: egen sumtrt=sum(trt`threshold'_year_sdg)
@@ -528,6 +548,7 @@ label var trt_cont_sdg "Continuous treatment=over_rtg standard deviations from g
 
 
 ///	TREATMENT IS THE CHANGE IN CSRHUB OVERALL RATING EXCEEDING EACH FIRM'S STANDARD DEVIATION OF CSRHUB OVERALL RATING
+
 ***	Binary thresholds with OVERLAP between groups using firm-specific within-firm over_rtg standard deviation
 by cusip_n: egen sdw = sd(over_rtg)
 label var sdw "Within-firm standard deviation of over_rtg for each cusip_n"
@@ -597,6 +618,7 @@ foreach threshold in 0 1 2 3 4 5 6 7 {
 label var trt_cont_sdw "Continuous treatment=over_rtg standard deviations from firm std dev"
 
 drop yoy
+
 
 ***	Continuous treatment variable with direction of change
 xtset
