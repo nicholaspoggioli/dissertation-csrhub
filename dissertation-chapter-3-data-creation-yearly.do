@@ -636,11 +636,6 @@ gen trt_cont_sdw_neg = trt_cont_sdw
 replace trt_cont_sdw_neg = . if trt_cont_sdw_neg > 0
 
 
-
-
-
-
-
 ///	Categorical measure standard deviations rounded to integer
 
 ***	Global standard deviation
@@ -728,6 +723,46 @@ replace trt_cat_sdw_neg = . if trt_cat_sdw_neg < -3
 
 
 
+
+
+
+/***======================================================***
+*	CREATE MATCHED CONTROL GROUPS
+*		- Propensity score matching on propensity for each treatment variable
+*			each year 2011 - 2015
+*		- Following approach of Babar & Burtch 
+*			https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3042805
+***======================================================***/
+
+
+///	Identify list of firms that are treated
+
+
+
+///	Construct the matrix of matching variables for potential treated-control pair		and control firms
+
+
+
+///	Run the matching algorithms
+
+***	Coarsened exact matching
+
+*	Lagged outcomes
+
+*	Lagged changes in outcomes
+
+*	Lagged control variables
+
+
+***	k-Means clustering
+
+
+***	Parallel trends matching
+
+
+
+
+///	Identify best matches from results of the three algorithms
 
 
 
