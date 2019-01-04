@@ -471,6 +471,9 @@ foreach threshold in 4 3 2 {
 	gen trt`threshold'_sdg_neg = over_rtg_yoy < (-`threshold' * sdg) & over_rtg_yoy!=.
 	label var trt`threshold'_sdg_neg "Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdg and negative"
 
+	replace trt`threshold'_sdg_pos=. if over_rtg_yoy==.
+	replace trt`threshold'_sdg_neg=. if over_rtg_yoy==.
+	
 	*	Treatment year
 	by cusip_n: gen trt_yr_sdg_pos = year if trt`threshold'_sdg_pos==1
 	sort cusip_n trt_yr_sdg_pos
@@ -720,6 +723,9 @@ replace trt_cat_sdw_pos = . if trt_cat_sdw_pos > 3
 replace trt_cat_sdw_neg = . if trt_cat_sdw_neg < -3
 
 
+///	Save
+compress
+save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 
 
 
@@ -732,26 +738,36 @@ replace trt_cat_sdw_neg = . if trt_cat_sdw_neg < -3
 *			each year 2011 - 2015
 *		- Following approach of Babar & Burtch 
 *			https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3042805
+
+	PLAN (BY YEAR)
+		-	Identify firms treated in that year
+		-	For each treated firm, identify firms that have not been treated
+				and do not become treated for ___ years
+		-	Use matching algorithms to match non-treated firms to treated firms
+		-	Decide best matches and mark as linked to treated firm in that year
+
 ***======================================================***/
-
-
-///	Identify list of firms that are treated
-
-
-
-///	Construct the matrix of matching variables for potential treated-control pair		and control firms
+use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
 
 
-///	Run the matching algorithms
+///	Identify treated firms
+keep if year == 2011
 
-***	Coarsened exact matching
+keep if trt2_sdg_pos==1
 
+
+///	Construct matrix of matching variables
 *	Lagged outcomes
 
 *	Lagged changes in outcomes
 
 *	Lagged control variables
+
+
+///	Run matching algorithms using the matrix of matching variables
+
+***	Coarsened exact matching
 
 
 ***	k-Means clustering
