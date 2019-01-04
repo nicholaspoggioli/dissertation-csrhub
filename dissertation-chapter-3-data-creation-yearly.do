@@ -749,46 +749,48 @@ save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 ***======================================================***/
 
 ///	BINARY TREATMENT VARIABLES
-local treatvars_binary trt4_sdg_pos trt4_sdg_neg trt3_sdg_pos trt3_sdg_neg ///
+local treatvars_bin trt4_sdg_pos trt4_sdg_neg trt3_sdg_pos trt3_sdg_neg ///
 	trt2_sdg_pos trt2_sdg_neg trt4_sdw_pos trt4_sdw_neg trt3_sdw_pos ///
 	trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg
 
-foreach variable in varlist $treatvars
-forvalues year = 2011/2015 {
-	display(`year')
-	
-	use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
-	///	Identify treated firms
-	drop if trt2_sdg_pos==.
-	keep if year == `year'
-	keep if trt2_sdg_pos==1
-	qui compress
-	save data/treated_trt2_sdg_pos_`year'.dta, replace
+foreach variable of local treatvars_bin {
+	forvalues year = 2011/2015 {
+		display("`variable'")
+		display(`year')
+		
+		use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
-	///	Identify potential control firms
-	/**	Criteria
-		-	Untreated in that year
-		-	Remain untreated for 3 years											/*	ASSUMPTION	*/
-	*/
-	use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+		///	Identify treated firms
+		drop if `variable'==.
+		keep if year == `year'
+		keep if `variable'==1
+		qui compress
+		save data/treated_`variable'_`year'.dta, replace
 
-	drop if trt2_sdg_pos==.
-	drop if year < `year'
-	drop if year > (`year' + 3)
+		///	Identify potential control firms
+		/**	Criteria
+			-	Untreated in that year
+			-	Remain untreated for 3 years											/*	ASSUMPTION	*/
+		*/
+		use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
-	by cusip_n: egen ever_treated=max(trt2_sdg_pos)
-	drop if ever_treated==1
-	drop ever_treated
+		drop if `variable'==.
+		drop if year < `year'
+		drop if year > (`year' + 3)
 
-	///	Combine potential control and treated
-	drop cusip_n
-	label drop _all
-	append using data/treated_trt2_sdg_pos_`year'.dta
-	qui compress
-	save data/matched-naive-trt2_sdg_pos_`year'.dta, replace
+		by cusip_n: egen ever_treated=max(`variable')
+		drop if ever_treated==1
+		drop ever_treated
+
+		///	Combine potential control and treated
+		drop cusip_n
+		label drop _all
+		append using data/treated_`variable'_`year'.dta
+		qui compress
+		save data/matched-naive-`variable'_`year'.dta, replace
+	}
 }
-
 
 ///	CATEGORICAL TREATMENT VARIABLES
 local treatvars_cat trt_cat_sdg_pos trt_cat_sdg_neg trt_cat_sdw_pos trt_cat_sdw_neg
