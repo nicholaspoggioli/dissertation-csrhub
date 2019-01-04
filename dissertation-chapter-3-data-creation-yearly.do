@@ -471,6 +471,9 @@ foreach threshold in 4 3 2 {
 	gen trt`threshold'_sdg_neg = over_rtg_yoy < (-`threshold' * sdg) & over_rtg_yoy!=.
 	label var trt`threshold'_sdg_neg "Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdg and negative"
 
+	replace trt`threshold'_sdg_pos=. if over_rtg_yoy==.
+	replace trt`threshold'_sdg_neg=. if over_rtg_yoy==.
+	
 	*	Treatment year
 	by cusip_n: gen trt_yr_sdg_pos = year if trt`threshold'_sdg_pos==1
 	sort cusip_n trt_yr_sdg_pos
@@ -720,6 +723,9 @@ replace trt_cat_sdw_pos = . if trt_cat_sdw_pos > 3
 replace trt_cat_sdw_neg = . if trt_cat_sdw_neg < -3
 
 
+///	Save
+compress
+save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 
 
 
@@ -732,26 +738,82 @@ replace trt_cat_sdw_neg = . if trt_cat_sdw_neg < -3
 *			each year 2011 - 2015
 *		- Following approach of Babar & Burtch 
 *			https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3042805
+
+	PLAN (BY YEAR)
+		-	Identify firms treated in that year
+		-	For each treated firm, identify firms that have not been treated
+				and do not become treated for ___ years
+		-	Use matching algorithms to match non-treated firms to treated firms
+		-	Decide best matches and mark as linked to treated firm in that year
+
 ***======================================================***/
 
+///	BINARY TREATMENT VARIABLES
+local treatvars_binary trt4_sdg_pos trt4_sdg_neg trt3_sdg_pos trt3_sdg_neg ///
+	trt2_sdg_pos trt2_sdg_neg trt4_sdw_pos trt4_sdw_neg trt3_sdw_pos ///
+	trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg
 
-///	Identify list of firms that are treated
+foreach variable in varlist $treatvars
+forvalues year = 2011/2015 {
+	display(`year')
+	
+	use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
+	///	Identify treated firms
+	drop if trt2_sdg_pos==.
+	keep if year == `year'
+	keep if trt2_sdg_pos==1
+	qui compress
+	save data/treated_trt2_sdg_pos_`year'.dta, replace
+
+	///	Identify potential control firms
+	/**	Criteria
+		-	Untreated in that year
+		-	Remain untreated for 3 years											/*	ASSUMPTION	*/
+	*/
+	use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
+	drop if trt2_sdg_pos==.
+	drop if year < `year'
+	drop if year > (`year' + 3)
+
+	by cusip_n: egen ever_treated=max(trt2_sdg_pos)
+	drop if ever_treated==1
+	drop ever_treated
+
+	///	Combine potential control and treated
+	drop cusip_n
+	label drop _all
+	append using data/treated_trt2_sdg_pos_`year'.dta
+	qui compress
+	save data/matched-naive-trt2_sdg_pos_`year'.dta, replace
+}
+
+
+///	CATEGORICAL TREATMENT VARIABLES
+local treatvars_cat trt_cat_sdg_pos trt_cat_sdg_neg trt_cat_sdw_pos trt_cat_sdw_neg
+
+///	CONTINUOUS TREATMENT VARIABLES
+local treatvars_cont trt_cont_sdg trt_cont_sdw trt_cont_sdg_pos trt_cont_sdg_neg trt_cont_sdw_pos trt_cont_sdw_neg
 
 
 
-///	Construct the matrix of matching variables for potential treated-control pair		and control firms
 
 
 
-///	Run the matching algorithms
 
-***	Coarsened exact matching
 
+///	Construct matrix of matching variables
 *	Lagged outcomes
 
 *	Lagged changes in outcomes
 
 *	Lagged control variables
+
+
+///	Run matching algorithms using the matrix of matching variables
+
+***	Coarsened exact matching
 
 
 ***	k-Means clustering
