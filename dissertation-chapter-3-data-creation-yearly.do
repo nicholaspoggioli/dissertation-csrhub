@@ -627,17 +627,20 @@ label var trt_cont_sdw "Continuous treatment = over_rtg_yoy / sdw"
 *	sdg
 gen trt_cont_sdg_pos = trt_cont_sdg
 replace trt_cont_sdg_pos = . if trt_cont_sdg_pos < 0
+label var trt_cont_sdg_pos "Continuous value of trt_cont_sdg if trt_cont_sdg >= 0"
 
 gen trt_cont_sdg_neg = trt_cont_sdg
 replace trt_cont_sdg_neg = . if trt_cont_sdg_neg > 0
+label var trt_cont_sdg_pos "Continuous value of trt_cont_sdg if trt_cont_sdg <= 0"
 
 *	sdw
 gen trt_cont_sdw_pos = trt_cont_sdw
 replace trt_cont_sdw_pos = . if trt_cont_sdw_pos < 0
+label var trt_cont_sdg_pos "Continuous value of trt_cont_sdw if trt_cont_sdw >= 0"
 
 gen trt_cont_sdw_neg = trt_cont_sdw
 replace trt_cont_sdw_neg = . if trt_cont_sdw_neg > 0
-
+label var trt_cont_sdg_pos "Continuous value of trt_cont_sdw if trt_cont_sdw <= 0"
 
 ///	Categorical measure standard deviations rounded to integer
 
@@ -752,6 +755,7 @@ use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
 
 ///	BINARY TREATMENT VARIABLES
+***	Identify firms untreated for 3 years as potential controls					/*	ASSUMPTION OF 3 YEARS	*/
 local treatvars_bin trt4_sdg_pos trt4_sdg_neg trt3_sdg_pos trt3_sdg_neg ///
 	trt2_sdg_pos trt2_sdg_neg trt4_sdw_pos trt4_sdw_neg trt3_sdw_pos ///
 	trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg
@@ -774,13 +778,13 @@ foreach variable of local treatvars_bin {
 		///	Identify potential control firms
 		/**	Criteria
 			-	Untreated in that year
-			-	Remain untreated for 3 years											/*	ASSUMPTION	*/
+			-	Remain untreated for 3 years									/*	ASSUMPTION	*/
 		*/
 		use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
 		drop if `variable'==.
 		drop if year < `year'
-		drop if year > (`year' + 3)
+		drop if year > (`year' + 3)												/*	IMPLEMENTATION OF 3 YEAR ASSUMPTION	*/
 
 		by cusip_n: egen ever_treated=max(`variable')
 		drop if ever_treated==1
@@ -794,6 +798,30 @@ foreach variable of local treatvars_bin {
 		save data/matched-naive-`variable'_`year'.dta, replace
 	}
 }
+
+***	Coarsened exact matching
+
+imbalance prch_f, treatment(treated)
+
+
+
+*	Lagged outcome of revenue
+
+
+
+*	Lagged change in outcome
+
+
+*	Control variables
+
+
+
+
+
+
+
+
+
 
 ///	CATEGORICAL TREATMENT VARIABLES
 local treatvars_cat trt_cat_sdg_pos trt_cat_sdg_neg trt_cat_sdw_pos trt_cat_sdw_neg
