@@ -747,6 +747,9 @@ save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 		-	Decide best matches and mark as linked to treated firm in that year
 
 ***======================================================***/
+///	LOAD DATA
+use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
 
 ///	BINARY TREATMENT VARIABLES
 local treatvars_bin trt4_sdg_pos trt4_sdg_neg trt3_sdg_pos trt3_sdg_neg ///
@@ -806,15 +809,29 @@ local treatvars_cont trt_cont_sdg trt_cont_sdw trt_cont_sdg_pos trt_cont_sdg_neg
 
 
 ///	Construct matrix of matching variables
-*	Lagged outcomes
+***	Lagged outcomes
 
-*	Lagged changes in outcomes
 
-*	Lagged control variables
+***	Lagged changes in outcomes
+
+
+***	Lagged control variables
+* Duplicates
+drop sale /* same as revt	*/
+
+/* Many missing values
+drop acqmeth adrr bspr compst curuscn ltcm ogm stalt udpl acco acdo acodo acominc acoxar acqao acqcshi acqgdwl acqic acqintan acqinvt acqlntal acqniintc acqppe acqsc adpac aedi afudcc afudci amc amdc 
+drop drc
+drop dvrre
+drop nfsr 
+drop ris 
+drop unnp 
+drop unnpl 
+drop urevub
+*/
 
 
 ///	Run matching algorithms using the matrix of matching variables
-
 ***	Coarsened exact matching
 
 
@@ -824,6 +841,26 @@ local treatvars_cont trt_cont_sdg trt_cont_sdw trt_cont_sdg_pos trt_cont_sdg_neg
 ***	Parallel trends matching
 
 
+*** Propensity score matching
+
+*	Specify the model predicting treatment
+/*	Pr (treatment | X) = 
+
+fyear fyr bkvlps csho ap recch xacc aocidergl aocipen acominc aqc apdedate xad ///
+stkcpa am au rank auop auopic capx caps ch dv chech che ceql ceqt cshi csho ///
+cshtr_c cshtr_f cshfd cshpri cstke cstkcv ceq cshr cstk cibegni ipodate citotal ///
+dcpstk pnca cogs loc fic lct incorp dd2 dd3 dd4 dd5 drc drlt txdb dp optdr dvt ///
+ebitda ebit epspx fincf txr txt txpd ivch invt xopr pi rect naics sic
+*/
+
+*	Generate propensity for treatment in each year
+forvalues year = 1990/2018 {
+	foreach threshold in 4 3 2 {
+		display("threshold: `threshold' in year `year'")
+		capt n probit trt`threshold'_sdg emp at csho if year==`year'
+		capt n predict ps`threshold'_`year'_sdg if e(sample), pr
+	}
+}
 
 
 ///	Identify best matches from results of the three algorithms
@@ -877,68 +914,12 @@ save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 
 
 
-/***===============================================================**
-*	MATCHING STRATEGY												*
-*																	*
-*	1) Specify the model determining treatment status				*
-*	2) Use the model to predict which firms will be treated			*
-*	3) Match on the predicted likelihood of being treated			*
-*	4) Compare outcomes across matched treated and control units	*
-*																	*
-***==============================================================***/
-
-///	LOAD DATA
-use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
-
-///	DROP UNNEEDED COMPUSTAT VARIABLES
-
-* Duplicates
-drop sale /* same as revt	*/
-
-/* Many missing values
-drop acqmeth adrr bspr compst curuscn ltcm ogm stalt udpl acco acdo acodo acominc acoxar acqao acqcshi acqgdwl acqic acqintan acqinvt acqlntal acqniintc acqppe acqsc adpac aedi afudcc afudci amc amdc 
-drop drc
-drop dvrre
-drop nfsr 
-drop ris 
-drop unnp 
-drop unnpl 
-drop urevub
-*/
-
-
-/// GENERATE PROPENSITY SCORES PREDICTING TREATMENT IN EACH YEAR 2008 - 2017
-
-***	Specify the model predicting treatment
-/*	Pr (treatment | X) = 
-
-fyear fyr bkvlps csho ap recch xacc aocidergl aocipen acominc aqc apdedate xad ///
-stkcpa am au rank auop auopic capx caps ch dv chech che ceql ceqt cshi csho ///
-cshtr_c cshtr_f cshfd cshpri cstke cstkcv ceq cshr cstk cibegni ipodate citotal ///
-dcpstk pnca cogs loc fic lct incorp dd2 dd3 dd4 dd5 drc drlt txdb dp optdr dvt ///
-ebitda ebit epspx fincf txr txt txpd ivch invt xopr pi rect naics sic
-*/
 
 
 
 
-	
-	
-	
-	
-	
-	
-	
-	
-*/
 
-forvalues year = 1990/2018 {
-	foreach threshold in 4 3 2 {
-		display("threshold: `threshold' in year `year'")
-		capt n probit trt`threshold'_sdg emp at csho if year==`year'
-		capt n predict ps`threshold'_`year'_sdg if e(sample), pr
-	}
-}
+
 
 
 
