@@ -728,7 +728,19 @@ replace trt_cat_sdw_neg = . if trt_cat_sdw_neg < -3
 
 ///	Save
 compress
+drop cusip_n
+label drop _all
 save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -756,6 +768,68 @@ use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
 ///	BINARY TREATMENT VARIABLES
 ***	Identify firms untreated for 3 years as potential controls					/*	ASSUMPTION OF 3 YEARS	*/
+
+*	Mark firms treated in 2011
+gen treated_2011 = (year==2011 & trt2_sdg_pos==1)
+bysort cusip: egen ever_treated = max(treated_2011)
+keep if ever_treated==1
+drop treated_2011 ever_treated
+
+
+gen trt2_sdg_pos_treated_2011=1
+label var trt2_sdg_pos_treated_2011 "Indicator=1 if treated for trt2_sdg_pos in 2011"
+tempfile d1
+save `d1'
+
+*	For trt2_sdg_pos in 2011
+use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+drop if trt2_sdg_pos == .
+
+gen window = (year >= 2011-3) & (year <= 2011+3)
+gen ineligible = (window==1 & trt2_sdg_pos==1)
+bysort cusip: egen out=max(ineligible)
+drop if out==1																	/*	IMPLEMENTATION OF 3 YEAR ASSUMPTION	*/
+drop window ineligible out
+gen trt2_sdg_pos_control_2011=1
+label var trt2_sdg_pos_control_2011 "Indicator = 1 if potential control firm for trt2_sdg_pos in 2011"
+
+append using `d1'
+
+gen trt2_sdg_pos_2011=(trt2_sdg_pos_treated_2011==1)
+label var trt2_sdg_pos_2011 "Indicator for trt2_sdg_pos treatment(1) & control(0) firms in 2011"
+
+drop trt2_sdg_pos_control_2011 trt2_sdg_pos_treated_2011
+
+
+*	Propensity score matching on just firms treated in 2011
+keep if year == 2011
+
+reg revt trt2_sdg_pos
+
+local predictors net_kld_str net_kld_con
+teffects psmatch (revt) (trt2_sdg_pos `predictors')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+***	Loop code
+
+
 local treatvars_bin trt4_sdg_pos trt4_sdg_neg trt3_sdg_pos trt3_sdg_neg ///
 	trt2_sdg_pos trt2_sdg_neg trt4_sdw_pos trt4_sdw_neg trt3_sdw_pos ///
 	trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg
