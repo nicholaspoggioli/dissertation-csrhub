@@ -737,6 +737,36 @@ save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 
 
 
+/***====================================
+	CHECK SOME PRE/POST TRENDS IN REVENUE
+*/
+use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
+gen trtyr = year if trt2_sdg_pos==1
+
+bysort cusip: egen trtyr2=max(trtyr)
+
+gen t2011=(trtyr2==2011)
+replace t2011=. if trtyr2!=2011 & trtyr2!=.
+drop if t2011==.
+
+gen p = year - 2011
+
+
+egen revtmean = mean(revt), by(year trt2_sdg_pos_grp)
+
+tw line revtmean p if trt2_sdg_pos_grp==1, sort || line revtmean p if trt2_sdg_pos_grp==0, sort
+
+
+
+
+
+
+
+
+
+
+
 
 
 
