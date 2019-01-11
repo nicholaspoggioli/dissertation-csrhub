@@ -627,17 +627,20 @@ label var trt_cont_sdw "Continuous treatment = over_rtg_yoy / sdw"
 *	sdg
 gen trt_cont_sdg_pos = trt_cont_sdg
 replace trt_cont_sdg_pos = . if trt_cont_sdg_pos < 0
+label var trt_cont_sdg_pos "Continuous value of trt_cont_sdg if trt_cont_sdg >= 0"
 
 gen trt_cont_sdg_neg = trt_cont_sdg
 replace trt_cont_sdg_neg = . if trt_cont_sdg_neg > 0
+label var trt_cont_sdg_pos "Continuous value of trt_cont_sdg if trt_cont_sdg <= 0"
 
 *	sdw
 gen trt_cont_sdw_pos = trt_cont_sdw
 replace trt_cont_sdw_pos = . if trt_cont_sdw_pos < 0
+label var trt_cont_sdg_pos "Continuous value of trt_cont_sdw if trt_cont_sdw >= 0"
 
 gen trt_cont_sdw_neg = trt_cont_sdw
 replace trt_cont_sdw_neg = . if trt_cont_sdw_neg > 0
-
+label var trt_cont_sdg_pos "Continuous value of trt_cont_sdw if trt_cont_sdw <= 0"
 
 ///	Categorical measure standard deviations rounded to integer
 
@@ -725,7 +728,10 @@ replace trt_cat_sdw_neg = . if trt_cat_sdw_neg < -3
 
 ///	Save
 compress
+drop cusip_n
+label drop _all
 save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
+
 
 
 
@@ -738,7 +744,6 @@ save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 *			each year 2011 - 2015
 *		- Following approach of Babar & Burtch 
 *			https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3042805
-
 	PLAN (BY YEAR)
 		-	Identify firms treated in that year
 		-	For each treated firm, identify firms that have not been treated
@@ -747,26 +752,196 @@ save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 		-	Decide best matches and mark as linked to treated firm in that year
 
 ***======================================================***/
+///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
 
+///	BINARY TREATMENT VARIABLES
+***	Identify firms untreated for 3 years as potential controls					/*	ASSUMPTION OF 3 YEARS	*/
 
-///	Identify treated firms
+*	Mark firms treated in 2011
+gen treated_2011 = (year==2011 & trt2_sdg_pos==1)
+bysort cusip: egen ever_treated = max(treated_2011)
+keep if ever_treated==1
+drop treated_2011 ever_treated
+
+***======================================================***/
+use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
+
+gen trt2_sdg_pos_treated_2011=1
+label var trt2_sdg_pos_treated_2011 "Indicator=1 if treated for trt2_sdg_pos in 2011"
+tempfile d1
+save `d1'
+
+
+*	For trt2_sdg_pos in 2011
+use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+drop if trt2_sdg_pos == .
+
+
+gen window = (year >= 2011-3) & (year <= 2011+3)
+gen ineligible = (window==1 & trt2_sdg_pos==1)
+bysort cusip: egen out=max(ineligible)
+drop if out==1																	/*	IMPLEMENTATION OF 3 YEAR ASSUMPTION	*/
+drop window ineligible out
+gen trt2_sdg_pos_control_2011=1
+label var trt2_sdg_pos_control_2011 "Indicator = 1 if potential control firm for trt2_sdg_pos in 2011"
+
+append using `d1'
+
+gen trt2_sdg_pos_2011=(trt2_sdg_pos_treated_2011==1)
+label var trt2_sdg_pos_2011 "Indicator for trt2_sdg_pos treatment(1) & control(0) firms in 2011"
+
+drop trt2_sdg_pos_control_2011 trt2_sdg_pos_treated_2011
+
+
+
+*	Propensity score matching on just firms treated in 2011
 keep if year == 2011
 
-keep if trt2_sdg_pos==1
+reg revt trt2_sdg_pos
+
+
+local predictors net_kld_str net_kld_con
+teffects psmatch (revt) (trt2_sdg_pos `predictors')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+***	Loop code
+
+
+local treatvars_bin trt4_sdg_pos trt4_sdg_neg trt3_sdg_pos trt3_sdg_neg ///
+	trt2_sdg_pos trt2_sdg_neg trt4_sdw_pos trt4_sdw_neg trt3_sdw_pos ///
+	trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg
+
+	
+foreach variable of local treatvars_bin  {
+	forvalues year = 2011/2015 {
+		display("`variable'")
+		display(`year')
+		
+		use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
+		///	Identify treated firms
+		drop if `variable'==.
+		keep if year == `year'
+		keep if `variable'==1
+		qui compress
+		drop cusip_n
+		label drop _all
+		save data/treated_`variable'_`year'.dta, replace
+
+		///	Identify potential control firms
+		/**	Criteria
+			-	Untreated in that year
+			-	Remain untreated for 3 years									/*	ASSUMPTION	*/
+		*/
+		use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+		drop cusip_n
+
+		replace `variable'=. if over_rtg_yoy==.
+		gen window = (year >= `year'-3) & (year <= `year'+3)
+		gen ineligible = (window==1 & (`variable'==1 | `variable'==1))
+		bysort cusip: egen out=max(ineligible)
+		drop if out==1															/*	IMPLEMENTATION OF 3 YEAR ASSUMPTION	*/
+		drop window ineligible out
+		
+		///	Combine potential control and treated
+		label drop _all
+		append using data/treated_`variable'_`year'.dta
+		qui compress
+		save data/matched-naive-`variable'_`year'.dta, replace
+	}
+}
+
+
+
+
+
+***	Coarsened exact matching
+
+*	Load data
+use data/matched-naive-trt2_sdg_pos_2011.dta, clear
+set rmsg on
+
+*	Generate treatment variable
+gen treated = trt2_sdg_pos
+drop if treated==.
+
+*	Lagged outcome of revenue
+xtset
+cem l.revt l2.revt, treatment(treated) showbreaks
+
+
+*	Lagged change in outcome
+
+
+*	Control variables
+cem prch_f, treatment(treated) 
+
+
+
+
+
+
+
+
+
+///	CATEGORICAL TREATMENT VARIABLES
+local treatvars_cat trt_cat_sdg_pos trt_cat_sdg_neg trt_cat_sdw_pos trt_cat_sdw_neg
+
+///	CONTINUOUS TREATMENT VARIABLES
+local treatvars_cont trt_cont_sdg trt_cont_sdw trt_cont_sdg_pos trt_cont_sdg_neg trt_cont_sdw_pos trt_cont_sdw_neg
+
+
+
+
+
+
 
 
 ///	Construct matrix of matching variables
-*	Lagged outcomes
+***	Lagged outcomes
 
-*	Lagged changes in outcomes
 
-*	Lagged control variables
+***	Lagged changes in outcomes
+
+
+***	Lagged control variables
+* Duplicates
+drop sale /* same as revt	*/
+
+/* Many missing values
+drop acqmeth adrr bspr compst curuscn ltcm ogm stalt udpl acco acdo acodo acominc acoxar acqao acqcshi acqgdwl acqic acqintan acqinvt acqlntal acqniintc acqppe acqsc adpac aedi afudcc afudci amc amdc 
+drop drc
+drop dvrre
+drop nfsr 
+drop ris 
+drop unnp 
+drop unnpl 
+drop urevub
+*/
 
 
 ///	Run matching algorithms using the matrix of matching variables
-
 ***	Coarsened exact matching
 
 
@@ -776,6 +951,26 @@ keep if trt2_sdg_pos==1
 ***	Parallel trends matching
 
 
+*** Propensity score matching
+
+*	Specify the model predicting treatment
+/*	Pr (treatment | X) = 
+
+fyear fyr bkvlps csho ap recch xacc aocidergl aocipen acominc aqc apdedate xad ///
+stkcpa am au rank auop auopic capx caps ch dv chech che ceql ceqt cshi csho ///
+cshtr_c cshtr_f cshfd cshpri cstke cstkcv ceq cshr cstk cibegni ipodate citotal ///
+dcpstk pnca cogs loc fic lct incorp dd2 dd3 dd4 dd5 drc drlt txdb dp optdr dvt ///
+ebitda ebit epspx fincf txr txt txpd ivch invt xopr pi rect naics sic
+*/
+
+*	Generate propensity for treatment in each year
+forvalues year = 1990/2018 {
+	foreach threshold in 4 3 2 {
+		display("threshold: `threshold' in year `year'")
+		capt n probit trt`threshold'_sdg emp at csho if year==`year'
+		capt n predict ps`threshold'_`year'_sdg if e(sample), pr
+	}
+}
 
 
 ///	Identify best matches from results of the three algorithms
@@ -829,68 +1024,12 @@ save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 
 
 
-/***===============================================================**
-*	MATCHING STRATEGY												*
-*																	*
-*	1) Specify the model determining treatment status				*
-*	2) Use the model to predict which firms will be treated			*
-*	3) Match on the predicted likelihood of being treated			*
-*	4) Compare outcomes across matched treated and control units	*
-*																	*
-***==============================================================***/
-
-///	LOAD DATA
-use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
-
-///	DROP UNNEEDED COMPUSTAT VARIABLES
-
-* Duplicates
-drop sale /* same as revt	*/
-
-/* Many missing values
-drop acqmeth adrr bspr compst curuscn ltcm ogm stalt udpl acco acdo acodo acominc acoxar acqao acqcshi acqgdwl acqic acqintan acqinvt acqlntal acqniintc acqppe acqsc adpac aedi afudcc afudci amc amdc 
-drop drc
-drop dvrre
-drop nfsr 
-drop ris 
-drop unnp 
-drop unnpl 
-drop urevub
-*/
-
-
-/// GENERATE PROPENSITY SCORES PREDICTING TREATMENT IN EACH YEAR 2008 - 2017
-
-***	Specify the model predicting treatment
-/*	Pr (treatment | X) = 
-
-fyear fyr bkvlps csho ap recch xacc aocidergl aocipen acominc aqc apdedate xad ///
-stkcpa am au rank auop auopic capx caps ch dv chech che ceql ceqt cshi csho ///
-cshtr_c cshtr_f cshfd cshpri cstke cstkcv ceq cshr cstk cibegni ipodate citotal ///
-dcpstk pnca cogs loc fic lct incorp dd2 dd3 dd4 dd5 drc drlt txdb dp optdr dvt ///
-ebitda ebit epspx fincf txr txt txpd ivch invt xopr pi rect naics sic
-*/
 
 
 
 
-	
-	
-	
-	
-	
-	
-	
-	
-*/
 
-forvalues year = 1990/2018 {
-	foreach threshold in 4 3 2 {
-		display("threshold: `threshold' in year `year'")
-		capt n probit trt`threshold'_sdg emp at csho if year==`year'
-		capt n predict ps`threshold'_`year'_sdg if e(sample), pr
-	}
-}
+
 
 
 
