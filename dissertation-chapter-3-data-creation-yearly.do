@@ -738,22 +738,12 @@ save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 
 
 
-
-
-
-
-
-
-
-
-
 /***======================================================***
 *	CREATE MATCHED CONTROL GROUPS
 *		- Propensity score matching on propensity for each treatment variable
 *			each year 2011 - 2015
 *		- Following approach of Babar & Burtch 
 *			https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3042805
-
 	PLAN (BY YEAR)
 		-	Identify firms treated in that year
 		-	For each treated firm, identify firms that have not been treated
@@ -775,15 +765,20 @@ bysort cusip: egen ever_treated = max(treated_2011)
 keep if ever_treated==1
 drop treated_2011 ever_treated
 
+***======================================================***/
+use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
 
 gen trt2_sdg_pos_treated_2011=1
 label var trt2_sdg_pos_treated_2011 "Indicator=1 if treated for trt2_sdg_pos in 2011"
 tempfile d1
 save `d1'
 
+
 *	For trt2_sdg_pos in 2011
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 drop if trt2_sdg_pos == .
+
 
 gen window = (year >= 2011-3) & (year <= 2011+3)
 gen ineligible = (window==1 & trt2_sdg_pos==1)
@@ -801,13 +796,16 @@ label var trt2_sdg_pos_2011 "Indicator for trt2_sdg_pos treatment(1) & control(0
 drop trt2_sdg_pos_control_2011 trt2_sdg_pos_treated_2011
 
 
+
 *	Propensity score matching on just firms treated in 2011
 keep if year == 2011
 
 reg revt trt2_sdg_pos
 
+
 local predictors net_kld_str net_kld_con
 teffects psmatch (revt) (trt2_sdg_pos `predictors')
+
 
 
 
