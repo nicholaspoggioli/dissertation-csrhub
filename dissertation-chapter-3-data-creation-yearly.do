@@ -34,11 +34,11 @@ foreach variable of varlist over_rtg board_rtg cmty_rtg com_dev_phl_rtg comp_ben
 	capt drop var maxmth
 	mark var
 	markout var `variable'
-	
+
 	sort cusip year month
-	
+
 	markout var year month `variable'
-	
+
 	by cusip year: egen maxmth=max(month) if var==1
 
 	gen `variable'_lym = `variable' if month==maxmth
@@ -473,7 +473,7 @@ foreach threshold in 4 3 2 {
 
 	replace trt`threshold'_sdg_pos=. if over_rtg_yoy==.
 	replace trt`threshold'_sdg_neg=. if over_rtg_yoy==.
-	
+
 	*	Treatment year
 	by cusip_n: gen trt_yr_sdg_pos = year if trt`threshold'_sdg_pos==1
 	sort cusip_n trt_yr_sdg_pos
@@ -484,27 +484,27 @@ foreach threshold in 4 3 2 {
 	sort cusip_n trt_yr_sdg_neg
 	by cusip_n: replace trt_yr_sdg_neg = trt_yr_sdg_neg[_n-1] if _n!=1
 	replace trt_yr_sdg_neg = . if over_rtg==.
-	
+
 	*	Post-treatment years
 	by cusip_n: gen post`threshold'_sdg_pos=(year>trt_yr_sdg_pos)
 	label var post`threshold'_sdg_pos ///
 		"Indicator =1 if post-treatment year for `threshold' global std dev treatment"
 	replace post`threshold'_sdg_pos=. if over_rtg==.
-	
+
 	by cusip_n: gen post`threshold'_sdg_neg=(year>trt_yr_sdg_neg)
 	label var post`threshold'_sdg_neg ///
 		"Indicator =1 if post-treatment year for `threshold' global std dev treatment"
 	replace post`threshold'_sdg_neg=. if over_rtg==.
-	
+
 	*	Treated firms
 	by cusip_n: egen trt`threshold'_sdg_pos_grp= max(post`threshold'_sdg_pos)
 	label var trt`threshold'_sdg_pos_grp ///
 		"Indicator = 1 if treatment group for `threshold' global std dev treated"
-	
+
 	by cusip_n: egen trt`threshold'_sdg_neg_grp= max(post`threshold'_sdg_neg)
 	label var trt`threshold'_sdg_neg_grp ///
 		"Indicator = 1 if treatment group for `threshold' global std dev treated"
-	
+
 	qui xtset
 	drop trt_yr_sdg_*
 }
@@ -526,7 +526,7 @@ foreach threshold in 3 2 {
 	label var post`threshold'_only_sdg "Indicator =1 if post-treatment year of ONLY `threshold' global std dev treatment"
 	gen trt`threshold'_only_sdg = trt`threshold'_sdg
 	label var trt`threshold'_only_sdg "Indicator = 1 if treatment group of ONLY `threshold' global std dev treated"
-	
+
 	replace trt`threshold'_year_only_sdg = 0 if trt`y'_year_sdg==1
 	replace post`threshold'_only_sdg = 0 if post`y'_sdg == 1
 	replace trt`threshold'_only_sdg = 0 if trt`y'_sdg == 1
@@ -562,27 +562,27 @@ foreach threshold in 4 3 2 {
 	sort cusip_n trt_yr_sdw_neg
 	by cusip_n: replace trt_yr_sdw_neg = trt_yr_sdw_neg[_n-1] if _n!=1
 	replace trt_yr_sdw_neg = . if over_rtg==.
-	
+
 	*	Post-treatment years
 	by cusip_n: gen post`threshold'_sdw_pos=(year>trt_yr_sdw_pos)
 	label var post`threshold'_sdw_pos ///
 		"Indicator =1 if post-treatment year for `threshold' std dev of sdw"
 	replace post`threshold'_sdw_pos=. if over_rtg==.
-	
+
 	by cusip_n: gen post`threshold'_sdw_neg=(year>trt_yr_sdw_neg)
 	label var post`threshold'_sdw_neg ///
 		"Indicator =1 if post-treatment year for `threshold' std dev of sdw"
 	replace post`threshold'_sdw_neg=. if over_rtg==.
-	
+
 	*	Treated firms
 	by cusip_n: egen trt`threshold'_sdw_pos_grp= max(post`threshold'_sdw_pos)
 	label var trt`threshold'_sdw_pos_grp ///
 		"Indicator = 1 if treatment group for `threshold' std dev of sdw"
-	
+
 	by cusip_n: egen trt`threshold'_sdw_neg_grp= max(post`threshold'_sdw_neg)
 	label var trt`threshold'_sdw_neg_grp ///
 		"Indicator = 1 if treatment group for `threshold' std dev of sdw"
-	
+
 	qui xtset
 	drop trt_yr_sdw_*
 }
@@ -605,7 +605,7 @@ foreach threshold in 3 2 {
 	label var post`threshold'_only_sdg "Indicator =1 if post-treatment year of ONLY `threshold' global std dev treatment"
 	gen trt`threshold'_only_sdg = trt`threshold'_sdg
 	label var trt`threshold'_only_sdg "Indicator = 1 if treatment group of ONLY `threshold' global std dev treated"
-	
+
 	replace trt`threshold'_year_only_sdg = 0 if trt`y'_year_sdg==1
 	replace post`threshold'_only_sdg = 0 if post`y'_sdg == 1
 	replace trt`threshold'_only_sdg = 0 if trt`y'_sdg == 1
@@ -658,7 +658,7 @@ foreach threshold in 0 1 2 3 4 5 6 7 {
 label var trt_cat_sdg_pos "Categorical treatment = integer of over_rtg_yoy positive std dev from sdg"
 label var trt_cat_sdg_neg "Categorical treatment = integer of over_rtg_yoy negative std dev from sdg"
 
-***	These variables should be mutually exclusive except where year-on-year 
+***	These variables should be mutually exclusive except where year-on-year
 ***		over_rtg change is zero
 tab trt_cat_sdg_pos trt_cat_sdg_neg
 /*
@@ -666,7 +666,7 @@ tab trt_cat_sdg_pos trt_cat_sdg_neg
 trt_cat_sd |   g_neg
      g_pos |         0 |     Total
 -----------+-----------+----------
-         0 |       514 |       514 
+         0 |       514 |       514
 -----------+-----------+----------
      Total |       514 |       514
 */
@@ -692,7 +692,7 @@ foreach threshold in 0 1 2 3 4 5 6 7 {
 label var trt_cat_sdw_pos "Categorical treatment = integer of over_rtg_yoy positive std dev from sdw"
 label var trt_cat_sdw_neg "Categorical treatment = integer of over_rtg_yoy negative std dev from sdw"
 
-***	These variables should be mutually exclusive except where year-on-year 
+***	These variables should be mutually exclusive except where year-on-year
 ***		over_rtg change is zero
 tab trt_cat_sdw_pos trt_cat_sdw_neg
 /*
@@ -708,10 +708,10 @@ over_rtg_y | Categorical treatment
    std dev |   std dev from sdw
   from sdw |        -7          0 |     Total
 -----------+----------------------+----------
-         0 |         0        393 |       393 
-         7 |       121          0 |       121 
+         0 |         0        393 |       393
+         7 |       121          0 |       121
 -----------+----------------------+----------
-     Total |       121        393 |       514 
+     Total |       121        393 |       514
 
 */
 sum over_rtg_yoy if trt_cat_sdw_pos==7 & trt_cat_sdw_neg==-7
@@ -751,9 +751,8 @@ save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 *	CREATE MATCHED CONTROL GROUPS
 *		- Propensity score matching on propensity for each treatment variable
 *			each year 2011 - 2015
-*		- Following approach of Babar & Burtch 
+*		- Following approach of Babar & Burtch
 *			https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3042805
-
 	PLAN (BY YEAR)
 		-	Identify firms treated in that year
 		-	For each treated firm, identify firms that have not been treated
@@ -764,7 +763,18 @@ save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 ***======================================================***/
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+drop if trt2_sdg_pos == .
 
+
+gen window = (year >= 2011-3) & (year <= 2011+3)
+gen ineligible = (window==1 & trt2_sdg_pos==1)
+bysort cusip: egen out=max(ineligible)
+drop if out==1																	/*	IMPLEMENTATION OF 3 YEAR ASSUMPTION	*/
+drop window ineligible out
+gen trt2_sdg_pos_control_2011=1
+label var trt2_sdg_pos_control_2011 "Indicator = 1 if potential control firm for trt2_sdg_pos in 2011"
+
+append using `d1'
 
 ///	BINARY TREATMENT VARIABLES
 ***	Identify firms untreated for 3 years as potential controls					/*	ASSUMPTION OF 3 YEARS	*/
@@ -820,13 +830,6 @@ teffects psmatch (revt) (trt2_sdg_pos `predictors')
 
 
 
-
-
-
-
-
-
-
 ***	Loop code
 
 
@@ -834,12 +837,12 @@ local treatvars_bin trt4_sdg_pos trt4_sdg_neg trt3_sdg_pos trt3_sdg_neg ///
 	trt2_sdg_pos trt2_sdg_neg trt4_sdw_pos trt4_sdw_neg trt3_sdw_pos ///
 	trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg
 
-	
+
 foreach variable of local treatvars_bin  {
 	forvalues year = 2011/2015 {
 		display("`variable'")
 		display(`year')
-		
+
 		use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
 		///	Identify treated firms
@@ -865,7 +868,7 @@ foreach variable of local treatvars_bin  {
 		bysort cusip: egen out=max(ineligible)
 		drop if out==1															/*	IMPLEMENTATION OF 3 YEAR ASSUMPTION	*/
 		drop window ineligible out
-		
+
 		///	Combine potential control and treated
 		label drop _all
 		append using data/treated_`variable'_`year'.dta
@@ -876,6 +879,61 @@ foreach variable of local treatvars_bin  {
 
 
 
+
+***	Loop code
+
+***	Coarsened exact matching
+
+local treatvars_bin trt4_sdg_pos trt4_sdg_neg trt3_sdg_pos trt3_sdg_neg ///
+	trt2_sdg_pos trt2_sdg_neg trt4_sdw_pos trt4_sdw_neg trt3_sdw_pos ///
+	trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg
+
+
+foreach variable of local treatvars_bin  {
+	forvalues year = 2011/2015 {
+		display("`variable'")
+		display(`year')
+
+		use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
+		///	Identify treated firms
+		drop if `variable'==.
+		keep if year == `year'
+		keep if `variable'==1
+		qui compress
+		drop cusip_n
+		label drop _all
+		save data/treated_`variable'_`year'.dta, replace
+
+		///	Identify potential control firms
+		/**	Criteria
+			-	Untreated in that year
+			-	Remain untreated for 3 years									/*	ASSUMPTION	*/
+		*/
+		use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+		drop cusip_n
+
+		replace `variable'=. if over_rtg_yoy==.
+		gen window = (year >= `year'-3) & (year <= `year'+3)
+		gen ineligible = (window==1 & (`variable'==1 | `variable'==1))
+		bysort cusip: egen out=max(ineligible)
+		drop if out==1															/*	IMPLEMENTATION OF 3 YEAR ASSUMPTION	*/
+		drop window ineligible out
+
+		///	Combine potential control and treated
+		label drop _all
+		append using data/treated_`variable'_`year'.dta
+		qui compress
+		save data/matched-naive-`variable'_`year'.dta, replace
+	}
+}
+
+*	Lagged outcome of revenue
+xtset
+cem l.revt l2.revt, treatment(treated) showbreaks
+
+
+*	Lagged change in outcome
 
 
 ***	Coarsened exact matching
@@ -897,10 +955,14 @@ cem l.revt l2.revt, treatment(treated) showbreaks
 
 
 *	Control variables
-cem prch_f, treatment(treated) 
+cem prch_f, treatment(treated)
 
 
+///	CATEGORICAL TREATMENT VARIABLES
+local treatvars_cat trt_cat_sdg_pos trt_cat_sdg_neg trt_cat_sdw_pos trt_cat_sdw_neg
 
+///	CONTINUOUS TREATMENT VARIABLES
+local treatvars_cont trt_cont_sdg trt_cont_sdw trt_cont_sdg_pos trt_cont_sdg_neg trt_cont_sdw_pos trt_cont_sdw_neg
 
 
 
@@ -914,6 +976,8 @@ local treatvars_cat trt_cat_sdg_pos trt_cat_sdg_neg trt_cat_sdw_pos trt_cat_sdw_
 local treatvars_cont trt_cont_sdg trt_cont_sdw trt_cont_sdg_pos trt_cont_sdg_neg trt_cont_sdw_pos trt_cont_sdw_neg
 
 
+///	Construct matrix of matching variables
+***	Lagged outcomes
 
 
 
@@ -932,13 +996,13 @@ local treatvars_cont trt_cont_sdg trt_cont_sdw trt_cont_sdg_pos trt_cont_sdg_neg
 drop sale /* same as revt	*/
 
 /* Many missing values
-drop acqmeth adrr bspr compst curuscn ltcm ogm stalt udpl acco acdo acodo acominc acoxar acqao acqcshi acqgdwl acqic acqintan acqinvt acqlntal acqniintc acqppe acqsc adpac aedi afudcc afudci amc amdc 
+drop acqmeth adrr bspr compst curuscn ltcm ogm stalt udpl acco acdo acodo acominc acoxar acqao acqcshi acqgdwl acqic acqintan acqinvt acqlntal acqniintc acqppe acqsc adpac aedi afudcc afudci amc amdc
 drop drc
 drop dvrre
-drop nfsr 
-drop ris 
-drop unnp 
-drop unnpl 
+drop nfsr
+drop ris
+drop unnp
+drop unnpl
 drop urevub
 */
 
@@ -956,7 +1020,7 @@ drop urevub
 *** Propensity score matching
 
 *	Specify the model predicting treatment
-/*	Pr (treatment | X) = 
+/*	Pr (treatment | X) =
 
 fyear fyr bkvlps csho ap recch xacc aocidergl aocipen acominc aqc apdedate xad ///
 stkcpa am au rank auop auopic capx caps ch dv chech che ceql ceqt cshi csho ///
