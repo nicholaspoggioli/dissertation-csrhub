@@ -435,14 +435,14 @@ save data/csrhub-kld-cstat-year-level.dta, replace
 */
 
 
+/*
 
-
-/***======================================================***
+***======================================================***
 *	CREATE TREATMENT VARIABLES
 *		- Binary +/- deviation from standard deviation
 *		- Continuous measure number of standard deviations
 *		- Categorical measure standard deviations rounded to integer
-***======================================================***/
+***======================================================***
 use data/csrhub-kld-cstat-year-level.dta, clear
 
 encode cusip, gen(cusip_n)
@@ -462,6 +462,7 @@ replace sdg = . if over_rtg==.
 
 *	Generate year-on-year change in over_rtg
 gen over_rtg_yoy = over_rtg - l.over_rtg
+label var over_rtg_yoy "Year-on-year change in CSRHub overall rating"
 
 *	Generate treatment variables
 foreach threshold in 4 3 2 {
@@ -587,7 +588,6 @@ foreach threshold in 4 3 2 {
 	drop trt_yr_sdw_*
 }
 
-
 /*	Remove overlap in treatment groups											/*	Still needs to be done */
 gen trt4_year_only_sdg = trt4_year_sdg
 label var trt4_year_only_sdg "Indicator =1 if year of ONLY 4 global std dev treatment"
@@ -612,6 +612,7 @@ foreach threshold in 3 2 {
 }
 */
 
+
 ///	Continuous measure number of standard deviations
 
 ***	Combined
@@ -631,16 +632,17 @@ label var trt_cont_sdg_pos "Continuous value of trt_cont_sdg if trt_cont_sdg >= 
 
 gen trt_cont_sdg_neg = trt_cont_sdg
 replace trt_cont_sdg_neg = . if trt_cont_sdg_neg > 0
-label var trt_cont_sdg_pos "Continuous value of trt_cont_sdg if trt_cont_sdg <= 0"
+label var trt_cont_sdg_neg "Continuous value of trt_cont_sdg if trt_cont_sdg <= 0"
 
 *	sdw
 gen trt_cont_sdw_pos = trt_cont_sdw
 replace trt_cont_sdw_pos = . if trt_cont_sdw_pos < 0
-label var trt_cont_sdg_pos "Continuous value of trt_cont_sdw if trt_cont_sdw >= 0"
+label var trt_cont_sdw_pos "Continuous value of trt_cont_sdw if trt_cont_sdw >= 0"
 
 gen trt_cont_sdw_neg = trt_cont_sdw
 replace trt_cont_sdw_neg = . if trt_cont_sdw_neg > 0
-label var trt_cont_sdg_pos "Continuous value of trt_cont_sdw if trt_cont_sdw <= 0"
+label var trt_cont_sdw_neg "Continuous value of trt_cont_sdw if trt_cont_sdw <= 0"
+
 
 ///	Categorical measure standard deviations rounded to integer
 
@@ -676,7 +678,6 @@ sum over_rtg_yoy if trt_cat_sdg_pos==0 & trt_cat_sdg_neg==0
 -------------+---------------------------------------------------------
 over_rtg_yoy |        514           0           0          0          0
 */
-
 
 ***	Firm-specific standard deviation
 xtset
@@ -732,32 +733,7 @@ drop cusip_n
 label drop _all
 save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 
-
-
-
-
-
-/***====================================
-	CHECK SOME PRE/POST TRENDS IN REVENUE
 */
-use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
-
-gen trtyr = year if trt2_sdg_pos==1
-
-bysort cusip: egen trtyr2=max(trtyr)
-
-gen t2011=(trtyr2==2011)
-replace t2011=. if trtyr2!=2011 & trtyr2!=.
-drop if t2011==.
-
-gen p = year - 2011
-
-
-egen revtmean = mean(revt), by(year trt2_sdg_pos_grp)
-
-tw line revtmean p if trt2_sdg_pos_grp==1, sort || line revtmean p if trt2_sdg_pos_grp==0, sort
-
-
 
 
 
