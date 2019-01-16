@@ -39,36 +39,53 @@ xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year, fe cluster(cu
 ///	CONTROL VARIABLE MODELS
 ***	DV: Revenue (Level)
 xtreg revt over_rtg i.year, fe cluster(cusip_n)									/*	non-sig	*/
+est store m1
 xtreg revt over_rtg debt i.year, fe cluster(cusip_n)							/*	non-sig	*/
+est store m2
 xtreg revt over_rtg debt at i.year, fe cluster(cusip_n)							/*	sig	*/
+est store m3
 xtreg revt over_rtg debt at xad i.year, fe cluster(cusip_n)						/*	non-sig	*/
+est store m4
 xtreg revt over_rtg debt at xad xrd i.year, fe cluster(cusip_n)					/*	non-sig	*/
+est store m5
 xtreg revt over_rtg debt at xad xrd emp i.year, fe cluster(cusip_n)				/*	non-sig	*/
+est store m6
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
 replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
 xtreg revt over_rtg debt at xad xrd emp i.year, fe cluster(cusip_n)				/*	non-sig	*/
+est store m7
+
+esttab *, ///
+	keep(over_rtg debt at xad xrd emp)
+
 
 
 *** DV: Revenue (1-year change)
 xtreg revt_yoy over_rtg i.year, fe cluster(cusip_n)								/*	sig	*/
+est store m1
 xtreg revt_yoy over_rtg debt i.year, fe cluster(cusip_n)						/*	sig	*/
+est store m2
 xtreg revt_yoy over_rtg debt at i.year, fe cluster(cusip_n)						/*	sig	*/
+est store m3
 xtreg revt_yoy over_rtg debt at xad i.year, fe cluster(cusip_n)					/*	non-sig	*/
+est store m4
 xtreg revt_yoy over_rtg debt at xad xrd i.year, fe cluster(cusip_n)				/*	non-sig	*/
+est store m5
 xtreg revt_yoy over_rtg debt at xad xrd emp i.year, fe cluster(cusip_n)			/*	non-sig	*/
-
+est store m6
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
 replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
 xtreg revt_yoy over_rtg debt at xad xrd emp i.year, fe cluster(cusip_n)			/*	sig	*/
+est store m7
 
-
-
+esttab *, ///
+	keep(over_rtg debt at xad xrd emp)
 
 
 
