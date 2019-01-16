@@ -738,36 +738,7 @@ save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 
 
 
-***===========================***
-*	ASSUME EXOGENOUS TREATMENT	*
-***===========================***
-use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
-encode cusip, gen(cusip_n)
-xtset cusip_n year, y
-
-///	DV: REVENUE LEVEL
-xtreg revt over_rtg i.year, fe cluster(cusip_n)
-xtreg revt l.over_rtg i.year, fe cluster(cusip_n)
-xtreg revt l2.over_rtg i.year, fe cluster(cusip_n)
-
-xtreg revt over_rtg i.year, fe cluster(cusip_n)
-xtreg revt over_rtg l.over_rtg i.year, fe cluster(cusip_n)
-xtreg revt over_rtg l.over_rtg l2.over_rtg i.year, fe cluster(cusip_n)
-xtreg revt over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year, fe cluster(cusip_n)
-xtreg revt over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg i.year, fe cluster(cusip_n)
-
-
-///	DV: 1-YEAR REVENUE CHANGE
-gen revt_yoy = revt - l.revt
-
-xtreg revt_yoy over_rtg i.year, fe cluster(cusip_n)
-xtreg revt_yoy l.over_rtg i.year, fe cluster(cusip_n)
-xtreg revt_yoy l2.over_rtg i.year, fe cluster(cusip_n)
-
-xtreg revt_yoy over_rtg l.over_rtg i.year, fe cluster(cusip_n)
-xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg i.year, fe cluster(cusip_n)
-xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year, fe cluster(cusip_n)
 
 
 
