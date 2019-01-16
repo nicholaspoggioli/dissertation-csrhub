@@ -9,6 +9,10 @@ use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 encode cusip, gen(cusip_n)
 xtset cusip_n year, y
 
+///	GENERATE YEAR-ON-YEAR REVENUE CHANGE
+gen revt_yoy = revt - l.revt
+label var revt_yoy "Year-on-year change in revenue (revt)"
+
 
 ***=======================***
 *	ASSUME EXOGENOUS CSRHUB	*
@@ -16,75 +20,100 @@ xtset cusip_n year, y
 
 ///	LAG STRUCTURE MODELS
 ***	DV: Revenue (Level)
-xtreg revt over_rtg i.year, fe cluster(cusip_n)
-xtreg revt l.over_rtg i.year, fe cluster(cusip_n)
-xtreg revt l2.over_rtg i.year, fe cluster(cusip_n)
+est clear
+mark mark1
+markout mark1 over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg
 
-xtreg revt over_rtg debt at i.year, fe cluster(cusip_n)
-xtreg revt over_rtg l.over_rtg i.year, fe cluster(cusip_n)
-xtreg revt over_rtg l.over_rtg l2.over_rtg i.year, fe cluster(cusip_n)
-xtreg revt over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year, fe cluster(cusip_n)
-xtreg revt over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg i.year, fe cluster(cusip_n)
+xtreg revt over_rtg i.year if mark1==1, fe cluster(cusip_n)
+est store lag1
+xtreg revt over_rtg l.over_rtg i.year if mark1==1, fe cluster(cusip_n)
+est store lag2
+xtreg revt over_rtg l.over_rtg l2.over_rtg i.year if mark1==1, fe cluster(cusip_n)
+est store lag3
+xtreg revt over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year if mark1==1, fe cluster(cusip_n)
+est store lag4
+xtreg revt over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg i.year if mark1==1, fe cluster(cusip_n)
+est store lag5
+
+esttab lag1 lag2 lag3 lag4 lag5, ///
+	keep(*over_rtg)
+
 
 *** DV: Revenue (1-year change)
-gen revt_yoy = revt - l.revt
-label var revt_yoy "Year-on-year change in revenue (revt)"
+est clear
+mark mark2
+markout mark2 over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg
 
-xtreg revt_yoy over_rtg debt at i.year, fe cluster(cusip_n)
-xtreg revt_yoy over_rtg l.over_rtg i.year, fe cluster(cusip_n)
-xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg i.year, fe cluster(cusip_n)
-xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year, fe cluster(cusip_n)
+xtreg revt_yoy over_rtg i.year if mark2==1, fe cluster(cusip_n)
+est store lag6
+xtreg revt_yoy over_rtg l.over_rtg i.year if mark2==1, fe cluster(cusip_n)
+est store lag7
+xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg i.year if mark2==1, fe cluster(cusip_n)
+est store lag8
+xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year if mark2==1, fe cluster(cusip_n)
+est store lag9
+xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg i.year if mark2==1, fe cluster(cusip_n)
+est store lag10
+
+esttab lag6 lag7 lag8 lag9 lag10, ///
+	keep(*over_rtg)
+
+
 
 
 ///	CONTROL VARIABLE MODELS
 ***	DV: Revenue (Level)
 xtreg revt over_rtg i.year, fe cluster(cusip_n)									/*	non-sig	*/
-est store m1
+est store con1
 xtreg revt over_rtg debt i.year, fe cluster(cusip_n)							/*	non-sig	*/
-est store m2
+est store con2
 xtreg revt over_rtg debt at i.year, fe cluster(cusip_n)							/*	sig	*/
-est store m3
+est store con3
 xtreg revt over_rtg debt at xad i.year, fe cluster(cusip_n)						/*	non-sig	*/
-est store m4
+est store con4
 xtreg revt over_rtg debt at xad xrd i.year, fe cluster(cusip_n)					/*	non-sig	*/
-est store m5
+est store con5
 xtreg revt over_rtg debt at xad xrd emp i.year, fe cluster(cusip_n)				/*	non-sig	*/
-est store m6
+est store con6
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
 replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
 xtreg revt over_rtg debt at xad xrd emp i.year, fe cluster(cusip_n)				/*	non-sig	*/
-est store m7
+est store con7
+restore
 
-esttab *, ///
+esttab con1 con2 con3 con4 con5 con6 con7, ///
 	keep(over_rtg debt at xad xrd emp)
 
 
 
 *** DV: Revenue (1-year change)
 xtreg revt_yoy over_rtg i.year, fe cluster(cusip_n)								/*	sig	*/
-est store m1
+est store con8
 xtreg revt_yoy over_rtg debt i.year, fe cluster(cusip_n)						/*	sig	*/
-est store m2
+est store con9
 xtreg revt_yoy over_rtg debt at i.year, fe cluster(cusip_n)						/*	sig	*/
-est store m3
+est store con10
 xtreg revt_yoy over_rtg debt at xad i.year, fe cluster(cusip_n)					/*	non-sig	*/
-est store m4
+est store con11
 xtreg revt_yoy over_rtg debt at xad xrd i.year, fe cluster(cusip_n)				/*	non-sig	*/
-est store m5
+est store con12
 xtreg revt_yoy over_rtg debt at xad xrd emp i.year, fe cluster(cusip_n)			/*	non-sig	*/
-est store m6
+est store con13
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
 replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
 xtreg revt_yoy over_rtg debt at xad xrd emp i.year, fe cluster(cusip_n)			/*	sig	*/
-est store m7
+est store con14
+restore 
 
-esttab *, ///
+esttab con8 con9 con10 con11 con12 con13 con14, ///
 	keep(over_rtg debt at xad xrd emp)
 
 
