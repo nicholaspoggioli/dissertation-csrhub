@@ -6,9 +6,83 @@ log using logs/yearly-analysis.txt, text replace
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
 /// SET PANEL
-capt n drop cusip_n
 encode cusip, gen(cusip_n)
 xtset cusip_n year, y
+
+
+***=======================***
+*	ASSUME EXOGENOUS CSRHUB	*
+***=======================***
+
+///	LAG STRUCTURE MODELS
+***	DV: Revenue (Level)
+xtreg revt over_rtg i.year, fe cluster(cusip_n)
+xtreg revt l.over_rtg i.year, fe cluster(cusip_n)
+xtreg revt l2.over_rtg i.year, fe cluster(cusip_n)
+
+xtreg revt over_rtg debt at i.year, fe cluster(cusip_n)
+xtreg revt over_rtg l.over_rtg i.year, fe cluster(cusip_n)
+xtreg revt over_rtg l.over_rtg l2.over_rtg i.year, fe cluster(cusip_n)
+xtreg revt over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year, fe cluster(cusip_n)
+xtreg revt over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg i.year, fe cluster(cusip_n)
+
+*** DV: Revenue (1-year change)
+gen revt_yoy = revt - l.revt
+label var revt_yoy "Year-on-year change in revenue (revt)"
+
+xtreg revt_yoy over_rtg debt at i.year, fe cluster(cusip_n)
+xtreg revt_yoy over_rtg l.over_rtg i.year, fe cluster(cusip_n)
+xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg i.year, fe cluster(cusip_n)
+xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year, fe cluster(cusip_n)
+
+
+///	CONTROL VARIABLE MODELS
+***	DV: Revenue (Level)
+xtreg revt over_rtg i.year, fe cluster(cusip_n)									/*	non-sig	*/
+xtreg revt over_rtg debt i.year, fe cluster(cusip_n)							/*	non-sig	*/
+xtreg revt over_rtg debt at i.year, fe cluster(cusip_n)							/*	sig	*/
+xtreg revt over_rtg debt at xad i.year, fe cluster(cusip_n)						/*	non-sig	*/
+xtreg revt over_rtg debt at xad xrd i.year, fe cluster(cusip_n)					/*	non-sig	*/
+xtreg revt over_rtg debt at xad xrd emp i.year, fe cluster(cusip_n)				/*	non-sig	*/
+
+*	Many xad and xrd observations are missing. Assume missing = 0.
+replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
+replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
+
+xtreg revt over_rtg debt at xad xrd emp i.year, fe cluster(cusip_n)				/*	non-sig	*/
+
+
+*** DV: Revenue (1-year change)
+xtreg revt_yoy over_rtg i.year, fe cluster(cusip_n)								/*	sig	*/
+xtreg revt_yoy over_rtg debt i.year, fe cluster(cusip_n)						/*	sig	*/
+xtreg revt_yoy over_rtg debt at i.year, fe cluster(cusip_n)						/*	sig	*/
+xtreg revt_yoy over_rtg debt at xad i.year, fe cluster(cusip_n)					/*	non-sig	*/
+xtreg revt_yoy over_rtg debt at xad xrd i.year, fe cluster(cusip_n)				/*	non-sig	*/
+xtreg revt_yoy over_rtg debt at xad xrd emp i.year, fe cluster(cusip_n)			/*	non-sig	*/
+
+
+*	Many xad and xrd observations are missing. Assume missing = 0.
+replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
+replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
+
+xtreg revt_yoy over_rtg debt at xad xrd emp i.year, fe cluster(cusip_n)			/*	sig	*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ***===============================================================***
@@ -25,9 +99,9 @@ keep if year > 2010
 ///	BINARY TREATMENT
 foreach threshold in 2 3 4 {
 	*	DV: Change in revenue
-	xtreg f.revt_delta trt`threshold'_year_only_sdg revt_delta rd emp debt i.year, fe cluster(cusip_n)
-	xtreg f.revt_delta trt`threshold'_year_only_sdg revt_delta rd emp debt i.year, fe cluster(cusip_n)
-	xtreg f.revt_delta trt`threshold'_year_only_sdw revt_delta rd emp debt i.year, fe cluster(cusip_n)
+	xtreg f.revt_yoy trt`threshold'_year_only_sdg revt_yoy rd emp debt i.year, fe cluster(cusip_n)
+	xtreg f.revt_yoy trt`threshold'_year_only_sdg revt_yoy rd emp debt i.year, fe cluster(cusip_n)
+	xtreg f.revt_yoy trt`threshold'_year_only_sdw revt_yoy rd emp debt i.year, fe cluster(cusip_n)
 	
 	
 	
@@ -39,10 +113,10 @@ foreach threshold in 2 3 4 {
 
 ///	CONTINUOUS TREATMENT
 ***	DV: Change in revenue
-xtreg f.revt_delta trt_cont_sdg revt_delta rd emp debt i.year, fe cluster(cusip_n)
-xtreg f.revt_delta trt_cont_sdw revt_delta rd emp debt i.year, fe cluster(cusip_n)
-xtreg f.revt_delta i.trt_cont_sdg revt_delta rd emp debt i.year, fe cluster(cusip_n)
-xtreg f.revt_delta i.trt_cont_sdw revt_delta rd emp debt i.year, fe cluster(cusip_n)	
+xtreg f.revt_yoy trt_cont_sdg revt_yoy rd emp debt i.year, fe cluster(cusip_n)
+xtreg f.revt_yoy trt_cont_sdw revt_yoy rd emp debt i.year, fe cluster(cusip_n)
+xtreg f.revt_yoy i.trt_cont_sdg revt_yoy rd emp debt i.year, fe cluster(cusip_n)
+xtreg f.revt_yoy i.trt_cont_sdw revt_yoy rd emp debt i.year, fe cluster(cusip_n)	
 
 
 ***	DV: Revenue
@@ -59,7 +133,7 @@ xtreg f.revt i.trt_cont_sdw revt rd emp debt i.year, fe cluster(cusip_n)
 ///	GENERATE MEAN AND DEMEANED VARIABLES
 xtset
 drop *_m *_dm
-foreach variable in trt_cont_sdg trt_cont_sdw revt revt_delta rd emp debt {
+foreach variable in trt_cont_sdg trt_cont_sdw revt revt_yoy rd emp debt {
 	by cusip_n: egen `variable'_m = mean(`variable')
 	gen `variable'_dm = `variable' - `variable'_m
 }
@@ -68,12 +142,12 @@ foreach variable in trt_cont_sdg trt_cont_sdw revt revt_delta rd emp debt {
 
 ///	CONTINUOUS TREATMENT
 ***	DV: Change in revenue
-xtreg f.revt_delta trt_cont_sdg_dm revt_delta_dm rd_dm emp_dm debt_dm ///
-	trt_cont_sdg_m revt_delta_m rd_m emp_m debt_m ///
+xtreg f.revt_yoy trt_cont_sdg_dm revt_yoy_dm rd_dm emp_dm debt_dm ///
+	trt_cont_sdg_m revt_yoy_m rd_m emp_m debt_m ///
 	i.year, re cluster(cusip_n)
 
-xtreg f.revt_delta trt_cont_sdw_dm revt_delta_dm rd_dm emp_dm debt_dm ///
-	trt_cont_sdw_m revt_delta_m rd_m emp_m debt_m ///
+xtreg f.revt_yoy trt_cont_sdw_dm revt_yoy_dm rd_dm emp_dm debt_dm ///
+	trt_cont_sdw_m revt_yoy_m rd_m emp_m debt_m ///
 	i.year, re cluster(cusip_n)
 
 ***	DV: Revenue
