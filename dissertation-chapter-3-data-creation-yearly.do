@@ -770,25 +770,21 @@ xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg i.year, fe cluster(cusip_n)
 xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year, fe cluster(cusip_n)
 
 
-///	NONPARAMETRIC COMPARISON OF MEANS
-
-***	1-year lagged effect
-gen rev_yoy=f.revt - revt
-ttest rev_yoy, by(trt2_sdg_pos)
-	/*	No difference in revenue change	*/
-tw histogram rev_yoy if trt2_sdg_pos==0 || histogram rev_yoy if trt2_sdg_pos==1
-
-winsor rev_yoy, gen(Wrev_yoy) p(.025)
-ttest Wrev_yoy, by(trt2_sdg_pos)
-	/*	Treated firms have lower year-on-year revenue change	*/
-tw histogram Wrev_yoy if trt2_sdg_pos==0, bin(50) || ///
-	histogram Wrev_yoy if trt2_sdg_pos==1, fcolor(none) lcolor(red) bin(50)
 
 
 
-///	PARAMETRIC ESTIMATION
 
-***	Difference in differences
+
+
+
+
+
+
+
+
+
+
+
 
 
 
