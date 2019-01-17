@@ -15,8 +15,11 @@ label var revt_yoy "Year-on-year change in revenue (revt)"
 
 
 ***=======================***
-*	ASSUME EXOGENOUS CSRHUB	*
+*	REVENUE = F (CSRHUB) 	*
 ***=======================***
+///	KEEP NEEDED VARIABLES
+keep cusip cusip_n year revt over_rtg debt at xad xrd emp
+
 
 ///	LAG STRUCTURE MODELS
 ***	DV: Revenue (Level)
