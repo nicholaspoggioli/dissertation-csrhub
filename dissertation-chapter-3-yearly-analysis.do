@@ -14,7 +14,8 @@ gen revt_yoy = revt - l.revt
 label var revt_yoy "Year-on-year change in revenue (revt)"
 
 ///	KEEP VARIABLES IN REGRESSION MODELS TO REDUCE FILE SIZE
-keep cusip cusip_n year revt revt_yoy over_rtg dltt at xad xrd emp
+keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp ///
+	over_rtg *rtg_lym
 
 
 ***=======================***
@@ -158,7 +159,12 @@ xtreg F.revt_yoy c.Sover_rtg##c.Srevt dltt at xad xrd emp i.year, fe cluster(cus
 est store con17
 restore
 
-esttab con8 con9 con10 con11 con12 con13 con14 con15 con16 con17, ///
+esttab con8 con9 con10 con11 con12 con13 con14 con15, ///
+	keep(over_rtg dltt at xad xrd emp) ///
+	order(over_rtg dltt at xad xrd emp) ///
+	r2 ar2 aic
+	
+esttab con16 con17, ///
 	keep(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at xad xrd emp) ///
 	order(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at xad xrd emp) ///
 	r2 ar2 aic
@@ -309,6 +315,37 @@ restore
 *	Table
 esttab m1 m2 m3 m4 m5 m6 m7 m8, ///
 	keep(gov_rtg_lym dltt at xad xrd emp) ///
+	r2 ar2 aic
+	
+	
+///	ALL CATEGORIES
+xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym , fe cluster(cusip_n)									/*	non-sig	*/
+est store m1
+xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  i.year, fe cluster(cusip_n)							/*	non-sig	*/
+est store m2
+xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt i.year, fe cluster(cusip_n)						/*	non-sig	*/
+est store m3
+xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at i.year, fe cluster(cusip_n)					/*	non-sig	*/
+est store m4
+xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at xad i.year, fe cluster(cusip_n)				/*	non-sig	*/
+est store m5
+xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at xad xrd i.year, fe cluster(cusip_n)			/*	non-sig	*/
+est store m6
+xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
+est store m7
+
+*	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
+replace xad=0 if xad==.															/*	assumption	*/
+replace xrd=0 if xrd==.															/*	assumption	*/
+
+xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
+est store m8
+restore 
+
+*	Table
+esttab m1 m2 m3 m4 m5 m6 m7 m8, ///
+	keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at xad xrd emp) ///
 	r2 ar2 aic
 	
 	
