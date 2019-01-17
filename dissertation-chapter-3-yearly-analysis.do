@@ -1,7 +1,6 @@
-/*//	LOG
+///	LOG
 capt n log close
 log using logs/yearly-analysis.txt, text replace
-*/
 
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
@@ -19,10 +18,9 @@ keep cusip cusip_n year revt revt_yoy over_rtg dltt at xad xrd emp
 
 
 ***=======================***
-*	REVENUE = F (CSRHUB) 	*
+*	LAG STRUCTURE MODELS	*
 ***=======================***
-///	LAG STRUCTURE MODELS
-***	DV: Revenue (Level)
+///	DV: REVENUE (LEVEL)
 est clear
 mark mark1
 markout mark1 over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg
@@ -42,7 +40,7 @@ esttab lag1 lag2 lag3 lag4 lag5, ///
 	keep(*over_rtg)
 
 
-*** DV: Revenue (1-year change)
+///	DV: REVENUE (1-YEAR CHANGE)
 est clear
 mark mark2
 markout mark2 over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg
@@ -62,9 +60,11 @@ esttab lag6 lag7 lag8 lag9 lag10, ///
 	keep(*over_rtg)
 
 
-
-
+***===========================***
+*	REVENUE LEVEL = F (CSRHUB) 	*
+***===========================***
 ///	CONTROL VARIABLE MODELS
+
 ***	DV: Revenue (Level)
 *mark mark3
 *markout mark3 revt over_rtg dltt at xad xrd emp year
@@ -105,9 +105,12 @@ esttab con1 con2 con3 con4 con5 con6 con7 con8, ///
 	b se s(yearFE N r2 aic, label("Year FEs" "N" "R^2" "AIC")) ///
 	keep(over_rtg dltt at xad xrd emp)
 
-
-
-*** DV: Revenue (1-year change)
+	
+	
+***===============================***
+*	REVENUE CHANGE = F (CSRHUB) 	*
+***===============================***	
+/// DV: Revenue (1-year change)
 xtreg revt_yoy over_rtg, fe cluster(cusip_n)									/*	non-sig	*/
 est store con8
 xtreg revt_yoy over_rtg i.year, fe cluster(cusip_n)								/*	sig	*/
@@ -163,17 +166,216 @@ esttab con8 con9 con10 con11 con12 con13 con14 con15 con16 con17, ///
 
 
 
+/*
+///	REVENUE = F (CSRHUB CATEGORIES)
+		CSRHub CATEGORIES and subcategories:
+			-	COMMUNITY
+				*	Community development and philanthropy
+				*	Product
+				*	Human rights and supply chain
+			-	EMPLOYEES
+				*	Compensation and benefits
+				*	Diversity and labor rights
+				*	Training health and safety
+			-	ENVIRONMENT
+				*	Energy and climate change
+				*	Environmental policy and reporting
+				*	Resource management
+			-	GOVERNANCE
+				*	Board
+				*	Leadership ethics
+				*	Transparency and reporting
+*/
+
+///	COMMUNITY
+xtreg revt_yoy cmty_rtg_lym, fe cluster(cusip_n)								/*	non-sig	*/
+est store m1
+xtreg revt_yoy cmty_rtg_lym i.year, fe cluster(cusip_n)							/*	sig	*/
+est store m2
+xtreg revt_yoy cmty_rtg_lym dltt i.year, fe cluster(cusip_n)					/*	sig	*/
+est store m3
+xtreg revt_yoy cmty_rtg_lym dltt at i.year, fe cluster(cusip_n)					/*	sig	*/
+est store m4
+xtreg revt_yoy cmty_rtg_lym dltt at xad i.year, fe cluster(cusip_n)				/*	non-sig	*/
+est store m5
+xtreg revt_yoy cmty_rtg_lym dltt at xad xrd i.year, fe cluster(cusip_n)			/*	non-sig	*/
+est store m6
+xtreg revt_yoy cmty_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
+est store m7
+
+*	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
+replace xad=0 if xad==. & cmty_rtg_lym!=.										/*	assumption	*/
+replace xrd=0 if xrd==. & cmty_rtg_lym!=.										/*	assumption	*/
+
+xtreg revt_yoy cmty_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	sig	*/
+est store m8
+restore 
+
+*	Table
+esttab m1 m2 m3 m4 m5 m6 m7 m8, ///
+	keep(cmty_rtg_lym dltt at xad xrd emp) ///
+	r2 ar2 aic
 
 
+	
+///	EMPLOYEES
+xtreg revt_yoy emp_rtg_lym, fe cluster(cusip_n)									/*	non-sig	*/
+est store m1
+xtreg revt_yoy emp_rtg_lym i.year, fe cluster(cusip_n)							/*	sig	*/
+est store m2
+xtreg revt_yoy emp_rtg_lym dltt i.year, fe cluster(cusip_n)						/*	sig	*/
+est store m3
+xtreg revt_yoy emp_rtg_lym dltt at i.year, fe cluster(cusip_n)					/*	sig	*/
+est store m4
+xtreg revt_yoy emp_rtg_lym dltt at xad i.year, fe cluster(cusip_n)				/*	non-sig	*/
+est store m5
+xtreg revt_yoy emp_rtg_lym dltt at xad xrd i.year, fe cluster(cusip_n)			/*	non-sig	*/
+est store m6
+xtreg revt_yoy emp_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
+est store m7
+
+*	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
+replace xad=0 if xad==. & emp_rtg_lym!=.										/*	assumption	*/
+replace xrd=0 if xrd==. & emp_rtg_lym!=.										/*	assumption	*/
+
+xtreg revt_yoy emp_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	sig	*/
+est store m8
+restore 
+
+*	Table
+esttab m1 m2 m3 m4 m5 m6 m7 m8, ///
+	keep(emp_rtg_lym dltt at xad xrd emp) ///
+	r2 ar2 aic
+	
+	
+	
+///	ENVIRONMENT
+xtreg revt_yoy enviro_rtg_lym, fe cluster(cusip_n)								/*	non-sig	*/
+est store m1
+xtreg revt_yoy enviro_rtg_lym i.year, fe cluster(cusip_n)						/*	sig	*/
+est store m2
+xtreg revt_yoy enviro_rtg_lym dltt i.year, fe cluster(cusip_n)					/*	sig	*/
+est store m3
+xtreg revt_yoy enviro_rtg_lym dltt at i.year, fe cluster(cusip_n)				/*	non-sig	*/
+est store m4
+xtreg revt_yoy enviro_rtg_lym dltt at xad i.year, fe cluster(cusip_n)			/*	non-sig	*/
+est store m5
+xtreg revt_yoy enviro_rtg_lym dltt at xad xrd i.year, fe cluster(cusip_n)		/*	non-sig	*/
+est store m6
+xtreg revt_yoy enviro_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)	/*	non-sig	*/
+est store m7
+
+*	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
+replace xad=0 if xad==. & enviro_rtg_lym!=.										/*	assumption	*/
+replace xrd=0 if xrd==. & enviro_rtg_lym!=.										/*	assumption	*/
+
+xtreg revt_yoy enviro_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)	/*	non-sig	*/
+est store m8
+restore 
+
+*	Table
+esttab m1 m2 m3 m4 m5 m6 m7 m8, ///
+	keep(enviro_rtg_lym dltt at xad xrd emp) ///
+	r2 ar2 aic
+
+///	GOVERNANCE
+xtreg revt_yoy gov_rtg_lym, fe cluster(cusip_n)									/*	non-sig	*/
+est store m1
+xtreg revt_yoy gov_rtg_lym i.year, fe cluster(cusip_n)							/*	non-sig	*/
+est store m2
+xtreg revt_yoy gov_rtg_lym dltt i.year, fe cluster(cusip_n)						/*	non-sig	*/
+est store m3
+xtreg revt_yoy gov_rtg_lym dltt at i.year, fe cluster(cusip_n)					/*	non-sig	*/
+est store m4
+xtreg revt_yoy gov_rtg_lym dltt at xad i.year, fe cluster(cusip_n)				/*	non-sig	*/
+est store m5
+xtreg revt_yoy gov_rtg_lym dltt at xad xrd i.year, fe cluster(cusip_n)			/*	non-sig	*/
+est store m6
+xtreg revt_yoy gov_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
+est store m7
+
+*	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
+replace xad=0 if xad==. & gov_rtg_lym!=.										/*	assumption	*/
+replace xrd=0 if xrd==. & gov_rtg_lym!=.										/*	assumption	*/
+
+xtreg revt_yoy gov_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
+est store m8
+restore 
+
+*	Table
+esttab m1 m2 m3 m4 m5 m6 m7 m8, ///
+	keep(gov_rtg_lym dltt at xad xrd emp) ///
+	r2 ar2 aic
+	
+	
+	
+/*	
+///	REVENUE = F (CSRHUB subcategories)
+		CSRHub CATEGORIES and subcategories:
+			-	COMMUNITY
+				*	Community development and philanthropy
+				*	Product
+				*	Human rights and supply chain
+			-	EMPLOYEES
+				*	Compensation and benefits
+				*	Diversity and labor rights
+				*	Training health and safety
+			-	ENVIRONMENT
+				*	Energy and climate change
+				*	Environmental policy and reporting
+				*	Resource management
+			-	GOVERNANCE
+				*	Board
+				*	Leadership ethics
+				*	Transparency and reporting
+*/
+
+local subcategories com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
+	comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym enrgy_climchge_rtg_lym ///
+	enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym board_rtg_lym ldrship_ethics_rtg_lym ///
+	trans_report_rtg_lym
+*/
+foreach subcategory in `subcategories' {
+	xtreg revt_yoy `subcategory', fe cluster(cusip_n)
+	est store m1
+	xtreg revt_yoy `subcategory' i.year, fe cluster(cusip_n)
+	est store m2
+	xtreg revt_yoy `subcategory' dltt i.year, fe cluster(cusip_n)
+	est store m3
+	xtreg revt_yoy `subcategory' dltt at i.year, fe cluster(cusip_n)
+	est store m4
+	xtreg revt_yoy `subcategory' dltt at xad i.year, fe cluster(cusip_n)
+	est store m5
+	xtreg revt_yoy `subcategory' dltt at xad xrd i.year, fe cluster(cusip_n)
+	est store m6
+	xtreg revt_yoy `subcategory' dltt at xad xrd emp i.year, fe cluster(cusip_n)
+	est store m7
+
+	*	Many xad and xrd observations are missing. Assume missing = 0.
+	preserve
+	replace xad=0 if xad==. & `subcategory'!=.									/*	assumption	*/
+	replace xrd=0 if xrd==. & `subcategory'!=.									/*	assumption	*/
+
+	xtreg revt_yoy `subcategory' dltt at xad xrd emp i.year, fe cluster(cusip_n)
+	est store m8
+	restore 
+
+	*	Table
+	esttab m1 m2 m3 m4 m5 m6 m7 m8, ///
+		keep(`subcategory' dltt at xad xrd emp) ///
+		r2 ar2 aic
+}
+	
 
 
+capt n log close
 
 
-
-
-
-
-
+/*
 
 ***===============================================================***
 *	EXPLORATORY DATA ANALYSIS: FIXED EFFECTS REGRESSION				*
