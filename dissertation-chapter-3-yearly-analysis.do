@@ -1,6 +1,6 @@
 ///	LOG
 capt n log close
-log using logs/yearly-analysis.txt, text replace
+log using logs/yearly-analysis-leading-dv.txt, text replace
 
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
@@ -46,15 +46,15 @@ est clear
 mark mark2
 markout mark2 over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg
 
-xtreg revt_yoy over_rtg i.year if mark2==1, fe cluster(cusip_n)
+xtreg F.revt_yoy over_rtg i.year if mark2==1, fe cluster(cusip_n)
 est store lag6
-xtreg revt_yoy over_rtg l.over_rtg i.year if mark2==1, fe cluster(cusip_n)
+xtreg F.revt_yoy over_rtg l.over_rtg i.year if mark2==1, fe cluster(cusip_n)
 est store lag7
-xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg i.year if mark2==1, fe cluster(cusip_n)
+xtreg F.revt_yoy over_rtg l.over_rtg l2.over_rtg i.year if mark2==1, fe cluster(cusip_n)
 est store lag8
-xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year if mark2==1, fe cluster(cusip_n)
+xtreg F.revt_yoy over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year if mark2==1, fe cluster(cusip_n)
 est store lag9
-xtreg revt_yoy over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg i.year if mark2==1, fe cluster(cusip_n)
+xtreg F.revt_yoy over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg i.year if mark2==1, fe cluster(cusip_n)
 est store lag10
 
 esttab lag6 lag7 lag8 lag9 lag10, ///
@@ -112,19 +112,19 @@ esttab con1 con2 con3 con4 con5 con6 con7 con8, ///
 *	REVENUE CHANGE = F (CSRHUB) 	*
 ***===============================***	
 /// DV: Revenue (1-year change)
-xtreg revt_yoy over_rtg, fe cluster(cusip_n)									/*	non-sig	*/
+xtreg F.revt_yoy over_rtg, fe cluster(cusip_n)									/*	non-sig	*/
 est store con8
-xtreg revt_yoy over_rtg i.year, fe cluster(cusip_n)								/*	sig	*/
+xtreg F.revt_yoy over_rtg i.year, fe cluster(cusip_n)								/*	sig	*/
 est store con9
-xtreg revt_yoy over_rtg dltt i.year, fe cluster(cusip_n)						/*	sig	*/
+xtreg F.revt_yoy over_rtg dltt i.year, fe cluster(cusip_n)						/*	sig	*/
 est store con10
-xtreg revt_yoy over_rtg dltt at i.year, fe cluster(cusip_n)						/*	sig	*/
+xtreg F.revt_yoy over_rtg dltt at i.year, fe cluster(cusip_n)						/*	sig	*/
 est store con11
-xtreg revt_yoy over_rtg dltt at xad i.year, fe cluster(cusip_n)					/*	non-sig	*/
+xtreg F.revt_yoy over_rtg dltt at xad i.year, fe cluster(cusip_n)					/*	non-sig	*/
 est store con12
-xtreg revt_yoy over_rtg dltt at xad xrd i.year, fe cluster(cusip_n)				/*	non-sig	*/
+xtreg F.revt_yoy over_rtg dltt at xad xrd i.year, fe cluster(cusip_n)				/*	non-sig	*/
 est store con13
-xtreg revt_yoy over_rtg dltt at xad xrd emp i.year, fe cluster(cusip_n)			/*	non-sig	*/
+xtreg F.revt_yoy over_rtg dltt at xad xrd emp i.year, fe cluster(cusip_n)			/*	non-sig	*/
 est store con14
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
@@ -132,7 +132,7 @@ preserve
 replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
-xtreg revt_yoy over_rtg dltt at xad xrd emp i.year, fe cluster(cusip_n)			/*	sig	*/
+xtreg F.revt_yoy over_rtg dltt at xad xrd emp i.year, fe cluster(cusip_n)			/*	sig	*/
 est store con15
 restore 
 
@@ -194,19 +194,19 @@ esttab con16 con17, ///
 */
 
 ///	COMMUNITY
-xtreg revt_yoy cmty_rtg_lym, fe cluster(cusip_n)								/*	non-sig	*/
+xtreg F.revt_yoy cmty_rtg_lym, fe cluster(cusip_n)								/*	non-sig	*/
 est store m1
-xtreg revt_yoy cmty_rtg_lym i.year, fe cluster(cusip_n)							/*	sig	*/
+xtreg F.revt_yoy cmty_rtg_lym i.year, fe cluster(cusip_n)							/*	sig	*/
 est store m2
-xtreg revt_yoy cmty_rtg_lym dltt i.year, fe cluster(cusip_n)					/*	sig	*/
+xtreg F.revt_yoy cmty_rtg_lym dltt i.year, fe cluster(cusip_n)					/*	sig	*/
 est store m3
-xtreg revt_yoy cmty_rtg_lym dltt at i.year, fe cluster(cusip_n)					/*	sig	*/
+xtreg F.revt_yoy cmty_rtg_lym dltt at i.year, fe cluster(cusip_n)					/*	sig	*/
 est store m4
-xtreg revt_yoy cmty_rtg_lym dltt at xad i.year, fe cluster(cusip_n)				/*	non-sig	*/
+xtreg F.revt_yoy cmty_rtg_lym dltt at xad i.year, fe cluster(cusip_n)				/*	non-sig	*/
 est store m5
-xtreg revt_yoy cmty_rtg_lym dltt at xad xrd i.year, fe cluster(cusip_n)			/*	non-sig	*/
+xtreg F.revt_yoy cmty_rtg_lym dltt at xad xrd i.year, fe cluster(cusip_n)			/*	non-sig	*/
 est store m6
-xtreg revt_yoy cmty_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
+xtreg F.revt_yoy cmty_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
 est store m7
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
@@ -214,7 +214,7 @@ preserve
 replace xad=0 if xad==. & cmty_rtg_lym!=.										/*	assumption	*/
 replace xrd=0 if xrd==. & cmty_rtg_lym!=.										/*	assumption	*/
 
-xtreg revt_yoy cmty_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	sig	*/
+xtreg F.revt_yoy cmty_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	sig	*/
 est store m8
 restore 
 
@@ -226,19 +226,19 @@ esttab m1 m2 m3 m4 m5 m6 m7 m8, ///
 
 	
 ///	EMPLOYEES
-xtreg revt_yoy emp_rtg_lym, fe cluster(cusip_n)									/*	non-sig	*/
+xtreg F.revt_yoy emp_rtg_lym, fe cluster(cusip_n)									/*	non-sig	*/
 est store m1
-xtreg revt_yoy emp_rtg_lym i.year, fe cluster(cusip_n)							/*	sig	*/
+xtreg F.revt_yoy emp_rtg_lym i.year, fe cluster(cusip_n)							/*	sig	*/
 est store m2
-xtreg revt_yoy emp_rtg_lym dltt i.year, fe cluster(cusip_n)						/*	sig	*/
+xtreg F.revt_yoy emp_rtg_lym dltt i.year, fe cluster(cusip_n)						/*	sig	*/
 est store m3
-xtreg revt_yoy emp_rtg_lym dltt at i.year, fe cluster(cusip_n)					/*	sig	*/
+xtreg F.revt_yoy emp_rtg_lym dltt at i.year, fe cluster(cusip_n)					/*	sig	*/
 est store m4
-xtreg revt_yoy emp_rtg_lym dltt at xad i.year, fe cluster(cusip_n)				/*	non-sig	*/
+xtreg F.revt_yoy emp_rtg_lym dltt at xad i.year, fe cluster(cusip_n)				/*	non-sig	*/
 est store m5
-xtreg revt_yoy emp_rtg_lym dltt at xad xrd i.year, fe cluster(cusip_n)			/*	non-sig	*/
+xtreg F.revt_yoy emp_rtg_lym dltt at xad xrd i.year, fe cluster(cusip_n)			/*	non-sig	*/
 est store m6
-xtreg revt_yoy emp_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
+xtreg F.revt_yoy emp_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
 est store m7
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
@@ -246,7 +246,7 @@ preserve
 replace xad=0 if xad==. & emp_rtg_lym!=.										/*	assumption	*/
 replace xrd=0 if xrd==. & emp_rtg_lym!=.										/*	assumption	*/
 
-xtreg revt_yoy emp_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	sig	*/
+xtreg F.revt_yoy emp_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	sig	*/
 est store m8
 restore 
 
@@ -258,19 +258,19 @@ esttab m1 m2 m3 m4 m5 m6 m7 m8, ///
 	
 	
 ///	ENVIRONMENT
-xtreg revt_yoy enviro_rtg_lym, fe cluster(cusip_n)								/*	non-sig	*/
+xtreg F.revt_yoy enviro_rtg_lym, fe cluster(cusip_n)								/*	non-sig	*/
 est store m1
-xtreg revt_yoy enviro_rtg_lym i.year, fe cluster(cusip_n)						/*	sig	*/
+xtreg F.revt_yoy enviro_rtg_lym i.year, fe cluster(cusip_n)						/*	sig	*/
 est store m2
-xtreg revt_yoy enviro_rtg_lym dltt i.year, fe cluster(cusip_n)					/*	sig	*/
+xtreg F.revt_yoy enviro_rtg_lym dltt i.year, fe cluster(cusip_n)					/*	sig	*/
 est store m3
-xtreg revt_yoy enviro_rtg_lym dltt at i.year, fe cluster(cusip_n)				/*	non-sig	*/
+xtreg F.revt_yoy enviro_rtg_lym dltt at i.year, fe cluster(cusip_n)				/*	non-sig	*/
 est store m4
-xtreg revt_yoy enviro_rtg_lym dltt at xad i.year, fe cluster(cusip_n)			/*	non-sig	*/
+xtreg F.revt_yoy enviro_rtg_lym dltt at xad i.year, fe cluster(cusip_n)			/*	non-sig	*/
 est store m5
-xtreg revt_yoy enviro_rtg_lym dltt at xad xrd i.year, fe cluster(cusip_n)		/*	non-sig	*/
+xtreg F.revt_yoy enviro_rtg_lym dltt at xad xrd i.year, fe cluster(cusip_n)		/*	non-sig	*/
 est store m6
-xtreg revt_yoy enviro_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)	/*	non-sig	*/
+xtreg F.revt_yoy enviro_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)	/*	non-sig	*/
 est store m7
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
@@ -278,7 +278,7 @@ preserve
 replace xad=0 if xad==. & enviro_rtg_lym!=.										/*	assumption	*/
 replace xrd=0 if xrd==. & enviro_rtg_lym!=.										/*	assumption	*/
 
-xtreg revt_yoy enviro_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)	/*	non-sig	*/
+xtreg F.revt_yoy enviro_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)	/*	non-sig	*/
 est store m8
 restore 
 
@@ -288,19 +288,19 @@ esttab m1 m2 m3 m4 m5 m6 m7 m8, ///
 	r2 ar2 aic
 
 ///	GOVERNANCE
-xtreg revt_yoy gov_rtg_lym, fe cluster(cusip_n)									/*	non-sig	*/
+xtreg F.revt_yoy gov_rtg_lym, fe cluster(cusip_n)									/*	non-sig	*/
 est store m1
-xtreg revt_yoy gov_rtg_lym i.year, fe cluster(cusip_n)							/*	non-sig	*/
+xtreg F.revt_yoy gov_rtg_lym i.year, fe cluster(cusip_n)							/*	non-sig	*/
 est store m2
-xtreg revt_yoy gov_rtg_lym dltt i.year, fe cluster(cusip_n)						/*	non-sig	*/
+xtreg F.revt_yoy gov_rtg_lym dltt i.year, fe cluster(cusip_n)						/*	non-sig	*/
 est store m3
-xtreg revt_yoy gov_rtg_lym dltt at i.year, fe cluster(cusip_n)					/*	non-sig	*/
+xtreg F.revt_yoy gov_rtg_lym dltt at i.year, fe cluster(cusip_n)					/*	non-sig	*/
 est store m4
-xtreg revt_yoy gov_rtg_lym dltt at xad i.year, fe cluster(cusip_n)				/*	non-sig	*/
+xtreg F.revt_yoy gov_rtg_lym dltt at xad i.year, fe cluster(cusip_n)				/*	non-sig	*/
 est store m5
-xtreg revt_yoy gov_rtg_lym dltt at xad xrd i.year, fe cluster(cusip_n)			/*	non-sig	*/
+xtreg F.revt_yoy gov_rtg_lym dltt at xad xrd i.year, fe cluster(cusip_n)			/*	non-sig	*/
 est store m6
-xtreg revt_yoy gov_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
+xtreg F.revt_yoy gov_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
 est store m7
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
@@ -308,7 +308,7 @@ preserve
 replace xad=0 if xad==. & gov_rtg_lym!=.										/*	assumption	*/
 replace xrd=0 if xrd==. & gov_rtg_lym!=.										/*	assumption	*/
 
-xtreg revt_yoy gov_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
+xtreg F.revt_yoy gov_rtg_lym dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
 est store m8
 restore 
 
@@ -319,19 +319,19 @@ esttab m1 m2 m3 m4 m5 m6 m7 m8, ///
 	
 	
 ///	ALL CATEGORIES
-xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym , fe cluster(cusip_n)									/*	non-sig	*/
+xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym , fe cluster(cusip_n)									/*	non-sig	*/
 est store m1
-xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  i.year, fe cluster(cusip_n)							/*	non-sig	*/
+xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  i.year, fe cluster(cusip_n)							/*	non-sig	*/
 est store m2
-xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt i.year, fe cluster(cusip_n)						/*	non-sig	*/
+xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt i.year, fe cluster(cusip_n)						/*	non-sig	*/
 est store m3
-xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at i.year, fe cluster(cusip_n)					/*	non-sig	*/
+xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at i.year, fe cluster(cusip_n)					/*	non-sig	*/
 est store m4
-xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at xad i.year, fe cluster(cusip_n)				/*	non-sig	*/
+xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at xad i.year, fe cluster(cusip_n)				/*	non-sig	*/
 est store m5
-xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at xad xrd i.year, fe cluster(cusip_n)			/*	non-sig	*/
+xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at xad xrd i.year, fe cluster(cusip_n)			/*	non-sig	*/
 est store m6
-xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
+xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
 est store m7
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
@@ -339,7 +339,7 @@ preserve
 replace xad=0 if xad==.															/*	assumption	*/
 replace xrd=0 if xrd==.															/*	assumption	*/
 
-xtreg revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
+xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym  dltt at xad xrd emp i.year, fe cluster(cusip_n)		/*	non-sig	*/
 est store m8
 restore 
 
@@ -377,19 +377,19 @@ local subcategories com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
 	trans_report_rtg_lym
 */
 foreach subcategory in `subcategories' {
-	xtreg revt_yoy `subcategory', fe cluster(cusip_n)
+	xtreg F.revt_yoy `subcategory', fe cluster(cusip_n)
 	est store m1
-	xtreg revt_yoy `subcategory' i.year, fe cluster(cusip_n)
+	xtreg F.revt_yoy `subcategory' i.year, fe cluster(cusip_n)
 	est store m2
-	xtreg revt_yoy `subcategory' dltt i.year, fe cluster(cusip_n)
+	xtreg F.revt_yoy `subcategory' dltt i.year, fe cluster(cusip_n)
 	est store m3
-	xtreg revt_yoy `subcategory' dltt at i.year, fe cluster(cusip_n)
+	xtreg F.revt_yoy `subcategory' dltt at i.year, fe cluster(cusip_n)
 	est store m4
-	xtreg revt_yoy `subcategory' dltt at xad i.year, fe cluster(cusip_n)
+	xtreg F.revt_yoy `subcategory' dltt at xad i.year, fe cluster(cusip_n)
 	est store m5
-	xtreg revt_yoy `subcategory' dltt at xad xrd i.year, fe cluster(cusip_n)
+	xtreg F.revt_yoy `subcategory' dltt at xad xrd i.year, fe cluster(cusip_n)
 	est store m6
-	xtreg revt_yoy `subcategory' dltt at xad xrd emp i.year, fe cluster(cusip_n)
+	xtreg F.revt_yoy `subcategory' dltt at xad xrd emp i.year, fe cluster(cusip_n)
 	est store m7
 
 	*	Many xad and xrd observations are missing. Assume missing = 0.
@@ -397,7 +397,7 @@ foreach subcategory in `subcategories' {
 	replace xad=0 if xad==. & `subcategory'!=.									/*	assumption	*/
 	replace xrd=0 if xrd==. & `subcategory'!=.									/*	assumption	*/
 
-	xtreg revt_yoy `subcategory' dltt at xad xrd emp i.year, fe cluster(cusip_n)
+	xtreg F.revt_yoy `subcategory' dltt at xad xrd emp i.year, fe cluster(cusip_n)
 	est store m8
 	restore 
 
