@@ -18,6 +18,14 @@ keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp ///
 	over_rtg *rtg_lym
 
 
+	
+	
+	
+	
+	
+						***===========================***
+						*	FIXED EFFECTS REGRESSION	*	
+						***===========================***	
 ***===========================***
 *	REVENUE LEVEL = F (CSRHUB) 	*
 ***===========================***
@@ -60,7 +68,7 @@ estadd local yearFE "Yes", replace
 restore
 
 esttab con1 con2 con3 con4 con5 con6 con7 con8, ///
-	b se s(yearFE N r2 aic, label("Year FEs" "N" "R^2" "AIC")) ///
+	b se s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC")) ///
 	keep(over_rtg dltt at xad xrd emp)
 
 	
@@ -367,6 +375,34 @@ foreach subcategory in `subcategories' {
 
 
 capt n log close
+
+
+
+
+
+
+
+
+
+
+
+						***===========================***
+						*	ARELLANO BOND ESTIMATION	*	
+						***===========================***	
+///	SALES (REVENUE LEVEL)
+xtabond f.revt enviro_rtg_lym gov_rtg_lym emp_rtg_lym cmty_rtg_lym dltt at emp xad xrd, lags(1) artests(2)
+
+///	SALES GROWTH (REVENUE YEAR-ON-YEAR CHANGE)
+xtabond f.revt enviro_rtg_lym gov_rtg_lym emp_rtg_lym cmty_rtg_lym dltt at emp xad xrd, lags(1) artests(2)
+
+
+
+
+
+
+
+
+
 
 
 /*
