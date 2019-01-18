@@ -18,49 +18,6 @@ keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp ///
 	over_rtg *rtg_lym
 
 
-***=======================***
-*	LAG STRUCTURE MODELS	*
-***=======================***
-///	DV: REVENUE (LEVEL)
-est clear
-mark mark1
-markout mark1 over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg
-
-xtreg revt over_rtg i.year if mark1==1, fe cluster(cusip_n)
-est store lag1
-xtreg revt over_rtg l.over_rtg i.year if mark1==1, fe cluster(cusip_n)
-est store lag2
-xtreg revt over_rtg l.over_rtg l2.over_rtg i.year if mark1==1, fe cluster(cusip_n)
-est store lag3
-xtreg revt over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year if mark1==1, fe cluster(cusip_n)
-est store lag4
-xtreg revt over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg i.year if mark1==1, fe cluster(cusip_n)
-est store lag5
-
-esttab lag1 lag2 lag3 lag4 lag5, ///
-	keep(*over_rtg)
-
-
-///	DV: REVENUE (1-YEAR CHANGE)
-est clear
-mark mark2
-markout mark2 over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg
-
-xtreg F.revt_yoy over_rtg i.year if mark2==1, fe cluster(cusip_n)
-est store lag6
-xtreg F.revt_yoy over_rtg l.over_rtg i.year if mark2==1, fe cluster(cusip_n)
-est store lag7
-xtreg F.revt_yoy over_rtg l.over_rtg l2.over_rtg i.year if mark2==1, fe cluster(cusip_n)
-est store lag8
-xtreg F.revt_yoy over_rtg l.over_rtg l2.over_rtg l3.over_rtg i.year if mark2==1, fe cluster(cusip_n)
-est store lag9
-xtreg F.revt_yoy over_rtg l.over_rtg l2.over_rtg l3.over_rtg l4.over_rtg i.year if mark2==1, fe cluster(cusip_n)
-est store lag10
-
-esttab lag6 lag7 lag8 lag9 lag10, ///
-	keep(*over_rtg)
-
-
 ***===========================***
 *	REVENUE LEVEL = F (CSRHUB) 	*
 ***===========================***
