@@ -1,6 +1,6 @@
 ///	LOG
 capt n log close
-log using logs/yearly-analysis-leading-dv.txt, text replace
+log using logs/20190122-yearly-analysis.txt, text replace
 
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
@@ -99,6 +99,7 @@ xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
 est store reg1
 estadd local yearFE "Yes", replace
 
+local vars ""
 local counter 2
 foreach control of local controls {
 	*	Regression
@@ -189,6 +190,7 @@ esttab int1 int2, ///
 */
 
 ///	COMMUNITY
+est clear
 local dv revt_yoy
 local iv cmty_rtg_lym
 local controls "dltt at age emp xad xrd"
@@ -201,6 +203,7 @@ xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
 est store cmty1
 estadd local yearFE "Yes", replace
 
+local vars ""
 local counter 2
 foreach control of local controls {
 	*	Regression
@@ -254,6 +257,7 @@ xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
 est store emp1
 estadd local yearFE "Yes", replace
 
+local vars ""
 local counter 2
 foreach control of local controls {
 	*	Regression
@@ -305,6 +309,7 @@ xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
 est store enviro1
 estadd local yearFE "Yes", replace
 
+local vars ""
 local counter 2
 foreach control of local controls {
 	*	Regression
@@ -359,6 +364,7 @@ xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
 est store govmod1
 estadd local yearFE "Yes", replace
 
+local vars ""
 local counter 2
 foreach control of local controls {
 	*	Regression
@@ -478,20 +484,21 @@ foreach iv of local ivs {
 	qui estadd local yearFE "Yes", replace
 	qui estadd local firmFE "Yes", replace
 	
+	local vars ""
 	local counter 2
-		foreach control of local controls {
-			*	Regression
-			qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
-				
-			*	Store results
-			est store `iv'`counter'
-			estadd local yearFE "Yes", replace
-			estadd local firmFE "Yes", replace
+	foreach control of local controls {
+		*	Regression
+		qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
 			
-			*	Increment
-			local vars "`vars' `control'"
-			local counter = `counter' + 1
-		}
+		*	Store results
+		est store `iv'`counter'
+		estadd local yearFE "Yes", replace
+		estadd local firmFE "Yes", replace
+		
+		*	Increment
+		local vars "`vars' `control'"
+		local counter = `counter' + 1
+	}
 
 	esttab `iv'*, ///
 		keep(`iv' dltt at age emp xad xrd) ///
@@ -517,51 +524,42 @@ foreach iv of local ivs {
 }
 
 
-
-
-
-
-
-
-local subcategories com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
-	comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym enrgy_climchge_rtg_lym ///
-	enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym board_rtg_lym ldrship_ethics_rtg_lym ///
-	trans_report_rtg_lym
-*/
-foreach subcategory in `subcategories' {
-	xtreg F.revt_yoy `subcategory', fe cluster(cusip_n)
-	est store m1
-	xtreg F.revt_yoy `subcategory' i.year, fe cluster(cusip_n)
-	est store m2
-	xtreg F.revt_yoy `subcategory' dltt i.year, fe cluster(cusip_n)
-	est store m3
-	xtreg F.revt_yoy `subcategory' dltt at i.year, fe cluster(cusip_n)
-	est store m4
-	xtreg F.revt_yoy `subcategory' dltt at xad i.year, fe cluster(cusip_n)
-	est store m5
-	xtreg F.revt_yoy `subcategory' dltt at xad xrd i.year, fe cluster(cusip_n)
-	est store m6
-	xtreg F.revt_yoy `subcategory' dltt at xad xrd emp i.year, fe cluster(cusip_n)
-	est store m7
-
-	*	Many xad and xrd observations are missing. Assume missing = 0.
-	preserve
-	replace xad=0 if xad==. & `subcategory'!=.									/*	assumption	*/
-	replace xrd=0 if xrd==. & `subcategory'!=.									/*	assumption	*/
-
-	xtreg F.revt_yoy `subcategory' dltt at xad xrd emp i.year, fe cluster(cusip_n)
-	est store m8
-	restore 
-
-	*	Table
-	esttab m1 m2 m3 m4 m5 m6 m7 m8, ///
-		keep(`subcategory' dltt at xad xrd emp) ///
-		r2 ar2 aic
-}
+///	ALL SUBCATEGORIES
+xtreg F.revt_yoy com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
+	comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym ///
+	enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym ///
+	board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym ///
+	dltt at age emp xad xrd i.year, fe cluster(cusip_n)
 	
+preserve
+replace xad=0 if xad==.
+replace xrd=0 if xrd==.
 
+xtreg F.revt_yoy com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
+	comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym ///
+	enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym ///
+	board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym ///
+	dltt at age emp xad xrd i.year, fe cluster(cusip_n)
+	
+restore
 
 capt n log close
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
