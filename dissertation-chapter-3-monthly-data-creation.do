@@ -94,11 +94,13 @@ by cusip: gen n=_n
 
 gen yr_start=year(datadate) if n==1
 by cusip: replace yr_start = yr_start[_n-1] if yr_start==.
-gen age = year(datadate) - yr_start + 1
-
-
 label var yr_start "(CSTAT) First year in CSTAT data"
-label var age "(CSTAT) Years in data: year(datadate) - yr_start"
+
+gen age = year(datadate) - yr_start + 1
+label var age "(CSTAT) Years in data: year(datadate) - yr_start + 1"
+
+
+
 
 keep cusip datadate costat yr_start age
 
