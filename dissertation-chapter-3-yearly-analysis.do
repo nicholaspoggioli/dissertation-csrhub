@@ -14,7 +14,7 @@ gen revt_yoy = revt - l.revt
 label var revt_yoy "Year-on-year change in revenue (revt)"
 
 ///	KEEP VARIABLES IN REGRESSION MODELS TO REDUCE FILE SIZE
-keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp ///
+keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
 	over_rtg *rtg_lym
 
 
@@ -56,49 +56,78 @@ estadd local yearFE "Yes", replace
 xtreg revt over_rtg dltt at emp xad xrd i.year, fe cluster(cusip_n)				/*	non-sig	*/
 est store con7
 estadd local yearFE "Yes", replace
+xtreg revt over_rtg dltt at emp xad xrd age i.year, fe cluster(cusip_n)				/*	non-sig	*/
+est store con8
+estadd local yearFE "Yes", replace
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
 preserve
 replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
-xtreg revt over_rtg dltt at emp xad xrd i.year, fe cluster(cusip_n)				/*	non-sig	*/
-est store con8
+xtreg revt over_rtg dltt at emp xad xrd age i.year, fe cluster(cusip_n)				/*	non-sig	*/
+est store con9
 estadd local yearFE "Yes", replace
 restore
 
-esttab con1 con2 con3 con4 con5 con6 con7 con8, ///
+esttab con1 con2 con3 con4 con5 con6 con7 con8 con9, ///
 	b se s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC")) ///
-	keep(over_rtg dltt at xad xrd emp)
+	keep(over_rtg dltt at xad xrd emp age)
 
+	
+
+	
+*** Loop to run regression models
+
+
+	
 	
 	
 ***===============================***
 *	REVENUE CHANGE = F (CSRHUB) 	*
 ***===============================***	
 /// DV: Revenue (1-year change)
-xtreg F.revt_yoy over_rtg, fe cluster(cusip_n)									/*	non-sig	*/
-est store con8
-xtreg F.revt_yoy over_rtg i.year, fe cluster(cusip_n)								/*	sig	*/
-est store con9
-xtreg F.revt_yoy over_rtg dltt i.year, fe cluster(cusip_n)						/*	sig	*/
-est store con10
-xtreg F.revt_yoy over_rtg dltt at i.year, fe cluster(cusip_n)						/*	sig	*/
-est store con11
-xtreg F.revt_yoy over_rtg dltt at xad i.year, fe cluster(cusip_n)					/*	non-sig	*/
-est store con12
-xtreg F.revt_yoy over_rtg dltt at xad xrd i.year, fe cluster(cusip_n)				/*	non-sig	*/
-est store con13
-xtreg F.revt_yoy over_rtg dltt at xad xrd emp i.year, fe cluster(cusip_n)			/*	non-sig	*/
-est store con14
+
+local dv revt_yoy
+local iv over_rtg 
+local controls "dltt at age xad xrd emp"
+
+xtreg F.`dv' `iv', fe cluster(cusip_n)
+est store reg0
+estadd local yearFE "No", replace
+
+xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+est store reg1
+estadd local yearFE "Yes", replace
+
+local counter 2
+foreach control of local controls {
+	*	Regression
+	xtreg F.`dv' `vars' `iv' `control' i.year, fe cluster(cusip_n)
+		
+	*	Store results
+	est store reg`counter'
+	estadd local yearFE "Yes", replace
+	
+	*	Increment
+	local vars "`vars' `control'"
+	local counter = `counter' + 1
+}
+
+esttab reg*, ///
+	keep(over_rtg dltt at age xad xrd emp) ///
+	order(over_rtg dltt at age xad xrd emp) ///
+	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
+
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
 preserve
 replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
-xtreg F.revt_yoy over_rtg dltt at xad xrd emp i.year, fe cluster(cusip_n)			/*	sig	*/
-est store con15
+xtreg F.revt_yoy over_rtg dltt at age xad xrd emp i.year, fe cluster(cusip_n)	
+est store as1
+estadd local yearFE "Yes", replace
 restore 
 
 *	Assume missing xad and xrd are 0, interact over_rtg and revt, 
@@ -107,8 +136,9 @@ preserve
 replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
-xtreg F.revt_yoy c.over_rtg##c.revt dltt at xad xrd emp i.year, fe cluster(cusip_n)			/*	sig	*/
-est store con16
+xtreg F.revt_yoy c.over_rtg##c.revt dltt at age xad xrd emp i.year, fe cluster(cusip_n)
+est store int1
+estadd local yearFE "Yes", replace
 restore
 
 *	Assume missing xad and xrd are 0, interact over_rtg and revt, 
@@ -120,22 +150,23 @@ replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 egen Sover_rtg = std(over_rtg)
 egen Srevt = std(revt)
 
-xtreg F.revt_yoy c.Sover_rtg##c.Srevt dltt at xad xrd emp i.year, fe cluster(cusip_n)			/*	sig	*/
-est store con17
+xtreg F.revt_yoy c.Sover_rtg##c.Srevt dltt at xad xrd emp age i.year, fe cluster(cusip_n)
+est store int2
+estadd local yearFE "Yes", replace
 restore
 
-esttab con8 con9 con10 con11 con12 con13 con14 con15, ///
-	keep(over_rtg dltt at xad xrd emp) ///
-	order(over_rtg dltt at xad xrd emp) ///
-	r2 ar2 aic
+esttab reg* as1, ///
+	keep(over_rtg dltt at age xad xrd emp) ///
+	order(over_rtg dltt at age xad xrd emp) ///
+	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
 	
-esttab con16 con17, ///
-	keep(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at xad xrd emp) ///
-	order(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at xad xrd emp) ///
+esttab int1 int2, ///
+	keep(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at age xad xrd emp) ///
+	order(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at age xad xrd emp) ///
 	r2 ar2 aic
 
 
-
+	
 
 /*
 ///	REVENUE = F (CSRHUB CATEGORIES)
