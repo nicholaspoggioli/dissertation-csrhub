@@ -1,0 +1,758 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  D:\Dropbox\papers\active\dissertation-csrhub\project\logs\dissertation-chapter-3-analysis.txt
+  log type:  text
+ opened on:  19 Nov 2018, 10:59:12
+
+. 
+end of do-file
+
+. do "C:\Users\poggi005\AppData\Local\Temp\STDacc_000000.tmp"
+
+. use data/csrhub-kld-cstat-matched-on-cusip.dta, clear
+(CUSIPs from KLD and CSRHUB matched to CSTAT)
+
+. 
+. ***     Descriptive analysis
+. corr revt ni tobinq roa net_kld_str net_kld_con over_rtg, means
+(obs=10,098)
+
+    Variable |         Mean    Std. Dev.          Min          Max
+-------------+----------------------------------------------------
+        revt |     7397.932     23454.08    -1964.999       483521
+          ni |     538.7879     2408.586       -71969        53394
+      tobinq |      2.02348     1.817688     .4806688     81.23068
+         roa |     .0262768     .3445179    -31.39505     1.111691
+ net_kld_str |     1.900772     2.819143            0           22
+ net_kld_con |     1.475045     1.957107            0           18
+    over_rtg |     52.21217      6.86254      21.9236      78.8839
+
+
+             |     revt       ni   tobinq      roa net_kl~r net_kl~n over_rtg
+-------------+---------------------------------------------------------------
+        revt |   1.0000
+          ni |   0.6674   1.0000
+      tobinq |  -0.0592  -0.0110   1.0000
+         roa |   0.0287   0.0687  -0.1174   1.0000
+ net_kld_str |   0.4437   0.4121  -0.0444   0.0415   1.0000
+ net_kld_con |   0.4786   0.3552  -0.0967   0.0346   0.4336   1.0000
+    over_rtg |   0.0928   0.1223   0.0702  -0.0152   0.2323  -0.0295   1.0000
+
+
+. 
+. ///     Main CFP - CSR performance
+> 
+. ***     Contemporaneous 
+. *       CSRHub
+. eststo clear
+
+. foreach dv of varlist revt ni tobinq roa {
+  2.         
+.         foreach iv of varlist net_kld_str net_kld_con over_rtg {
+  3.                 
+.                 qui xtreg `dv' `iv', fe cluster(cusip_n)
+  4.                 eststo reg1_`dv'
+  5.                 qui xtreg `dv' `iv' i.year, fe cluster(cusip_n)
+  6.                 eststo reg1yr_`dv'
+  7.         }
+  8. }
+
+. eststo dir
+
+-------------------------------------------------------
+        name | command      depvar       npar  title 
+-------------+-----------------------------------------
+   reg1_revt | xtreg        revt            2  
+ reg1yr_revt | xtreg        revt           12  
+     reg1_ni | xtreg        ni              2  
+   reg1yr_ni | xtreg        ni             12  
+ reg1_tobinq | xtreg        tobinq          2  
+reg1yr_tob~q | xtreg        tobinq         12  
+    reg1_roa | xtreg        roa             2  
+  reg1yr_roa | xtreg        roa            12  
+-------------------------------------------------------
+
+. 
+. estout *, cells(b(star fmt(%9.3f)) z(par)) ///
+> stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+> labels("N" "CUSIPs"))      ///
+> legend collabels(none) ///
+> mlabel(,dep) ///
+> drop(_cons) ///
+> indicate(Year FEs = *.year) ///
+> title("Fixed effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+Fixed effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.
+--------------------------------------------------------------------------------------------------------------------------------------------
+                     revt            revt              ni              ni          tobinq          tobinq             roa             roa   
+--------------------------------------------------------------------------------------------------------------------------------------------
+over_rtg           22.183*         -4.885          13.382          13.101           0.034           0.040          -0.001          -0.002   
+                  (2.175)        (-0.350)         (1.937)         (1.628)         (1.472)         (1.124)        (-0.732)        (-0.774)   
+Year FEs               No             Yes              No             Yes              No             Yes              No             Yes   
+--------------------------------------------------------------------------------------------------------------------------------------------
+N                   16831           16831           16831           16831           16788           16788           16831           16831   
+CUSIPs               3539            3539            3539            3539            3538            3538            3539            3539   
+r2_o              .009204         .007585          .01241        .0006925        .0000656        .0003925          .00002        .0004974   
+r2_w             .0004346          .02294         .001341            .011        .0000693        .0004591        .0000178        .0007407   
+r2_b              .007008          .04649          .01197         .008628        .0001513        .0002229        .0001025         .000023   
+--------------------------------------------------------------------------------------------------------------------------------------------
+* p<0.05, ** p<0.01, *** p<0.001
+
+. 
+. *       KLD
+. eststo clear
+
+. foreach dv of varlist revt ni tobinq roa {
+  2.                 
+.         qui xtreg `dv' net_kld_str net_kld_con, fe cluster(cusip_n)
+  3.         eststo reg2_`dv'
+  4.         qui xtreg `dv' net_kld_str net_kld_con i.year, fe cluster(cusip_n)
+  5.         eststo reg2yr_`dv'
+  6.         
+. }
+
+. 
+. estout *, cells(b(star fmt(%9.3f)) z(par)) ///
+> stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+> labels("N" "CUSIPs"))      ///
+> legend collabels(none) ///
+> mlabel(,dep) ///
+> drop(_cons) ///
+> indicate(Year FEs = *.year) ///
+> title("Fixed effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+Fixed effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.
+--------------------------------------------------------------------------------------------------------------------------------------------
+                     revt            revt              ni              ni          tobinq          tobinq             roa             roa   
+--------------------------------------------------------------------------------------------------------------------------------------------
+net_kld_str       -29.522         -30.794          23.601          18.441          -0.007          -0.006           0.000          -0.000   
+                 (-0.466)        (-0.478)         (1.457)         (1.134)        (-1.244)        (-0.979)         (0.242)        (-0.220)   
+net_kld_con      -197.538*         11.530         -45.850**       -20.492          -0.050***       -0.001          -0.000           0.000   
+                 (-2.229)         (0.120)        (-3.221)        (-0.978)        (-7.826)        (-0.106)        (-0.106)         (0.147)   
+Year FEs               No             Yes              No             Yes              No             Yes              No             Yes   
+--------------------------------------------------------------------------------------------------------------------------------------------
+N                   12767           12767           12767           12767           12762           12762           12767           12767   
+CUSIPs               3006            3006            3006            3006            3006            3006            3006            3006   
+r2_o                .2401         .004624        .0009381         .005493          .00873          .01703        .0009787         .001158   
+r2_w              .003932          .01682         .004739          .01854          .00521           .0291        9.29e-07         .003134   
+r2_b                .3118          .01465         .003381         .006245          .01127          .01109        .0009404        .0005882   
+--------------------------------------------------------------------------------------------------------------------------------------------
+* p<0.05, ** p<0.01, *** p<0.001
+
+. 
+. 
+. ***     Lagged independent variables
+. *       CSRHub
+. xtset
+       panel variable:  cusip_n (unbalanced)
+        time variable:  ym, 2008m12 to 2017m9, but with gaps
+                delta:  1 month
+
+. eststo clear
+
+. foreach dv of varlist revt ni tobinq roa {
+  2.         
+.         foreach iv of varlist net_kld_str net_kld_con over_rtg {
+  3.                 
+.                 qui xtreg `dv' L12.`iv', fe cluster(cusip_n)
+  4.                 eststo reg3_`dv'
+  5.                 qui xtreg `dv' L12.`iv' i.year, fe cluster(cusip_n)
+  6.                 eststo reg3yr_`dv'
+  7.         }
+  8. }
+
+. 
+. estout *, cells(b(star fmt(%9.3f)) z(par)) ///
+> stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+> labels("N" "CUSIPs"))      ///
+> legend collabels(none) ///
+> mlabel(,dep) ///
+> drop(_cons) ///
+> indicate(Year FEs = *.year) ///
+> title("Fixed effects regression on lagged CSR. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+Fixed effects regression on lagged CSR. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.
+--------------------------------------------------------------------------------------------------------------------------------------------
+                     revt            revt              ni              ni          tobinq          tobinq             roa             roa   
+--------------------------------------------------------------------------------------------------------------------------------------------
+L12.over_rtg       10.191          -1.360           5.898          12.628           0.028           0.030          -0.002          -0.001   
+                  (0.992)        (-0.085)         (1.114)         (1.616)         (1.003)         (0.995)        (-0.953)        (-0.427)   
+Year FEs               No             Yes              No             Yes              No             Yes              No             Yes   
+--------------------------------------------------------------------------------------------------------------------------------------------
+N                   13294           13294           13294           13294           13264           13264           13294           13294   
+CUSIPs               3033            3033            3033            3033            3032            3032            3033            3033   
+r2_o              .006289         .009945         .009952        .0009462        .0000357        .0003564        .0001113        .0006568   
+r2_w             .0000993          .01862        .0004374          .01127        .0000395        .0004699        .0000407        .0006555   
+r2_b              .002223          .04853         .005322          .00316        .0000572        .0000484        .0008242        .0005438   
+--------------------------------------------------------------------------------------------------------------------------------------------
+* p<0.05, ** p<0.01, *** p<0.001
+
+.                 
+. eststo clear
+
+. 
+. *       KLD
+. xtset
+       panel variable:  cusip_n (unbalanced)
+        time variable:  ym, 2008m12 to 2017m9, but with gaps
+                delta:  1 month
+
+. eststo clear
+
+. foreach dv of varlist revt ni tobinq roa {
+  2.                 
+.         qui xtreg `dv' L12.net_kld_str L12.net_kld_con, fe cluster(cusip_n)
+  3.         eststo reg2_`dv'
+  4.         qui xtreg `dv' L12.net_kld_str L12.net_kld_con i.year, fe cluster(cusip_n)
+  5.         eststo reg2yr_`dv'
+  6.         
+. }
+
+. 
+. estout *, cells(b(star fmt(%9.3f)) z(par)) ///
+> stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+> labels("N" "CUSIPs"))      ///
+> legend collabels(none) ///
+> mlabel(,dep) ///
+> drop(_cons) ///
+> indicate(Year FEs = *.year) ///
+> title("Fixed effects regressions. Panel is CUSIP-year. Errors clustered by CUSIP.")
+
+Fixed effects regressions. Panel is CUSIP-year. Errors clustered by CUSIP.
+--------------------------------------------------------------------------------------------------------------------------------------------
+                     revt            revt              ni              ni          tobinq          tobinq             roa             roa   
+--------------------------------------------------------------------------------------------------------------------------------------------
+L12.net_kl~r       81.776          54.552          26.465          19.924           0.263           0.301          -0.016          -0.019   
+                  (1.032)         (0.711)         (1.559)         (1.194)         (0.959)         (0.950)        (-1.011)        (-1.066)   
+L12.net_kl~n     -123.599          77.974          12.165          49.511**         0.145           0.584          -0.008          -0.032   
+                 (-1.459)         (0.843)         (0.849)         (2.720)         (0.748)         (0.994)        (-0.685)        (-0.960)   
+Year FEs               No             Yes              No             Yes              No             Yes              No             Yes   
+--------------------------------------------------------------------------------------------------------------------------------------------
+N                   12394           12394           12394           12394           12392           12392           12394           12394   
+CUSIPs               2905            2905            2905            2905            2904            2904            2905            2905   
+r2_o             .0003734          .04109           .2343           .1666        .0000203        .0003984        .0000266        .0002337   
+r2_w              .001715          .01352          .00177          .01344        .0002955         .001448        .0003175           .0017   
+r2_b             .0000731          .07278           .2114           .2204         .000059        .0001054         .001119        .0000857   
+--------------------------------------------------------------------------------------------------------------------------------------------
+* p<0.05, ** p<0.01, *** p<0.001
+
+. 
+. eststo clear
+
+. 
+. 
+. ***     Random effects within-between models
+. *       CSRHub contemporaneous
+. xtset
+       panel variable:  cusip_n (unbalanced)
+        time variable:  ym, 2008m12 to 2017m9, but with gaps
+                delta:  1 month
+
+. foreach dv of varlist revt ni tobinq roa {
+  2.         
+.         qui xtreg `dv' over_rtg_dm over_rtg_m, re cluster(cusip_n)
+  3.         eststo rewb1_`dv'_1
+  4.         qui xtreg `dv' over_rtg_dm over_rtg_m i.year, re cluster(cusip_n)
+  5.         eststo rewb1_`dv'_2
+  6. }
+
+. 
+. estout rewb1*, cells(b(star fmt(%9.3f)) z(par)) ///
+> stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+> labels("N" "CUSIPs"))      ///
+> legend collabels(none) ///
+> mlabel(,dep) ///
+> drop(_cons) ///
+> indicate(Year FEs = *.year) ///
+> title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.
+--------------------------------------------------------------------------------------------------------------------------------------------
+                     revt            revt              ni              ni          tobinq          tobinq             roa             roa   
+--------------------------------------------------------------------------------------------------------------------------------------------
+over_rtg_dm        22.175*         -1.150          13.365          18.647*          0.034           0.034          -0.001          -0.001   
+                  (2.174)        (-0.083)         (1.935)         (2.293)         (1.475)         (1.023)        (-0.731)        (-0.564)   
+over_rtg_m        264.326***      263.258***       45.724***       48.038***        0.018           0.018           0.001           0.001   
+                  (4.656)         (4.585)         (4.974)         (5.091)         (1.640)         (1.592)         (0.317)         (0.308)   
+Year FEs               No             Yes              No             Yes              No             Yes              No             Yes   
+--------------------------------------------------------------------------------------------------------------------------------------------
+N                   16831           16831           16831           16831           16788           16788           16831           16831   
+CUSIPs               3539            3539            3539            3539            3538            3538            3539            3539   
+r2_o               .01562         .004827          .01697          .01689        .0000728        .0004743        5.05e-08        .0006395   
+r2_w             .0004346          .02283         .001341         .006694        .0000693        .0004001        .0000178        .0006958   
+r2_b              .007025        .0005265          .01199          .01059        .0001508        .0004719        .0001008        .0002414   
+--------------------------------------------------------------------------------------------------------------------------------------------
+* p<0.05, ** p<0.01, *** p<0.001
+
+.                 
+. 
+. *       CSRHub lagged
+. xtset
+       panel variable:  cusip_n (unbalanced)
+        time variable:  ym, 2008m12 to 2017m9, but with gaps
+                delta:  1 month
+
+. foreach dv of varlist revt ni tobinq roa {
+  2.         
+.         qui xtreg `dv' L12.over_rtg_dm L12.over_rtg_m, re cluster(cusip_n)
+  3.         eststo rewb2_`dv'_1
+  4.         qui xtreg `dv' L12.over_rtg_dm L12.over_rtg_m i.year, re cluster(cusip_n)
+  5.         eststo rewb2_`dv'_2
+  6. }
+
+. 
+. estout rewb2*, cells(b(star fmt(%9.3f)) z(par)) ///
+> stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+> labels("N" "CUSIPs"))      ///
+> legend collabels(none) ///
+> mlabel(,dep) ///
+> drop(_cons) ///
+> indicate(Year FEs = *.year) ///
+> title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.
+--------------------------------------------------------------------------------------------------------------------------------------------
+                     revt            revt              ni              ni          tobinq          tobinq             roa             roa   
+--------------------------------------------------------------------------------------------------------------------------------------------
+L12.over_~dm        6.724          -1.556           2.542          11.551           0.027           0.021          -0.002           0.000   
+                  (0.656)        (-0.098)         (0.489)         (1.503)         (1.515)         (1.462)        (-1.402)         (0.083)   
+L12.over_~_m      307.730***      307.951***       46.532***       47.996***        0.014           0.012          -0.003**        -0.003** 
+                  (4.145)         (4.098)         (4.639)         (4.717)         (1.086)         (1.100)        (-2.955)        (-2.964)   
+Year FEs               No             Yes              No             Yes              No             Yes              No             Yes   
+--------------------------------------------------------------------------------------------------------------------------------------------
+N                   13294           13294           13294           13294           13264           13264           13294           13294   
+CUSIPs               3033            3033            3033            3033            3032            3032            3033            3033   
+r2_o               .01806         .007486           .0229          .02012        .0000391        .0004338        .0001079        .0008968   
+r2_w             .0000993          .01855        .0004374           .0093        .0000395        .0003987        .0000407        .0005519   
+r2_b              .006927        .0009615          .01231         .009674        .0000812        .0003487        .0007733          .00194   
+--------------------------------------------------------------------------------------------------------------------------------------------
+* p<0.05, ** p<0.01, *** p<0.001
+
+.                 
+. 
+. *       KLD contemporaneous
+. xtset
+       panel variable:  cusip_n (unbalanced)
+        time variable:  ym, 2008m12 to 2017m9, but with gaps
+                delta:  1 month
+
+. foreach dv of varlist revt ni tobinq roa {
+  2.         
+.         qui xtreg `dv' net_kld_str_dm net_kld_con_dm net_kld_str_m net_kld_con_m, re cluster(cusip_n)
+  3.         eststo rewb3_`dv'_1
+  4.         qui xtreg `dv' net_kld_str_dm net_kld_con_dm net_kld_str_m net_kld_con_m i.year, re cluster(cusip_n)
+  5.         eststo rewb3_`dv'_2
+  6. }
+
+. 
+. estout rewb3*, cells(b(star fmt(%9.3f)) z(par)) ///
+> stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+> labels("N" "CUSIPs"))      ///
+> legend collabels(none) ///
+> mlabel(,dep) ///
+> drop(_cons) ///
+> indicate(Year FEs = *.year) ///
+> title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.
+--------------------------------------------------------------------------------------------------------------------------------------------
+                     revt            revt              ni              ni          tobinq          tobinq             roa             roa   
+--------------------------------------------------------------------------------------------------------------------------------------------
+net_kld_s~dm      -29.533         -29.117          23.596          18.483          -0.007          -0.004           0.000          -0.000   
+                 (-0.466)        (-0.452)         (1.456)         (1.138)        (-1.243)        (-0.730)         (0.241)        (-0.541)   
+net_kld_c~dm     -197.537*         54.699         -45.849**        -9.606          -0.050***        0.008          -0.000          -0.001   
+                 (-2.228)         (0.559)        (-3.221)        (-0.454)        (-7.824)         (1.102)        (-0.106)        (-1.075)   
+net_kld_s~_m     2909.184***     2896.012***      242.783***      244.155***       -0.004          -0.012           0.005***        0.005***
+                 (13.762)        (13.766)         (4.013)         (4.050)        (-0.349)        (-1.106)         (4.215)         (4.945)   
+net_kld_c~_m     4771.459***     4898.539***      356.728***      374.183***       -0.149***       -0.115***        0.011*          0.010*  
+                  (4.189)         (4.280)         (4.299)         (4.457)        (-7.180)        (-5.628)         (2.375)         (2.293)   
+Year FEs               No             Yes              No             Yes              No             Yes              No             Yes   
+--------------------------------------------------------------------------------------------------------------------------------------------
+N                   12767           12767           12767           12767           12762           12762           12767           12767   
+CUSIPs               3006            3006            3006            3006            3006            3006            3006            3006   
+r2_o                .3847           .3892           .2433           .2519          .01011          .02191         .002629         .004517   
+r2_w              .003932          .01668         .004739          .01833          .00521          .02873        9.29e-07         .003007   
+r2_b                .3585           .3645            .142           .1507          .01144          .01851         .004366         .006234   
+--------------------------------------------------------------------------------------------------------------------------------------------
+* p<0.05, ** p<0.01, *** p<0.001
+
+.                 
+. 
+. *       KLD lagged
+. xtset
+       panel variable:  cusip_n (unbalanced)
+        time variable:  ym, 2008m12 to 2017m9, but with gaps
+                delta:  1 month
+
+. foreach dv of varlist revt ni tobinq roa {
+  2.         
+.         qui xtreg `dv' L12.net_kld_str_dm L12.net_kld_con_dm L12.net_kld_str_m L12.net_kld_con_m, re cluster(cusip_n)
+  3.         eststo rewb4_`dv'_1
+  4.         qui xtreg `dv' L12.net_kld_str_dm L12.net_kld_con_dm L12.net_kld_str_m L12.net_kld_con_m i.year, re cluster(cusip_n)
+  5.         eststo rewb4_`dv'_2
+  6. }
+
+. 
+. estout rewb4*, cells(b(star fmt(%9.3f)) z(par)) ///
+> stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+> labels("N" "CUSIPs"))      ///
+> legend collabels(none) ///
+> mlabel(,dep) ///
+> drop(_cons) ///
+> indicate(Year FEs = *.year) ///
+> title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.
+--------------------------------------------------------------------------------------------------------------------------------------------
+                     revt            revt              ni              ni          tobinq          tobinq             roa             roa   
+--------------------------------------------------------------------------------------------------------------------------------------------
+L12.net~r_dm       81.466          56.124          26.311          19.836           0.260           0.289          -0.016          -0.020   
+                  (1.028)         (0.732)         (1.551)         (1.190)         (0.949)         (0.958)        (-1.011)        (-1.123)   
+L12.net~n_dm     -124.494         122.352          11.813          61.093***        0.144           0.539          -0.008          -0.035   
+                 (-1.470)         (1.294)         (0.825)         (3.316)         (0.752)         (1.094)        (-0.692)        (-1.226)   
+L12.net_~r_m     2938.815***     2928.519***      288.092***      286.747***       -0.064          -0.073           0.011*          0.012*  
+                 (13.749)        (13.729)         (6.081)         (6.082)        (-0.713)        (-0.742)         (2.196)         (2.109)   
+L12.net_~n_m     4937.951***     5064.542***      354.432***      376.901***        0.077           0.176          -0.007          -0.014   
+                  (4.134)         (4.229)         (4.539)         (4.800)         (0.405)         (0.661)        (-0.629)        (-0.876)   
+Year FEs               No             Yes              No             Yes              No             Yes              No             Yes   
+--------------------------------------------------------------------------------------------------------------------------------------------
+N                   12394           12394           12394           12394           12392           12392           12394           12394   
+CUSIPs               2905            2905            2905            2905            2904            2904            2905            2905   
+r2_o                .3827           .3872           .2971           .3049        .0002702         .001277         .000522         .001919   
+r2_w              .001715          .01339          .00177          .01324        .0002955         .001425        .0003175         .001628   
+r2_b                .3621           .3676           .2277           .2378         .000111         .001019        .0006461         .003107   
+--------------------------------------------------------------------------------------------------------------------------------------------
+* p<0.05, ** p<0.01, *** p<0.001
+
+.                 
+. 
+. 
+. ***     Compare contemporaneous and lagged KLD
+. estout rewb3_r* rewb4_r*, cells(b(star) z(par fmt(%9.4f))) ///
+> stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+> labels("N" "CUSIPs"))      ///
+> legend collabels(none) ///
+> mlabel(,dep) ///
+> drop(_cons) ///
+> indicate(Year FEs = *.year) ///
+> title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.
+--------------------------------------------------------------------------------------------------------------------------------------------
+                     revt            revt             roa             roa            revt            revt             roa             roa   
+--------------------------------------------------------------------------------------------------------------------------------------------
+net_kld_s~dm    -29.53257        -29.1173        .0001481       -.0003831                                                                   
+                (-0.4663)       (-0.4524)        (0.2410)       (-0.5413)                                                                   
+net_kld_c~dm    -197.5369*       54.69939       -.0000872       -.0013121                                                                   
+                (-2.2285)        (0.5585)       (-0.1059)       (-1.0749)                                                                   
+net_kld_s~_m     2909.184***     2896.012***     .0048911***      .005484***                                                                
+                (13.7617)       (13.7656)        (4.2149)        (4.9445)                                                                   
+net_kld_c~_m     4771.459***     4898.539***     .0107622*       .0098557*                                                                  
+                 (4.1895)        (4.2802)        (2.3753)        (2.2929)                                                                   
+L12.net~r_dm                                                                     81.46595        56.12378       -.0158855       -.0195291   
+                                                                                 (1.0279)        (0.7316)       (-1.0105)       (-1.1235)   
+L12.net~n_dm                                                                    -124.4938        122.3518       -.0075399       -.0348348   
+                                                                                (-1.4701)        (1.2941)       (-0.6919)       (-1.2264)   
+L12.net_~r_m                                                                     2938.815***     2928.519***     .0114315*       .0119318*  
+                                                                                (13.7490)       (13.7293)        (2.1964)        (2.1087)   
+L12.net_~n_m                                                                     4937.951***     5064.542***    -.0070317       -.0135711   
+                                                                                 (4.1342)        (4.2288)       (-0.6290)       (-0.8765)   
+Year FEs               No             Yes              No             Yes              No             Yes              No             Yes   
+--------------------------------------------------------------------------------------------------------------------------------------------
+N                   12767           12767           12767           12767           12394           12394           12394           12394   
+CUSIPs               3006            3006            3006            3006            2905            2905            2905            2905   
+r2_o                .3847           .3892         .002629         .004517           .3827           .3872         .000522         .001919   
+r2_w              .003932          .01668        9.29e-07         .003007         .001715          .01339        .0003175         .001628   
+r2_b                .3585           .3645         .004366         .006234           .3621           .3676        .0006461         .003107   
+--------------------------------------------------------------------------------------------------------------------------------------------
+* p<0.05, ** p<0.01, *** p<0.001
+
+. 
+. 
+. ///     CSP AND STAKEHOLDER MANAGEMENT
+> 
+. xtset
+       panel variable:  cusip_n (unbalanced)
+        time variable:  ym, 2008m12 to 2017m9, but with gaps
+                delta:  1 month
+
+. 
+. foreach dv of varlist net_kld_str net_kld_con {
+  2.         qui xtreg `dv' over_rtg_dm over_rtg_m, re cluster(cusip_n)
+  3.         eststo rewb5_`dv'_1
+  4.         qui xtreg `dv' over_rtg_dm over_rtg_m i.year, re cluster(cusip_n)
+  5.         eststo rewb5_`dv'_2
+  6. }
+
+. 
+. estout rewb5*, cells(b(star fmt(%9.3f)) z(par)) ///
+> stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+> labels("N" "CUSIPs"))      ///
+> legend collabels(none) ///
+> mlabel(,dep) ///
+> drop(_cons) ///
+> indicate(Year FEs = *.year) ///
+> title("Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+Random effects within-between regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.
+----------------------------------------------------------------------------
+              net_kld_str     net_kld_str     net_kld_con     net_kld_con   
+----------------------------------------------------------------------------
+over_rtg_dm        -0.001           0.040***       -0.038***        0.003   
+                 (-0.368)         (8.629)       (-10.280)         (1.056)   
+over_rtg_m          0.156***        0.166***        0.005           0.014*  
+                 (12.624)        (13.104)         (0.640)         (2.281)   
+Year FEs               No             Yes              No             Yes   
+----------------------------------------------------------------------------
+N                   10105           10105           10105           10105   
+CUSIPs               2666            2666            2666            2666   
+r2_o                .1391           .1729           .0158           .3141   
+r2_w             .0002357          .09668          .01624           .4815   
+r2_b                .1058           .1334          .01811           .2655   
+----------------------------------------------------------------------------
+* p<0.05, ** p<0.01, *** p<0.001
+
+. 
+. 
+. ///     INDUSTRY RELATIONSHIPS
+> 
+. *       Generate 2-digit NAICS
+. gen naics2=substr(naics,1,2)
+(2 missing values generated)
+
+. destring(naics2), gen(naics_2)
+naics2: all characters numeric; naics_2 generated as byte
+(2 missing values generated)
+
+. replace naics_2=31 if naics_2==32 | naics_2==33                                                                 /*      Manufacturing */
+(7,187 real changes made)
+
+. replace naics_2=44 if naics_2==45                                                                                               /*      Retail Trade    */
+(384 real changes made)
+
+. replace naics_2=48 if naics_2==49                                                                                               /*      Transport and Warehousing       */
+(26 real changes made)
+
+. 
+. *       Set base industry as retail trade
+. fvset base 44 naics_2
+
+. 
+. ***     Industry dummies
+. bysort cusip_n: egen naics_2_m = mean(naics_2)
+(2 missing values generated)
+
+. by cusip_n: gen naics_2_dm = naics_2 - naics_2_m
+(2 missing values generated)
+
+. label var naics_2_m "CUSIP-level mean naics_2"
+
+. label var naics_2_dm "CUSIP-level de-meaned naics_2 (always 0 unless firm moves sectors)"
+
+. 
+. *       Set base industry as retail trade
+. fvset base 44 naics_2_m
+
+. 
+. 
+. xtset 
+       panel variable:  cusip_n (unbalanced)
+        time variable:  ym, 2008m12 to 2017m9, but with gaps
+                delta:  1 month
+
+. foreach dv of varlist revt ni tobinq roa {
+  2.         
+.         qui xtreg `dv' i.naics_2_dm i.naics_2_m, re cluster(cusip_n) base
+  3.         eststo rewb6_`dv'_1
+  4.         qui xtreg `dv' i.naics_2_dm i.naics_2_m i.year, re cluster(cusip_n) base
+  5.         eststo rewb6_`dv'_2
+  6. }
+
+. 
+. estout rewb6*, cells(b(star fmt(%9.3f)) z(par)) ///
+> stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+> labels("N" "CUSIPs"))      ///
+> legend collabels(none) ///
+> mlabel(,dep) ///
+> drop(_cons) ///
+> title("Random effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+Random effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.
+--------------------------------------------------------------------------------------------------------------------------------------------
+                     revt            revt              ni              ni          tobinq          tobinq             roa             roa   
+--------------------------------------------------------------------------------------------------------------------------------------------
+0.naics_2_dm        0.000           0.000           0.000           0.000           0.000           0.000           0.000           0.000   
+                      (.)             (.)             (.)             (.)             (.)             (.)             (.)             (.)   
+11.naics_2_m    -9057.181**     -9062.349**       -81.293         -80.579          -0.134          -0.091          -0.001          -0.003   
+                 (-3.087)        (-3.064)        (-0.311)        (-0.307)        (-0.621)        (-0.412)        (-0.070)        (-0.175)   
+21.naics_2_m    -9332.493***    -9231.396***     -392.102**      -379.360**        -0.341***       -0.270*         -0.262**        -0.263** 
+                 (-3.475)        (-3.440)        (-3.287)        (-3.164)        (-3.387)        (-2.335)        (-2.690)        (-2.713)   
+22.naics_2_m    -7084.459**     -6866.824*        -41.431          -8.016          -0.696***       -0.570***       -0.026***       -0.031***
+                 (-2.626)        (-2.550)        (-0.334)        (-0.064)        (-8.588)        (-5.788)        (-3.575)        (-3.902)   
+23.naics_2_m    -8993.880***    -9006.163***     -313.693**      -311.019**        -0.589***       -0.553***       -0.022**        -0.022*  
+                 (-3.348)        (-3.345)        (-2.753)        (-2.715)        (-6.209)        (-5.080)        (-2.580)        (-2.331)   
+31.naics_2_m    -7906.391**     -7857.201**       -25.613         -10.815           0.403***        0.453***       -0.094***       -0.094***
+                 (-2.954)        (-2.933)        (-0.203)        (-0.085)         (3.858)         (3.600)        (-8.084)        (-7.224)   
+42.naics_2_m    -2969.621       -2986.379        -231.898*       -224.963          -0.286*         -0.276*         -0.012          -0.010   
+                 (-0.897)        (-0.900)        (-1.985)        (-1.916)        (-2.376)        (-2.177)        (-1.081)        (-0.862)   
+44.naics_2_m        0.000           0.000           0.000           0.000           0.000           0.000           0.000           0.000   
+                      (.)             (.)             (.)             (.)             (.)             (.)             (.)             (.)   
+48.naics_2_m    -6271.597*      -6240.319*         24.318          35.038           4.063           4.126          -0.241          -0.242   
+                 (-2.233)        (-2.219)         (0.177)         (0.253)         (0.931)         (0.948)        (-1.038)        (-1.046)   
+51.naics_2_m    -8366.689**     -8350.687**        52.093          56.881           0.675***        0.704***       -0.049***       -0.049***
+                 (-3.085)        (-3.076)         (0.327)         (0.355)         (4.367)         (4.226)        (-5.160)        (-4.977)   
+52.naics_2_m    -8107.047**     -8093.800**       -10.648           1.522          -0.674***       -0.630***       -0.022***       -0.020** 
+                 (-3.020)        (-3.012)        (-0.083)         (0.012)        (-7.943)        (-6.202)        (-3.479)        (-2.797)   
+53.naics_2_m    -1.06e+04***    -1.06e+04***     -283.575*       -273.295*         -0.255*         -0.219          -0.010          -0.008   
+                 (-4.006)        (-4.002)        (-2.501)        (-2.398)        (-1.978)        (-1.530)        (-0.886)        (-0.656)   
+54.naics_2_m    -9948.172***    -9885.033***     -309.312**      -309.514**         0.284           0.327*         -0.027*         -0.030** 
+                 (-3.747)        (-3.723)        (-2.711)        (-2.699)         (1.958)         (2.176)        (-2.518)        (-2.753)   
+56.naics_2_m    -9541.431***    -9468.936***     -295.384*       -279.081*          0.035           0.109          -0.015          -0.017   
+                 (-3.569)        (-3.540)        (-2.572)        (-2.408)         (0.204)         (0.605)        (-1.356)        (-1.434)   
+61.naics_2_m    -1.04e+04***    -1.04e+04***     -341.315**      -341.462**         0.088           0.113           0.005           0.003   
+                 (-3.921)        (-3.901)        (-2.908)        (-2.876)         (0.381)         (0.480)         (0.194)         (0.116)   
+62.naics_2_m    -8437.686**     -8340.506**      -276.716*       -266.459*         -0.298**        -0.220          -0.044**        -0.047***
+                 (-3.048)        (-3.013)        (-2.262)        (-2.160)        (-2.845)        (-1.885)        (-3.140)        (-3.348)   
+71.naics_2_m    -1.05e+04***    -1.06e+04***     -366.100**      -371.976**        -0.494***       -0.501***       -0.026*         -0.022*  
+                 (-3.971)        (-3.988)        (-3.224)        (-3.267)        (-4.081)        (-3.700)        (-2.557)        (-2.051)   
+72.naics_2_m    -9169.776***    -9159.512***     -193.157        -182.347           0.399*          0.429*         -0.001           0.001   
+                 (-3.414)        (-3.404)        (-1.336)        (-1.252)         (1.978)         (2.034)        (-0.074)         (0.093)   
+81.naics_2_m    -1.04e+04***    -1.02e+04***     -346.319**      -347.240**        -0.172          -0.057          -0.011          -0.024   
+                 (-3.925)        (-3.849)        (-3.020)        (-2.981)        (-0.544)        (-0.176)        (-0.676)        (-1.291)   
+99.naics_2_m    10059.464       10190.138        2014.189        2039.578          -0.484*         -0.333          -0.178*         -0.186*  
+                  (0.768)         (0.776)         (1.277)         (1.285)        (-2.524)        (-1.524)        (-2.300)        (-2.378)   
+2008.year                           0.000                           0.000                           0.000                           0.000   
+                                      (.)                             (.)                             (.)                             (.)   
+2009.year                        -837.936**                       390.062*                          0.147***                        0.000   
+                                 (-2.656)                         (2.052)                         (5.279)                         (0.089)   
+2010.year                          98.912                         521.496**                         0.315***                        0.033***
+                                  (0.322)                         (2.895)                         (8.291)                         (3.750)   
+2011.year                         751.459*                        558.057**                         0.225***                        0.027***
+                                  (2.575)                         (2.998)                         (5.668)                         (3.399)   
+2012.year                         941.130**                       533.984**                         0.324***                        0.022*  
+                                  (2.718)                         (2.827)                         (7.442)                         (2.476)   
+2013.year                        1084.463**                       596.956**                         0.651***                       -0.020   
+                                  (3.001)                         (2.884)                        (13.409)                        (-0.847)   
+2014.year                        1307.471***                      559.773**                         0.677***                        0.003   
+                                  (3.478)                         (2.955)                        (12.315)                         (0.479)   
+2015.year                        1165.105**                       472.293*                          0.521***                       -0.027*  
+                                  (2.805)                         (2.457)                        (11.180)                        (-2.486)   
+2016.year                        1217.277**                       499.150**                         1.370                          -0.066   
+                                  (2.796)                         (2.615)                         (1.742)                        (-1.535)   
+2017.year                        2023.813***                      551.119**                         1.528*                         -0.056   
+                                  (4.321)                         (2.835)                         (2.161)                        (-1.403)   
+--------------------------------------------------------------------------------------------------------------------------------------------
+N                   22480           22480           22480           22480           22404           22404           22480           22480   
+CUSIPs               4300            4300            4300            4300            4296            4296            4300            4300   
+r2_o               .03349          .02769         .009609         .009507         .001999         .002529         .002259           .0031   
+r2_w             4.51e-33          .01768        9.81e-37         .008504        2.34e-38         .000351        3.33e-35        .0006371   
+r2_b               .02625          .01915          .01061         .005266         .005885         .008566         .009486          .01133   
+--------------------------------------------------------------------------------------------------------------------------------------------
+* p<0.05, ** p<0.01, *** p<0.001
+
+. 
+. 
+. xtset 
+       panel variable:  cusip_n (unbalanced)
+        time variable:  ym, 2008m12 to 2017m9, but with gaps
+                delta:  1 month
+
+. foreach dv of varlist over_rtg net_kld_str net_kld_con {
+  2.         
+.         qui xtreg `dv' i.naics_2_dm i.naics_2_m, re cluster(cusip_n) base
+  3.         eststo rewb7_`dv'_1
+  4.         qui xtreg `dv' i.naics_2_dm i.naics_2_m i.year, re cluster(cusip_n) base
+  5.         eststo rewb7_`dv'_2
+  6. }
+
+. 
+. estout rewb7*, cells(b(star fmt(%9.3f)) z(par)) ///
+> stats(N  N_g r2_o r2_w r2_b, fmt(%9.0g %9.0g %9.4g %9.4g %9.4g) ///
+> labels("N" "CUSIPs"))      ///
+> legend collabels(none) ///
+> mlabel(,dep) ///
+> drop(_cons) ///
+> title("Random effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.")
+
+Random effects regressions. Panel is CUSIP-yearmonth. Errors clustered by CUSIP.
+------------------------------------------------------------------------------------------------------------
+                 over_rtg        over_rtg     net_kld_str     net_kld_str     net_kld_con     net_kld_con   
+------------------------------------------------------------------------------------------------------------
+0.naics_2_dm        0.000           0.000           0.000           0.000           0.000           0.000   
+                      (.)             (.)             (.)             (.)             (.)             (.)   
+11.naics_2_m       -1.942          -2.020           0.054           0.017           1.517           1.211   
+                 (-1.334)        (-1.645)         (0.059)         (0.019)         (1.524)         (1.240)   
+21.naics_2_m       -0.863          -1.297**         0.135           0.083           0.463*          0.426*  
+                 (-1.766)        (-2.674)         (0.553)         (0.339)         (2.247)         (2.351)   
+22.naics_2_m        2.619***        2.539***        1.041**         1.052**         0.713**         0.589*  
+                  (4.469)         (4.387)         (3.234)         (3.255)         (2.778)         (2.494)   
+23.naics_2_m       -1.429          -1.960**        -0.832***       -0.794**         0.268           0.348   
+                 (-1.937)        (-2.738)        (-3.312)        (-3.170)         (1.020)         (1.496)   
+31.naics_2_m       -0.311          -0.605          -0.080          -0.058           0.089           0.049   
+                 (-0.820)        (-1.606)        (-0.389)        (-0.281)         (0.568)         (0.344)   
+42.naics_2_m        0.214           0.086          -0.758**        -0.741**        -0.315          -0.275   
+                  (0.352)         (0.140)        (-3.130)        (-3.062)        (-1.814)        (-1.755)   
+44.naics_2_m        0.000           0.000           0.000           0.000           0.000           0.000   
+                      (.)             (.)             (.)             (.)             (.)             (.)   
+48.naics_2_m        0.447           0.118           0.003           0.013           0.419           0.411*  
+                  (0.706)         (0.189)         (0.009)         (0.039)         (1.848)         (1.975)   
+51.naics_2_m        0.543           0.270          -0.271          -0.239          -0.273          -0.196   
+                  (1.229)         (0.622)        (-1.179)        (-1.039)        (-1.689)        (-1.330)   
+52.naics_2_m       -1.118**        -1.509***       -0.351          -0.334          -0.428**        -0.422** 
+                 (-2.776)        (-3.784)        (-1.676)        (-1.597)        (-2.746)        (-2.941)   
+53.naics_2_m       -0.528          -1.078*         -0.844***       -0.798***       -0.485**        -0.350*  
+                 (-1.088)        (-2.237)        (-4.018)        (-3.806)        (-3.026)        (-2.370)   
+54.naics_2_m        0.411           0.272          -0.842***       -0.852***       -0.068          -0.128   
+                  (0.781)         (0.507)        (-3.929)        (-3.944)        (-0.366)        (-0.746)   
+56.naics_2_m        0.674           0.388          -0.758**        -0.744**        -0.067          -0.121   
+                  (0.842)         (0.499)        (-3.028)        (-2.956)        (-0.275)        (-0.553)   
+61.naics_2_m       -0.114          -0.454          -1.015***       -1.049***       -0.125          -0.276   
+                 (-0.075)        (-0.321)        (-3.573)        (-3.672)        (-0.475)        (-1.226)   
+62.naics_2_m        1.404*          1.020          -0.978***       -0.991***        0.054          -0.084   
+                  (2.329)         (1.736)        (-4.066)        (-4.075)         (0.272)        (-0.492)   
+71.naics_2_m       -1.930          -2.566*         -1.209***       -1.183***        0.453           0.460   
+                 (-1.842)        (-2.503)        (-4.676)        (-4.627)         (1.543)         (1.712)   
+72.naics_2_m       -0.217          -0.543          -0.384          -0.349           0.553*          0.499*  
+                 (-0.335)        (-0.860)        (-1.051)        (-0.950)         (2.344)         (2.366)   
+81.naics_2_m        0.071          -0.235          -1.449***       -1.471***        0.004          -0.219   
+                  (0.052)        (-0.191)        (-6.473)        (-6.374)         (0.012)        (-0.784)   
+99.naics_2_m       -3.724          -3.801           0.074          -0.000           2.453           1.971   
+                 (-1.679)        (-1.759)         (0.053)        (-0.000)         (1.737)         (1.472)   
+2008.year                           0.000                           0.000                           0.000   
+                                      (.)                             (.)                             (.)   
+2009.year                          -2.445***                        0.011                          -0.075*  
+                                 (-4.315)                         (0.288)                        (-1.980)   
+2010.year                          -3.260***                        0.384***                       -0.351***
+                                 (-5.261)                         (5.283)                        (-5.095)   
+2011.year                          -3.027***                        0.339***                       -0.074   
+                                 (-4.932)                         (4.757)                        (-0.991)   
+2012.year                          -4.785***                        0.284***                       -1.862***
+                                 (-7.823)                         (3.672)                       (-24.828)   
+2013.year                          -0.046                           0.409***                       -1.594***
+                                 (-0.076)                         (5.278)                       (-19.964)   
+2014.year                           2.762***                       -0.404***                       -2.276***
+                                  (4.515)                        (-5.386)                       (-29.690)   
+2015.year                           0.128                           0.070                          -2.064***
+                                  (0.210)                         (0.925)                       (-26.375)   
+2016.year                          -1.232*                                                                  
+                                 (-2.020)                                                                   
+2017.year                          -3.581***                                                                
+                                 (-5.621)                                                                   
+------------------------------------------------------------------------------------------------------------
+N                   16856           16856           12771           12771           12771           12771   
+CUSIPs               3540            3540            3006            3006            3006            3006   
+r2_o               .01738           .1359          .02739           .0354          .05061           .2981   
+r2_w             2.14e-34           .2314        3.40e-35          .04646        9.15e-35           .4546   
+r2_b                .0237          .08778          .03466          .03476          .05079           .2486   
+------------------------------------------------------------------------------------------------------------
+* p<0.05, ** p<0.01, *** p<0.001
+
+. 
+end of do-file
+
+. log close
+      name:  <unnamed>
+       log:  D:\Dropbox\papers\active\dissertation-csrhub\project\logs\dissertation-chapter-3-analysis.txt
+  log type:  text
+ closed on:  19 Nov 2018, 11:00:18
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
