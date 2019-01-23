@@ -1,6 +1,6 @@
 ///	LOG
 capt n log close
-log using logs/20190122-yearly-analysis.txt, text replace
+log using code/logs/20190123-yearly-analysis.txt, text replace
 
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
@@ -35,28 +35,28 @@ keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
 *mark mark3
 *markout mark3 revt over_rtg dltt at xad xrd emp year
 
-xtreg revt over_rtg, fe cluster(cusip_n)										/*	non-sig	*/
+xtreg revt over_rtg, fe cluster(cusip_n)										
 est store con1
 estadd local yearFE "No", replace
-xtreg revt over_rtg i.year, fe cluster(cusip_n)									/*	non-sig	*/
+xtreg revt over_rtg i.year, fe cluster(cusip_n)									
 est store con2
 estadd local yearFE "Yes", replace
-xtreg revt over_rtg dltt i.year, fe cluster(cusip_n)							/*	non-sig	*/
+xtreg revt over_rtg dltt i.year, fe cluster(cusip_n)							
 est store con3
 estadd local yearFE "Yes", replace
-xtreg revt over_rtg dltt at i.year, fe cluster(cusip_n)							/*	sig	*/
+xtreg revt over_rtg dltt at i.year, fe cluster(cusip_n)							
 est store con4
 estadd local yearFE "Yes", replace
-xtreg revt over_rtg dltt at emp i.year, fe cluster(cusip_n)						/*	non-sig	*/
+xtreg revt over_rtg dltt at emp i.year, fe cluster(cusip_n)						
 est store con5
 estadd local yearFE "Yes", replace
-xtreg revt over_rtg dltt at emp xad i.year, fe cluster(cusip_n)					/*	non-sig	*/
+xtreg revt over_rtg dltt at emp xad i.year, fe cluster(cusip_n)					
 est store con6
 estadd local yearFE "Yes", replace
-xtreg revt over_rtg dltt at emp xad xrd i.year, fe cluster(cusip_n)				/*	non-sig	*/
+xtreg revt over_rtg dltt at emp xad xrd i.year, fe cluster(cusip_n)				
 est store con7
 estadd local yearFE "Yes", replace
-xtreg revt over_rtg dltt at emp xad xrd age i.year, fe cluster(cusip_n)				/*	non-sig	*/
+xtreg revt over_rtg dltt at emp xad xrd age i.year, fe cluster(cusip_n)				
 est store con8
 estadd local yearFE "Yes", replace
 
@@ -65,7 +65,7 @@ preserve
 replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
-xtreg revt over_rtg dltt at emp xad xrd age i.year, fe cluster(cusip_n)				/*	non-sig	*/
+xtreg revt over_rtg dltt at emp xad xrd age i.year, fe cluster(cusip_n)				
 est store con9
 estadd local yearFE "Yes", replace
 restore
