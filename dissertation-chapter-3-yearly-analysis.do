@@ -5,6 +5,8 @@ log using code/logs/20190123-yearly-analysis.txt, text replace
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
+est clear
+
 /// SET PANEL
 encode cusip, gen(cusip_n)
 xtset cusip_n year, y
@@ -15,13 +17,8 @@ label var revt_yoy "Year-on-year change in revenue (revt)"
 
 ///	KEEP VARIABLES IN REGRESSION MODELS TO REDUCE FILE SIZE
 keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
-	over_rtg *rtg_lym
+	over_rtg *rtg_lym sic
 
-
-	
-	
-	
-	
 	
 						***===========================***
 						*	FIXED EFFECTS REGRESSION	*	
@@ -76,11 +73,6 @@ esttab revtmod*, ///
 
 	
 
-	
-*** Loop to run regression models
-
-
-	
 	
 	
 ***===============================***
@@ -438,27 +430,19 @@ restore
 esttab m1 m2 m3 m4 m5 m6 m7 m8 m9, ///
 	keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp xad xrd) ///
 	r2 ar2 aic
-	
-	
 
-	
-	
-***	Full models comparison
-esttab cmtymod7 cmtyas1 empmod7 empas1 enviromod7 enviroas1 govmod7 govmodas1, ///
+***	Full model comparisons of CATEGORY-level CSRHub
+esttab m8 m9 cmtymod7 cmtyas1 empmod7 empas1 enviromod7 enviroas1 govmod7 govas1, ///
 	keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp xad xrd) ///
 	order(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp xad xrd) ///
 	s(N N_g r2_a ar2 aic)
 	
+esttab m8 cmtymod7 empmod7 enviromod7 govmod7 m9 cmtyas1 empas1 enviroas1 govas1, ///
+	keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp xad xrd) ///
+	order(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp xad xrd) ///
+	s(N N_g r2_a ar2 aic)
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 	
 	
 	
@@ -560,10 +544,15 @@ xtreg F.revt_yoy com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
 	enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym ///
 	board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym ///
 	dltt at age emp xad xrd i.year, fe cluster(cusip_n)
-	
+est sto subcat_all
+qui estadd local yearFE "Yes", replace
+qui estadd local firmFE "Yes", replace
+
 restore
 
-
+esttab subcat_all, ///
+	drop(*.year) ///
+	s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
 
 
 
@@ -582,33 +571,49 @@ capt n log close
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
 
 
 						***===========================***
-						*	ARELLANO BOND ESTIMATION	*	
-						***===========================***	
+						*		  INDUSTRY-LEVEL		*	
+						***===========================***
+gen sic2 = substr(sic,1,2)
+destring sic2, replace
+
+replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
+replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
+
+collapse (mean) revt over_rtg dltt at emp xad xrd age, by(sic2 year)
+
+xtset sic2 year, y
+
+xtreg revt over_rtg dltt at emp xad xrd age, fe cluster(sic2)
+xtreg revt over_rtg dltt at emp xad xrd age i.year, fe cluster(sic2)
+
+
+gen revt_yoy = revt-l.revt
+
+xtreg F.revt over_rtg dltt at emp xad xrd age, fe cluster(sic2)
+xtreg F.revt over_rtg dltt at emp xad xrd age i.year, fe cluster(sic2)
+
+xtreg F.revt_yoy over_rtg dltt at emp xad xrd age, fe cluster(sic2)
+xtreg F.revt_yoy over_rtg dltt at emp xad xrd age i.year, fe cluster(sic2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
 ///	SALES (REVENUE LEVEL)
 xtabond f.revt enviro_rtg_lym gov_rtg_lym emp_rtg_lym cmty_rtg_lym dltt at emp xad xrd, lags(1) artests(2)
 
