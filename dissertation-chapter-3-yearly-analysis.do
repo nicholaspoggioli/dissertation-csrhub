@@ -48,14 +48,17 @@ estadd local yearFE "Yes", replace
 qui xtreg revt_yoy over_rtg dltt at emp i.year, fe cluster(cusip_n)						
 est store revt_yoymod5
 estadd local yearFE "Yes", replace
-qui xtreg revt_yoy over_rtg dltt at emp tobinq xad i.year, fe cluster(cusip_n)					
+qui xtreg revt_yoy over_rtg dltt at emp tobinq i.year, fe cluster(cusip_n)						
 est store revt_yoymod6
 estadd local yearFE "Yes", replace
-qui xtreg revt_yoy over_rtg dltt at emp tobinq xad xrd i.year, fe cluster(cusip_n)				
+qui xtreg revt_yoy over_rtg dltt at emp tobinq xad i.year, fe cluster(cusip_n)					
 est store revt_yoymod7
 estadd local yearFE "Yes", replace
-qui xtreg revt_yoy over_rtg dltt at emp tobinq xad xrd age i.year, fe cluster(cusip_n)				
+qui xtreg revt_yoy over_rtg dltt at emp tobinq xad xrd i.year, fe cluster(cusip_n)				
 est store revt_yoymod8
+estadd local yearFE "Yes", replace
+qui xtreg revt_yoy over_rtg dltt at emp tobinq xad xrd age i.year, fe cluster(cusip_n)				
+est store revt_yoymod9
 estadd local yearFE "Yes", replace
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
@@ -64,13 +67,13 @@ replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
 qui xtreg revt_yoy over_rtg dltt at emp tobinq xad xrd age i.year, fe cluster(cusip_n)				
-est store revt_yoymod9
+est store revt_yoymod10
 estadd local yearFE "Yes", replace
 restore
 
 esttab revt_yoymod*, ///
 	b se s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC")) ///
-	keep(over_rtg dltt at xad xrd emp age)
+	keep(over_rtg dltt at tobinq xad xrd emp age)
 
 	
 
