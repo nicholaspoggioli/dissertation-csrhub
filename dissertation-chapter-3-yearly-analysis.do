@@ -33,31 +33,31 @@ keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
 *mark mark3
 *markout mark3 revt over_rtg dltt at xad xrd emp year
 
-qui xtreg revt_yoy over_rtg, fe cluster(cusip_n)										
+qui xtreg F.revt_yoy over_rtg, fe cluster(cusip_n)										
 est store revt_yoymod1
 estadd local yearFE "No", replace
-qui xtreg revt_yoy over_rtg i.year, fe cluster(cusip_n)									
+qui xtreg F.revt_yoy over_rtg i.year, fe cluster(cusip_n)									
 est store revt_yoymod2
 estadd local yearFE "Yes", replace
-qui xtreg revt_yoy over_rtg dltt i.year, fe cluster(cusip_n)							
+qui xtreg F.revt_yoy over_rtg dltt i.year, fe cluster(cusip_n)							
 est store revt_yoymod3
 estadd local yearFE "Yes", replace
-qui xtreg revt_yoy over_rtg dltt at i.year, fe cluster(cusip_n)							
+qui xtreg F.revt_yoy over_rtg dltt at i.year, fe cluster(cusip_n)							
 est store revt_yoymod4
 estadd local yearFE "Yes", replace
-qui xtreg revt_yoy over_rtg dltt at emp i.year, fe cluster(cusip_n)						
+qui xtreg F.revt_yoy over_rtg dltt at emp i.year, fe cluster(cusip_n)						
 est store revt_yoymod5
 estadd local yearFE "Yes", replace
-qui xtreg revt_yoy over_rtg dltt at emp tobinq i.year, fe cluster(cusip_n)						
+qui xtreg F.revt_yoy over_rtg dltt at emp tobinq i.year, fe cluster(cusip_n)						
 est store revt_yoymod6
 estadd local yearFE "Yes", replace
-qui xtreg revt_yoy over_rtg dltt at emp tobinq xad i.year, fe cluster(cusip_n)					
+qui xtreg F.revt_yoy over_rtg dltt at emp tobinq age i.year, fe cluster(cusip_n)					
 est store revt_yoymod7
 estadd local yearFE "Yes", replace
-qui xtreg revt_yoy over_rtg dltt at emp tobinq xad xrd i.year, fe cluster(cusip_n)				
+qui xtreg F.revt_yoy over_rtg dltt at emp tobinq age xad i.year, fe cluster(cusip_n)				
 est store revt_yoymod8
 estadd local yearFE "Yes", replace
-qui xtreg revt_yoy over_rtg dltt at emp tobinq xad xrd age i.year, fe cluster(cusip_n)				
+qui xtreg F.revt_yoy over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(cusip_n)				
 est store revt_yoymod9
 estadd local yearFE "Yes", replace
 
@@ -66,14 +66,14 @@ preserve
 replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
-qui xtreg revt_yoy over_rtg dltt at emp tobinq xad xrd age i.year, fe cluster(cusip_n)				
+qui xtreg F.revt_yoy over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(cusip_n)				
 est store revt_yoymod10
 estadd local yearFE "Yes", replace
 restore
 
 esttab revt_yoymod*, ///
 	b se s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC")) ///
-	keep(over_rtg dltt at tobinq xad xrd emp age)
+	keep(over_rtg dltt at tobinq emp age xad xrd)
 
 	
 
@@ -180,7 +180,6 @@ esttab over_rtgint1 over_rtgint2, ///
 */
 
 ///	COMMUNITY
-
 local dv revt_yoy
 local iv cmty_rtg_lym
 local controls "dltt at age emp tobinq xad xrd"
@@ -208,11 +207,6 @@ foreach control of local controls {
 	local counter = `counter' + 1
 }
 
-esttab cmty*, ///
-	keep(cmty_rtg_lym dltt at age emp tobinq xad xrd) ///
-	order(cmty_rtg_lym dltt at age emp tobinq xad xrd) ///
-	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
-
 *	Many xad and xrd observations are missing. Assume missing = 0.
 preserve
 replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
@@ -234,7 +228,6 @@ esttab cmtymod* cmtyas1, ///
 	
 	
 ///	EMPLOYEES
-
 local dv revt_yoy
 local iv emp_rtg_lym
 local controls "dltt at age emp tobinq xad xrd"
@@ -262,11 +255,6 @@ foreach control of local controls {
 	local counter = `counter' + 1
 }
 
-esttab emp*, ///
-	keep(emp_rtg_lym dltt at age emp tobinq xad xrd) ///
-	order(emp_rtg_lym dltt at age emp tobinq xad xrd) ///
-	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
-
 *	Many xad and xrd observations are missing. Assume missing = 0.
 preserve
 replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
@@ -285,7 +273,6 @@ esttab empmod* empas1, ///
 
 
 ///	ENVIRONMENT
-
 local dv revt_yoy
 local iv enviro_rtg_lym
 local controls "dltt at age emp tobinq xad xrd"
@@ -315,11 +302,6 @@ foreach control of local controls {
 	local counter = `counter' + 1
 }
 
-esttab enviro*, ///
-	keep(enviro_rtg_lym dltt at age emp tobinq xad xrd) ///
-	order(enviro_rtg_lym dltt at age emp tobinq xad xrd) ///
-	s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
-
 *	Many xad and xrd observations are missing. Assume missing = 0.
 preserve
 replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
@@ -340,7 +322,6 @@ esttab enviromod* enviroas1, ///
 
 	
 ///	GOVERNANCE
-
 local dv revt_yoy
 local iv gov_rtg_lym
 local controls "dltt at age emp tobinq xad xrd"
