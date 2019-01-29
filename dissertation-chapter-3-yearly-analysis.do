@@ -207,11 +207,6 @@ foreach control of local controls {
 	local counter = `counter' + 1
 }
 
-esttab cmty*, ///
-	keep(cmty_rtg_lym dltt at age emp tobinq xad xrd) ///
-	order(cmty_rtg_lym dltt at age emp tobinq xad xrd) ///
-	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
-
 *	Many xad and xrd observations are missing. Assume missing = 0.
 preserve
 replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
@@ -261,11 +256,6 @@ foreach control of local controls {
 	local counter = `counter' + 1
 }
 
-esttab emp*, ///
-	keep(emp_rtg_lym dltt at age emp tobinq xad xrd) ///
-	order(emp_rtg_lym dltt at age emp tobinq xad xrd) ///
-	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
-
 *	Many xad and xrd observations are missing. Assume missing = 0.
 preserve
 replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
@@ -313,11 +303,6 @@ foreach control of local controls {
 	local vars "`vars' `control'"
 	local counter = `counter' + 1
 }
-
-esttab enviro*, ///
-	keep(enviro_rtg_lym dltt at age emp tobinq xad xrd) ///
-	order(enviro_rtg_lym dltt at age emp tobinq xad xrd) ///
-	s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
 preserve
@@ -369,11 +354,6 @@ foreach control of local controls {
 	local counter = `counter' + 1
 }
 
-esttab govmod*, ///
-	keep(gov_rtg_lym dltt at age emp tobinq xad xrd) ///
-	order(gov_rtg_lym dltt at age emp tobinq xad xrd) ///
-	s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
-
 *	Many xad and xrd observations are missing. Assume missing = 0.
 preserve
 replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
@@ -392,26 +372,32 @@ esttab govmod* govas1, ///
 	s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
 
 
-
 	
-	
-///	ALL CATEGORIES
+///	COMPARE ALL CSRHUB CATEGORIES
 qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym , fe cluster(cusip_n)
 est store m1
+estadd local yearFE "Yes", replace
 qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym i.year, fe cluster(cusip_n)
 est store m2
+estadd local yearFE "Yes", replace
 qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt i.year, fe cluster(cusip_n)
 est store m3
+estadd local yearFE "Yes", replace
 qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at i.year, fe cluster(cusip_n)
 est store m4
+estadd local yearFE "Yes", replace
 qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age i.year, fe cluster(cusip_n)
 est store m5
+estadd local yearFE "Yes", replace
 qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp i.year, fe cluster(cusip_n)
 est store m6
+estadd local yearFE "Yes", replace
 qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad i.year, fe cluster(cusip_n)
 est store m7
+estadd local yearFE "Yes", replace
 qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
 est store m8
+estadd local yearFE "Yes", replace
 
 
 ***	Many xad and xrd observations are missing. Assume missing = 0.
@@ -426,22 +412,19 @@ restore
 ***	Table
 esttab m1 m2 m3 m4 m5 m6 m7 m8 m9, ///
 	keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
-	r2 ar2 aic
+	s(yearFE N N_g r2 r2_a aic, label("Year FEs" "Observations" "Firms" "R^2" "Adj'd R^2" "AIC"))	
 
 ***	Full model comparisons of CATEGORY-level CSRHub
-esttab m8 m9 cmtymod7 cmtyas1 empmod7 empas1 enviromod7 enviroas1 govmod7 govas1, ///
+esttab cmtymod8 cmtyas1 empmod8 empas1 enviromod8 enviroas1 govmod8 govas1 m8 m9 , ///
 	keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
 	order(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
-	s(N N_g r2_a ar2 aic)
+	s(N N_g r2 r2_a aic, label("Observations" "Firms" "R^2" "Adj'd R^2" "AIC"))	
 	
-esttab m8 cmtymod7 empmod7 enviromod7 govmod7 m9 cmtyas1 empas1 enviroas1 govas1, ///
+esttab cmtymod8 empmod8 enviromod8 govmod8 m8 cmtyas1 empas1 enviroas1 govas1 m9, ///
 	keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
 	order(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
-	s(N N_g r2_a ar2 aic)
-	
+	s(yearFEs N N_g r2 r2_a aic, label("Year FEs" "Observations" "Firms" "R^2" "Adj'd R^2" "AIC"))	
 
-	
-	
 	
 	
 /*	
@@ -501,24 +484,19 @@ foreach iv of local ivs {
 		local counter = `counter' + 1
 	}
 
-	esttab `iv'*, ///
-		keep(`iv' dltt at age emp tobinq xad xrd) ///
-		order(`iv' dltt at age emp tobinq xad xrd) ///
-		s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
-
 	*	Many xad and xrd observations are missing. Assume missing = 0.
 	preserve
 	replace xad=0 if xad==. & `iv'!=.											/*	assumption	*/
 	replace xrd=0 if xrd==. & `iv'!=.											/*	assumption	*/
 
 	xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
-	est store as1
+	est store `iv'as1
 	qui estadd local yearFE "Yes", replace
 	qui estadd local firmFE "Yes", replace
 	restore 
 
 	*	Table
-	esttab `iv'* as1, ///
+	esttab `iv'* `iv'as1, ///
 		keep(`iv' dltt at age emp tobinq xad xrd) ///
 		order(`iv' dltt at age emp tobinq xad xrd) ///
 		s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
@@ -555,7 +533,514 @@ esttab subcat_all, ///
 
 
 
+						***===========================***
+						*	FIXED EFFECTS REGRESSION	*
+						*		DV: SALES GROWTH		*
+						***===========================***	
+***===========================***
+*	REVENUE = F (CSRHUB) 	*
+***===========================***
+///	CONTROL VARIABLE MODELS
 
+***	DV: Revenue (Level)
+*mark mark3
+*markout mark3 revt over_rtg dltt at xad xrd emp year
+qui xtreg revt over_rtg, fe cluster(cusip_n)										
+est store revtmod1
+estadd local yearFE "No", replace
+qui xtreg revt over_rtg i.year, fe cluster(cusip_n)									
+est store revtmod2
+estadd local yearFE "Yes", replace
+qui xtreg revt over_rtg dltt i.year, fe cluster(cusip_n)							
+est store revtmod3
+estadd local yearFE "Yes", replace
+qui xtreg revt over_rtg dltt at i.year, fe cluster(cusip_n)							
+est store revtmod4
+estadd local yearFE "Yes", replace
+qui xtreg revt over_rtg dltt at emp i.year, fe cluster(cusip_n)						
+est store revtmod5
+estadd local yearFE "Yes", replace
+qui xtreg revt over_rtg dltt at emp tobinq i.year, fe cluster(cusip_n)					
+est store revtmod6
+estadd local yearFE "Yes", replace
+qui xtreg revt over_rtg dltt at emp tobinq age i.year, fe cluster(cusip_n)				
+est store revtmod7
+estadd local yearFE "Yes", replace
+qui xtreg revt over_rtg dltt at emp tobinq age xad i.year, fe cluster(cusip_n)				
+est store revtmod8
+estadd local yearFE "Yes", replace
+qui xtreg revt over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(cusip_n)				
+est store revtmod9
+estadd local yearFE "Yes", replace
+
+
+*	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
+replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
+replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
+
+qui xtreg revt over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(cusip_n)				
+est store revtmod10
+estadd local yearFE "Yes", replace
+restore
+
+esttab revtmod*, ///
+	b se s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC")) ///
+	keep(over_rtg dltt at xad xrd tobinq emp age)
+
+	
+/// DV: Revenue (1-year change)
+local dv revt
+local iv over_rtg 
+local controls "dltt at age emp tobinq xad xrd"
+
+qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+est store over_rtgmod0
+estadd local yearFE "No", replace
+
+qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+est store over_rtgmod1
+estadd local yearFE "Yes", replace
+
+local vars ""
+local counter 2
+foreach control of local controls {
+	*	Regression
+	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+		
+	*	Store results
+	est store over_rtgmod`counter'
+	estadd local yearFE "Yes", replace
+	
+	*	Increment
+	local vars "`vars' `control'"
+	local counter = `counter' + 1
+}
+
+*	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
+replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
+replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
+
+qui xtreg F.revt over_rtg dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)	
+est store over_rtgas1
+estadd local yearFE "Yes", replace
+restore 
+
+*	Assume missing xad and xrd are 0, interact over_rtg and revt, 
+*	all independent variables lagged
+preserve
+replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
+replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
+
+qui xtreg F.revt c.over_rtg##c.revt dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+est store over_rtgint1
+estadd local yearFE "Yes", replace
+restore
+
+*	Assume missing xad and xrd are 0, interact over_rtg and revt, 
+*	all independent variables lagged, and standardized revt and over_rtg
+preserve
+replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
+replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
+
+egen Sover_rtg = std(over_rtg)
+egen Srevt = std(revt)
+
+qui xtreg F.revt c.Sover_rtg##c.Srevt dltt at emp tobinq xad xrd age i.year, fe cluster(cusip_n)
+est store over_rtgint2
+estadd local yearFE "Yes", replace
+restore
+
+esttab over_rtgmod* over_rtgas1, ///
+	keep(over_rtg dltt at age emp tobinq xad xrd) ///
+	order(over_rtg dltt at age emp tobinq xad xrd) ///
+	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
+	
+esttab over_rtgint1 over_rtgint2, ///
+	keep(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at age emp tobinq xad xrd) ///
+	order(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at age emp tobinq xad xrd) ///
+	r2 ar2 aic
+
+	
+***	COMPARE THE TWO DVs
+esttab revtmod9 over_rtgmod8 revtmod10 over_rtgas1 , ///
+	keep(over_rtg dltt at age emp tobinq xad xrd) ///
+	order(over_rtg dltt at age emp tobinq xad xrd) ///
+	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
+
+	
+/*
+///	REVENUE = F (CSRHUB CATEGORIES)
+		CSRHub CATEGORIES and subcategories:
+			-	COMMUNITY
+				*	Community development and philanthropy
+				*	Product
+				*	Human rights and supply chain
+			-	EMPLOYEES
+				*	Compensation and benefits
+				*	Diversity and labor rights
+				*	Training health and safety
+			-	ENVIRONMENT
+				*	Energy and climate change
+				*	Environmental policy and reporting
+				*	Resource management
+			-	GOVERNANCE
+				*	Board
+				*	Leadership ethics
+				*	Transparency and reporting
+*/
+
+///	COMMUNITY
+
+local dv revt
+local iv cmty_rtg_lym
+local controls "dltt at age emp tobinq xad xrd"
+
+qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+est store cmtymod0
+estadd local yearFE "No", replace
+
+qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+est store cmtymod1
+estadd local yearFE "Yes", replace
+
+local vars ""
+local counter 2
+foreach control of local controls {
+	*	Regression
+	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+		
+	*	Store results
+	est store cmtymod`counter'
+	estadd local yearFE "Yes", replace
+	
+	*	Increment
+	local vars "`vars' `control'"
+	local counter = `counter' + 1
+}
+
+*	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
+replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
+replace xrd=0 if xrd==. & `iv'!=.												/*	assumption	*/
+
+qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+est store cmtyas1
+estadd local yearFE "Yes", replace
+restore 
+
+*	Table
+esttab cmtymod* cmtyas1, ///
+	keep(cmty_rtg_lym dltt at age emp tobinq xad xrd) ///
+	order(cmty_rtg_lym dltt at age emp tobinq xad xrd) ///
+	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
+
+
+	
+	
+	
+///	EMPLOYEES
+
+local dv revt
+local iv emp_rtg_lym
+local controls "dltt at age emp tobinq xad xrd"
+
+qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+est store empmod0
+estadd local yearFE "No", replace
+
+qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+est store empmod1
+estadd local yearFE "Yes", replace
+
+local vars ""
+local counter 2
+foreach control of local controls {
+	*	Regression
+	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+		
+	*	Store results
+	est store empmod`counter'
+	estadd local yearFE "Yes", replace
+	
+	*	Increment
+	local vars "`vars' `control'"
+	local counter = `counter' + 1
+}
+
+*	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
+replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
+replace xrd=0 if xrd==. & `iv'!=.												/*	assumption	*/
+
+qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+est store empas1
+estadd local yearFE "Yes", replace
+restore 
+
+*	Table
+esttab empmod* empas1, ///
+	keep(emp_rtg_lym dltt at age emp tobinq xad xrd) ///
+	order(emp_rtg_lym  dltt at age emp tobinq xad xrd) ///
+	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
+
+
+///	ENVIRONMENT
+
+local dv revt
+local iv enviro_rtg_lym
+local controls "dltt at age emp tobinq xad xrd"
+
+qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+est store enviromod0
+estadd local yearFE "No", replace
+estadd local firmFE "Yes", replace
+
+qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+est store enviromod1
+estadd local yearFE "Yes", replace
+
+local vars ""
+local counter 2
+foreach control of local controls {
+	*	Regression
+	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+		
+	*	Store results
+	est store enviromod`counter'
+	estadd local yearFE "Yes", replace
+	estadd local firmFE "Yes", replace
+	
+	*	Increment
+	local vars "`vars' `control'"
+	local counter = `counter' + 1
+}
+
+*	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
+replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
+replace xrd=0 if xrd==. & `iv'!=.												/*	assumption	*/
+
+qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+est store enviroas1
+estadd local yearFE "Yes", replace
+estadd local firmFE "Yes", replace
+restore 
+
+*	Table
+esttab enviromod* enviroas1, ///
+	keep(enviro_rtg_lym dltt at age emp tobinq xad xrd) ///
+	order(enviro_rtg_lym dltt at age emp tobinq xad xrd) ///
+	s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
+
+
+	
+///	GOVERNANCE
+
+local dv revt
+local iv gov_rtg_lym
+local controls "dltt at age emp tobinq xad xrd"
+
+qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+est store govmod0
+estadd local yearFE "No", replace
+estadd local firmFE "Yes", replace
+
+qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+est store govmod1
+estadd local yearFE "Yes", replace
+
+local vars ""
+local counter 2
+foreach control of local controls {
+	*	Regression
+	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+		
+	*	Store results
+	est store govmod`counter'
+	estadd local yearFE "Yes", replace
+	estadd local firmFE "Yes", replace
+	
+	*	Increment
+	local vars "`vars' `control'"
+	local counter = `counter' + 1
+}
+
+*	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
+replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
+replace xrd=0 if xrd==. & `iv'!=.												/*	assumption	*/
+
+qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+est store govas1
+estadd local yearFE "Yes", replace
+estadd local firmFE "Yes", replace
+restore 
+
+*	Table
+esttab govmod* govas1, ///
+	keep(gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+	order(gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+	s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
+
+
+	
+///	COMPARE ALL CSRHUB CATEGORIES
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym , fe cluster(cusip_n)
+est store m1
+estadd local yearFE "Yes", replace
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym i.year, fe cluster(cusip_n)
+est store m2
+estadd local yearFE "Yes", replace
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt i.year, fe cluster(cusip_n)
+est store m3
+estadd local yearFE "Yes", replace
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at i.year, fe cluster(cusip_n)
+est store m4
+estadd local yearFE "Yes", replace
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age i.year, fe cluster(cusip_n)
+est store m5
+estadd local yearFE "Yes", replace
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp i.year, fe cluster(cusip_n)
+est store m6
+estadd local yearFE "Yes", replace
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad i.year, fe cluster(cusip_n)
+est store m7
+estadd local yearFE "Yes", replace
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+est store m8
+estadd local yearFE "Yes", replace
+
+
+***	Many xad and xrd observations are missing. Assume missing = 0.
+preserve
+replace xad=0 if xad==.															/*	assumption	*/
+replace xrd=0 if xrd==.															/*	assumption	*/
+
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+est store m9
+restore 
+
+***	Table
+esttab m1 m2 m3 m4 m5 m6 m7 m8 m9, ///
+	keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+	s(yearFE N N_g r2 r2_a aic, label("Year FEs" "Observations" "Firms" "R^2" "Adj'd R^2" "AIC"))	
+
+***	Full model comparisons of CATEGORY-level CSRHub
+esttab cmtymod8 cmtyas1 empmod8 empas1 enviromod8 enviroas1 govmod8 govas1 m8 m9 , ///
+	keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+	order(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+	s(N N_g r2 r2_a aic, label("Observations" "Firms" "R^2" "Adj'd R^2" "AIC"))	
+	
+esttab cmtymod8 empmod8 enviromod8 govmod8 m8 cmtyas1 empas1 enviroas1 govas1 m9, ///
+	keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+	order(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+	s(yearFEs N N_g r2 r2_a aic, label("Year FEs" "Observations" "Firms" "R^2" "Adj'd R^2" "AIC"))	
+
+	
+	
+/*	
+///	REVENUE = F (CSRHUB subcategories)
+		CSRHub CATEGORIES and subcategories:
+			-	COMMUNITY
+				*	Community development and philanthropy
+				*	Product
+				*	Human rights and supply chain
+			-	EMPLOYEES
+				*	Compensation and benefits
+				*	Diversity and labor rights
+				*	Training health and safety
+			-	ENVIRONMENT
+				*	Energy and climate change
+				*	Environmental policy and reporting
+				*	Resource management
+			-	GOVERNANCE
+				*	Board
+				*	Leadership ethics
+				*	Transparency and reporting
+
+ ///
+					
+				*/
+
+local dv revt
+local ivs "com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym"
+local controls "dltt at age emp tobinq xad xrd"
+
+foreach iv of local ivs {
+	local vars ""
+	display "`iv'"
+	xtreg F.`dv' `iv', fe cluster(cusip_n)
+	est store `iv'0
+	qui estadd local yearFE "No", replace
+	qui estadd local firmFE "Yes", replace
+
+	xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+	est store `iv'1
+	qui estadd local yearFE "Yes", replace
+	qui estadd local firmFE "Yes", replace
+	
+	local vars ""
+	local counter 2
+	foreach control of local controls {
+		*	Regression
+		xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+			
+		*	Store results
+		est store `iv'`counter'
+		estadd local yearFE "Yes", replace
+		estadd local firmFE "Yes", replace
+		
+		*	Increment
+		local vars "`vars' `control'"
+		local counter = `counter' + 1
+	}
+
+	*	Many xad and xrd observations are missing. Assume missing = 0.
+	preserve
+	replace xad=0 if xad==. & `iv'!=.											/*	assumption	*/
+	replace xrd=0 if xrd==. & `iv'!=.											/*	assumption	*/
+
+	xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+	est store `iv'as1
+	qui estadd local yearFE "Yes", replace
+	qui estadd local firmFE "Yes", replace
+	restore 
+
+	*	Table
+	esttab `iv'* `iv'as1, ///
+		keep(`iv' dltt at age emp tobinq xad xrd) ///
+		order(`iv' dltt at age emp tobinq xad xrd) ///
+		s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
+}
+
+
+///	ALL SUBCATEGORIES
+xtreg F.revt com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
+	comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym ///
+	enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym ///
+	board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym ///
+	dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+	
+preserve
+replace xad=0 if xad==.
+replace xrd=0 if xrd==.
+
+xtreg F.revt com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
+	comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym ///
+	enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym ///
+	board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym ///
+	dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+est sto subcat_all
+qui estadd local yearFE "Yes", replace
+qui estadd local firmFE "Yes", replace
+
+restore
+
+esttab subcat_all, ///
+	drop(*.year) ///
+	s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
 
 
 
