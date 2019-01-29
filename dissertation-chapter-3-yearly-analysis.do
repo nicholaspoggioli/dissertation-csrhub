@@ -21,10 +21,11 @@ keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
 
 	
 						***===========================***
-						*	FIXED EFFECTS REGRESSION	*	
+						*	FIXED EFFECTS REGRESSION	*
+						*		DV: SALES GROWTH		*
 						***===========================***	
 ***===========================***
-*	REVENUE CHANGE = F (CSRHUB) 	*
+*	REVENUE = F (CSRHUB) 	*
 ***===========================***
 ///	CONTROL VARIABLE MODELS
 
@@ -75,12 +76,6 @@ esttab revt_yoymod*, ///
 	keep(over_rtg dltt at xad xrd tobinq emp age)
 
 	
-
-	
-	
-***===============================***
-*	REVENUE CHANGE = F (CSRHUB) 	*
-***===============================***	
 /// DV: Revenue (1-year change)
 local dv revt_yoy
 local iv over_rtg 
@@ -154,9 +149,14 @@ esttab over_rtgint1 over_rtgint2, ///
 	order(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at age emp tobinq xad xrd) ///
 	r2 ar2 aic
 
+	
+***	COMPARE THE TWO DVs
+esttab revt_yoymod9 over_rtgmod8 revt_yoymod10 over_rtgas1 , ///
+	keep(over_rtg dltt at age emp tobinq xad xrd) ///
+	order(over_rtg dltt at age emp tobinq xad xrd) ///
+	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
 
 	
-
 /*
 ///	REVENUE = F (CSRHUB CATEGORIES)
 		CSRHub CATEGORIES and subcategories:
