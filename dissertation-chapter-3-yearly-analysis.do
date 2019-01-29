@@ -458,12 +458,12 @@ local controls "dltt at age emp tobinq xad xrd"
 foreach iv of local ivs {
 	local vars ""
 	display "`iv'"
-	xtreg F.`dv' `iv', fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv', fe cluster(cusip_n)
 	est store `iv'0
 	qui estadd local yearFE "No", replace
 	qui estadd local firmFE "Yes", replace
 
-	xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
 	est store `iv'1
 	qui estadd local yearFE "Yes", replace
 	qui estadd local firmFE "Yes", replace
@@ -489,7 +489,7 @@ foreach iv of local ivs {
 	replace xad=0 if xad==. & `iv'!=.											/*	assumption	*/
 	replace xrd=0 if xrd==. & `iv'!=.											/*	assumption	*/
 
-	xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
 	est store `iv'as1
 	qui estadd local yearFE "Yes", replace
 	qui estadd local firmFE "Yes", replace
@@ -535,7 +535,7 @@ esttab subcat_all, ///
 
 						***===========================***
 						*	FIXED EFFECTS REGRESSION	*
-						*		DV: SALES GROWTH		*
+						*			DV: SALES 			*
 						***===========================***	
 ***===========================***
 *	REVENUE = F (CSRHUB) 	*
@@ -971,12 +971,12 @@ local controls "dltt at age emp tobinq xad xrd"
 foreach iv of local ivs {
 	local vars ""
 	display "`iv'"
-	xtreg F.`dv' `iv', fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv', fe cluster(cusip_n)
 	est store `iv'0
 	qui estadd local yearFE "No", replace
 	qui estadd local firmFE "Yes", replace
 
-	xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
 	est store `iv'1
 	qui estadd local yearFE "Yes", replace
 	qui estadd local firmFE "Yes", replace
@@ -985,7 +985,7 @@ foreach iv of local ivs {
 	local counter 2
 	foreach control of local controls {
 		*	Regression
-		xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+		qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
 			
 		*	Store results
 		est store `iv'`counter'
@@ -1002,7 +1002,7 @@ foreach iv of local ivs {
 	replace xad=0 if xad==. & `iv'!=.											/*	assumption	*/
 	replace xrd=0 if xrd==. & `iv'!=.											/*	assumption	*/
 
-	xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
 	est store `iv'as1
 	qui estadd local yearFE "Yes", replace
 	qui estadd local firmFE "Yes", replace
