@@ -1,6 +1,6 @@
 ///	LOG
 capt n log close
-log using code/logs/20190139-yearly-analysis.txt, text replace
+log using code/logs/20190129-yearly-analysis.txt, text replace
 
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
@@ -472,7 +472,7 @@ foreach iv of local ivs {
 	local counter 2
 	foreach control of local controls {
 		*	Regression
-		xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+		qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
 			
 		*	Store results
 		est store `iv'`counter'
@@ -1050,6 +1050,66 @@ esttab subcat_all, ///
 
 
 capt n log close
+
+
+
+
+
+
+
+
+
+						***===============================***
+						*  CENTERING TREATED FIRMS IN TIME	*	
+						***===============================***
+///	LOAD DATA						
+use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+est clear
+
+///	KEEP IN YEARS WITH CSRHUB AND CSTAT DATA
+keep if revt!=.
+keep if over_rtg!=.
+
+/// SET PANEL
+encode cusip, gen(cusip_n)
+xtset cusip_n year, y
+
+///	GENERATE YEAR-ON-YEAR REVENUE CHANGE
+gen revt_yoy = revt - l.revt
+label var revt_yoy "Year-on-year change in revenue (revt - previous year revt)" 
+
+///	CENTER ON TREATMENT YEAR
+***	Generate period variable
+gen period = 0 if trt2_sdw_neg==1
+label var period "Years since treatment"
+bysort cusip_n: gen yeartreat = year if period == 0
+bysort cusip_n: egen yeartreatmax = max(yeartreat)
+replace period = year - yeartreatmax
+drop yeartreat yeartreatmax
+
+
+***	Visualize
+*	Line
+bysort period: egen meanrevt = mean(revt)
+twoway (line meanrevt period, sort xline(0))
+
+bysort period: egen medrevt = median(revt)
+twoway (line medrevt period, sort xline(0))
+
+*	Boxplot
+graph box revt, over(period)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
