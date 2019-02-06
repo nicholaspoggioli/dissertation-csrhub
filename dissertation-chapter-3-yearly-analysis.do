@@ -17,7 +17,7 @@ label var revt_yoy "Year-on-year change in revenue (revt - previous year revt)"
 
 ///	KEEP VARIABLES IN REGRESSION MODELS TO REDUCE FILE SIZE
 keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
-	over_rtg *rtg_lym sic tobinq
+	over_rtg *rtg_lym sic tobinq trt*
 
 /*	
 						***===========================***
@@ -1056,9 +1056,24 @@ capt n log close
 
 */
 						***===============================***
-						*  MATCHING MODELS					*	
+						*  PROPENSITY SCORE MATCHING MODELS	*	
 						***===============================***
+*	Matching variables: dltt at age emp tobinq xad xrd
+*	Using https://ssc.wisc.edu/sscc/pubs/stata_psmatch.htm
 
+///	2 STANDARD DEVIATION TREATMENT IN SINGLE YEARS
+keep if year == 2013
+
+***	Estimate using propensity score matching
+teffects psmatch (revt_yoy) (trt2_sdg_pos dltt at age emp tobinq)
+reg revt_yoy trt2_sdg_pos dltt at age emp tobinq
+
+
+					***===============================***
+					*	NEAREST NEIGHBORS MATCHING		*
+					***===============================***		
+teffects nnmatch (revt_yoy dltt age emp tobinq) (trt2_sdg_pos), ///
+	nneighbor(2) biasadj(dltt tobinq) dmvariables
 
 
 
