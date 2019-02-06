@@ -1,6 +1,6 @@
 ///	LOG
 capt n log close
-log using code/logs/20190129-yearly-analysis.txt, text replace
+log using code/logs/20190205-yearly-analysis.txt, text replace
 
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
@@ -19,7 +19,7 @@ label var revt_yoy "Year-on-year change in revenue (revt - previous year revt)"
 keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
 	over_rtg *rtg_lym sic tobinq
 
-	
+/*	
 						***===========================***
 						*	FIXED EFFECTS REGRESSION	*
 						*		DV: SALES GROWTH		*
@@ -1051,6 +1051,13 @@ esttab subcat_all, ///
 
 capt n log close
 
+
+
+
+*/
+						***===============================***
+						*  MATCHING MODELS					*	
+						***===============================***
 
 
 
