@@ -1061,53 +1061,196 @@ capt n log close
 *	Matching variables: dltt at age emp tobinq xad xrd
 *	Using https://ssc.wisc.edu/sscc/pubs/stata_psmatch.htm
 
+///	LOAD DATA
+use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
+est clear
+
+/// SET PANEL
+encode cusip, gen(cusip_n)
+xtset cusip_n year, y
+
+///	GENERATE YEAR-ON-YEAR REVENUE CHANGE
+gen revt_yoy = revt - l.revt
+label var revt_yoy "Year-on-year change in revenue (revt - previous year revt)"
+
+///	KEEP VARIABLES IN REGRESSION MODELS TO REDUCE FILE SIZE
+keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
+	over_rtg *rtg_lym sic tobinq trt*
+	
+	
+	
+	
+
 ///	2 STANDARD DEVIATION TREATMENT IN SINGLE YEARS
-gen Frevtyoy = F.revt-revt
 
-preserve
-keep if year == 2008
-
-teffects psmatch (Frevtyoy) (trt2_sdg_pos dltt at age emp tobinq year), ///
-	osample(ps1)
-
-teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq year) ///
-	if ps1==0, ///
-	osample(ps2)
-restore
-
-preserve
-keep if year == 2009
-
-teffects psmatch (Frevtyoy) (trt2_sdg_pos dltt at age emp tobinq year), ///
-	osample(ps1)
-
-teffects psmatch (Frevtyoy) (trt2_sdg_pos dltt at age emp tobinq year) ///
-	if ps1==0, ///
-	osample(ps2)
-restore
-
-preserve
-keep if year == 2010
-
-teffects psmatch (Frevtyoy) (trt2_sdg_pos dltt at age emp tobinq year), ///
-	osample(ps1)
-
-teffects psmatch (Frevtyoy) (trt2_sdg_pos dltt at age emp tobinq year) ///
-	if ps1==0, ///
-	osample(ps2)
-restore
+***	Manually calculate propensity scores
+logit trt2_sdg_pos dltt at age emp tobinq xrd xad if year==2009
+predict ps_trt2_sdg_pos_2009 if e(sample)
 
 
-preserve
-keep if year == 2011
+***	Propensity score estimation using teffects psmatch
+gen Frevt_yoy = F.revt-revt
+label var Frevt_yoy "Next year revt - current year revt"
 
-teffects psmatch (Frevtyoy) (trt2_sdg_pos dltt at age emp tobinq year), ///
-	osample(ps1)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2008, ///
+	osample(ps2008)
 
-teffects psmatch (Frevtyoy) (trt2_sdg_pos dltt at age emp tobinq year) ///
-	if ps1==0, ///
-	osample(ps2)
-restore
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2009, ///
+	osample(ps2009)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) ///
+	if year == 2009 & ps2009==0
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) ///
+	if year == 2009 & ps2009==0, nneighbor(5)
+	
+	
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2010, ///
+	osample(ps2010)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) ///
+	if year == 2010 & ps2010==0
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) ///
+	if year == 2010 & ps2010==0, nneighbor(5)
+	
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2011, ///
+	osample(ps2011)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2011 & ps2011==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2012, ///
+	osample(ps2012)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2012 & ps2012==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2013, ///
+	osample(ps2013)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2013 & ps2013==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2014, ///
+	osample(ps2014)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2014 & ps2014==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2015, ///
+	osample(ps2015)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2015 & ps2015==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2016, ///
+	osample(ps2016)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2016 & ps2016==0
+
+
+
+***	Propensity score estimation using teffects psmatch: trt2_sdg_neg
+drop ps2*
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2008, ///
+	osample(ps2008)
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2009, ///
+	osample(ps2009)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) ///
+	if year == 2009 & ps2009==0
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) ///
+	if year == 2009 & ps2009==0, nneighbor(5)
+	
+	
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2010, ///
+	osample(ps2010)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) ///
+	if year == 2010 & ps2010==0
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) ///
+	if year == 2010 & ps2010==0, nneighbor(5)
+	
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2011, ///
+	osample(ps2011)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2011 & ps2011==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2012, ///
+	osample(ps2012)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2012 & ps2012==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2013, ///
+	osample(ps2013)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2013 & ps2013==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2014, ///
+	osample(ps2014)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2014 & ps2014==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2015, ///
+	osample(ps2015)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2015 & ps2015==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2016, ///
+	osample(ps2016)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2016 & ps2016==0
+
+
+
+
+***	Propensity score estimation using teffects psmatch: trt2_sdw_pos
+drop ps2*
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2008, ///
+	osample(ps2008)
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2009, ///
+	osample(ps2009)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) ///
+	if year == 2009 & ps2009==0
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) ///
+	if year == 2009 & ps2009==0, nneighbor(5)
+	
+	
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2010, ///
+	osample(ps2010)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) ///
+	if year == 2010 & ps2010==0
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) ///
+	if year == 2010 & ps2010==0, nneighbor(5)
+	
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2011, ///
+	osample(ps2011)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2011 & ps2011==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2012, ///
+	osample(ps2012)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2012 & ps2012==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2013, ///
+	osample(ps2013)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2013 & ps2013==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2014, ///
+	osample(ps2014)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2014 & ps2014==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2015, ///
+	osample(ps2015)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2015 & ps2015==0
+
+
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2016, ///
+	osample(ps2016)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2016 & ps2016==0
+
+
+
 
 
 
