@@ -1072,15 +1072,21 @@ reg revt_yoy trt2_sdg_pos dltt at age emp tobinq
 					***===============================***
 					*	NEAREST NEIGHBORS MATCHING		*
 					***===============================***		
-teffects nnmatch (revt_yoy dltt age emp tobinq) (trt2_sdg_pos), ///
-	nneighbor(2) biasadj(dltt tobinq) dmvariables
+///	 NEAREST NEIGHBORS MATCHING WITH EXACT YEAR MATCH TO AVOID MATCHING FIRMS TOGETHER
+teffects nnmatch (revt dltt age emp tobinq) (trt2_sdg_pos), ///
+	biasadj(dltt age emp tobinq) ematch(year) osample(ch1)
+
+teffects nnmatch (revt dltt age emp tobinq) (trt2_sdg_pos), ///
+	biasadj(dltt age emp tobinq) ematch(year)
 
 
 
 
 
+/*
 
 
+	
 						***===============================***
 						*  CENTERING TREATED FIRMS IN TIME	*	
 						***===============================***
@@ -1135,7 +1141,7 @@ graph box revt, over(period)
 
 
 
-/*
+
 
 
 						***===========================***
