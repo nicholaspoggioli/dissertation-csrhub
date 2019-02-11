@@ -1,0 +1,2760 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  D:\Dropbox\papers\active\dissertation-csrhub\project\code/logs/201902078yearly-analysis.txt
+  log type:  text
+ opened on:   8 Feb 2019, 12:26:20
+
+. 
+. ///     LOAD DATA
+> use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
+. 
+. est clear
+
+. 
+. /// SET PANEL
+> encode cusip, gen(cusip_n)
+
+. xtset cusip_n year, y
+       panel variable:  cusip_n (unbalanced)
+        time variable:  year, 1990 to 2018, but with gaps
+                delta:  1 year
+
+. 
+. ///     GENERATE YEAR-ON-YEAR REVENUE CHANGE
+> gen revt_yoy = revt - l.revt
+(74,693 missing values generated)
+
+. label var revt_yoy "Year-on-year change in revenue (revt - previous year revt)"
+
+. 
+. ///     KEEP VARIABLES IN REGRESSION MODELS TO REDUCE FILE SIZE
+> keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
+>         over_rtg *rtg_lym sic tobinq trt*
+
+. 
+. /*      
+>                                                 ***===========================***
+>                                                 *       FIXED EFFECTS REGRESSION        *
+>                                                 *               DV: SALES GROWTH                *
+>                                                 ***===========================***       
+> ***===========================***
+> *       REVENUE = F (CSRHUB)    *
+> ***===========================***
+> ///     CONTROL VARIABLE MODELS
+> 
+> ***     DV: Revenue (Level)
+> *mark mark3
+> *markout mark3 revt over_rtg dltt at xad xrd emp year
+> qui xtreg revt_yoy over_rtg, fe cluster(cusip_n)                                                                                
+> est store revt_yoymod1
+> estadd local yearFE "No", replace
+> qui xtreg revt_yoy over_rtg i.year, fe cluster(cusip_n)                                                                 
+> est store revt_yoymod2
+> estadd local yearFE "Yes", replace
+> qui xtreg revt_yoy over_rtg dltt i.year, fe cluster(cusip_n)                                                    
+> est store revt_yoymod3
+> estadd local yearFE "Yes", replace
+> qui xtreg revt_yoy over_rtg dltt at i.year, fe cluster(cusip_n)                                                 
+> est store revt_yoymod4
+> estadd local yearFE "Yes", replace
+> qui xtreg revt_yoy over_rtg dltt at emp i.year, fe cluster(cusip_n)                                             
+> est store revt_yoymod5
+> estadd local yearFE "Yes", replace
+> qui xtreg revt_yoy over_rtg dltt at emp tobinq i.year, fe cluster(cusip_n)                                      
+> est store revt_yoymod6
+> estadd local yearFE "Yes", replace
+> qui xtreg revt_yoy over_rtg dltt at emp tobinq age i.year, fe cluster(cusip_n)                          
+> est store revt_yoymod7
+> estadd local yearFE "Yes", replace
+> qui xtreg revt_yoy over_rtg dltt at emp tobinq age xad i.year, fe cluster(cusip_n)                              
+> est store revt_yoymod8
+> estadd local yearFE "Yes", replace
+> qui xtreg revt_yoy over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(cusip_n)                          
+> est store revt_yoymod9
+> estadd local yearFE "Yes", replace
+> 
+> 
+> *       Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==. & over_rtg!=.                                                                                   /*      assumption      */
+> replace xrd=0 if xrd==. & over_rtg!=.                                                                                   /*      assumption      */
+> 
+> qui xtreg revt_yoy over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(cusip_n)                          
+> est store revt_yoymod10
+> estadd local yearFE "Yes", replace
+> restore
+> 
+> esttab revt_yoymod*, ///
+>         b se s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC")) ///
+>         keep(over_rtg dltt at xad xrd tobinq emp age)
+> 
+>         
+> /// DV: Revenue (1-year change)
+> local dv revt_yoy
+> local iv over_rtg 
+> local controls "dltt at age emp tobinq xad xrd"
+> 
+> qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+> est store over_rtgmod0
+> estadd local yearFE "No", replace
+> 
+> qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+> est store over_rtgmod1
+> estadd local yearFE "Yes", replace
+> 
+> local vars ""
+> local counter 2
+> foreach control of local controls {
+>         *       Regression
+>         qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+>                 
+>         *       Store results
+>         est store over_rtgmod`counter'
+>         estadd local yearFE "Yes", replace
+>         
+>         *       Increment
+>         local vars "`vars' `control'"
+>         local counter = `counter' + 1
+> }
+> 
+> *       Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==. & over_rtg!=.                                                                                   /*      assumption      */
+> replace xrd=0 if xrd==. & over_rtg!=.                                                                                   /*      assumption      */
+> 
+> qui xtreg F.revt_yoy over_rtg dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)        
+> est store over_rtgas1
+> estadd local yearFE "Yes", replace
+> restore 
+> 
+> *       Assume missing xad and xrd are 0, interact over_rtg and revt, 
+> *       all independent variables lagged
+> preserve
+> replace xad=0 if xad==. & over_rtg!=.                                                                                   /*      assumption      */
+> replace xrd=0 if xrd==. & over_rtg!=.                                                                                   /*      assumption      */
+> 
+> qui xtreg F.revt_yoy c.over_rtg##c.revt dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+> est store over_rtgint1
+> estadd local yearFE "Yes", replace
+> restore
+> 
+> *       Assume missing xad and xrd are 0, interact over_rtg and revt, 
+> *       all independent variables lagged, and standardized revt and over_rtg
+> preserve
+> replace xad=0 if xad==. & over_rtg!=.                                                                                   /*      assumption      */
+> replace xrd=0 if xrd==. & over_rtg!=.                                                                                   /*      assumption      */
+> 
+> egen Sover_rtg = std(over_rtg)
+> egen Srevt = std(revt)
+> 
+> qui xtreg F.revt_yoy c.Sover_rtg##c.Srevt dltt at emp tobinq xad xrd age i.year, fe cluster(cusip_n)
+> est store over_rtgint2
+> estadd local yearFE "Yes", replace
+> restore
+> 
+> esttab over_rtgmod* over_rtgas1, ///
+>         keep(over_rtg dltt at age emp tobinq xad xrd) ///
+>         order(over_rtg dltt at age emp tobinq xad xrd) ///
+>         s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
+>         
+> esttab over_rtgint1 over_rtgint2, ///
+>         keep(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at age emp tobinq xad xrd) ///
+>         order(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at age emp tobinq xad xrd) ///
+>         r2 ar2 aic
+> 
+>         
+> ***     COMPARE THE TWO DVs
+> esttab revt_yoymod9 over_rtgmod8 revt_yoymod10 over_rtgas1 , ///
+>         keep(over_rtg dltt at age emp tobinq xad xrd) ///
+>         order(over_rtg dltt at age emp tobinq xad xrd) ///
+>         s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
+> 
+>         
+> /*
+> ///     REVENUE = F (CSRHUB CATEGORIES)
+>                 CSRHub CATEGORIES and subcategories:
+>                         -       COMMUNITY
+>                                 *       Community development and philanthropy
+>                                 *       Product
+>                                 *       Human rights and supply chain
+>                         -       EMPLOYEES
+>                                 *       Compensation and benefits
+>                                 *       Diversity and labor rights
+>                                 *       Training health and safety
+>                         -       ENVIRONMENT
+>                                 *       Energy and climate change
+>                                 *       Environmental policy and reporting
+>                                 *       Resource management
+>                         -       GOVERNANCE
+>                                 *       Board
+>                                 *       Leadership ethics
+>                                 *       Transparency and reporting
+> */
+> 
+> ///     COMMUNITY
+> 
+> local dv revt_yoy
+> local iv cmty_rtg_lym
+> local controls "dltt at age emp tobinq xad xrd"
+> 
+> qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+> est store cmtymod0
+> estadd local yearFE "No", replace
+> 
+> qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+> est store cmtymod1
+> estadd local yearFE "Yes", replace
+> 
+> local vars ""
+> local counter 2
+> foreach control of local controls {
+>         *       Regression
+>         qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+>                 
+>         *       Store results
+>         est store cmtymod`counter'
+>         estadd local yearFE "Yes", replace
+>         
+>         *       Increment
+>         local vars "`vars' `control'"
+>         local counter = `counter' + 1
+> }
+> 
+> *       Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==. & `iv'!=.                                                                                               /*      assumption      */
+> replace xrd=0 if xrd==. & `iv'!=.                                                                                               /*      assumption      */
+> 
+> qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+> est store cmtyas1
+> estadd local yearFE "Yes", replace
+> restore 
+> 
+> *       Table
+> esttab cmtymod* cmtyas1, ///
+>         keep(cmty_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         order(cmty_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
+> 
+> 
+>         
+>         
+>         
+> ///     EMPLOYEES
+> 
+> local dv revt_yoy
+> local iv emp_rtg_lym
+> local controls "dltt at age emp tobinq xad xrd"
+> 
+> qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+> est store empmod0
+> estadd local yearFE "No", replace
+> 
+> qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+> est store empmod1
+> estadd local yearFE "Yes", replace
+> 
+> local vars ""
+> local counter 2
+> foreach control of local controls {
+>         *       Regression
+>         qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+>                 
+>         *       Store results
+>         est store empmod`counter'
+>         estadd local yearFE "Yes", replace
+>         
+>         *       Increment
+>         local vars "`vars' `control'"
+>         local counter = `counter' + 1
+> }
+> 
+> *       Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==. & `iv'!=.                                                                                               /*      assumption      */
+> replace xrd=0 if xrd==. & `iv'!=.                                                                                               /*      assumption      */
+> 
+> qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+> est store empas1
+> estadd local yearFE "Yes", replace
+> restore 
+> 
+> *       Table
+> esttab empmod* empas1, ///
+>         keep(emp_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         order(emp_rtg_lym  dltt at age emp tobinq xad xrd) ///
+>         s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
+> 
+> 
+> ///     ENVIRONMENT
+> 
+> local dv revt_yoy
+> local iv enviro_rtg_lym
+> local controls "dltt at age emp tobinq xad xrd"
+> 
+> qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+> est store enviromod0
+> estadd local yearFE "No", replace
+> estadd local firmFE "Yes", replace
+> 
+> qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+> est store enviromod1
+> estadd local yearFE "Yes", replace
+> 
+> local vars ""
+> local counter 2
+> foreach control of local controls {
+>         *       Regression
+>         qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+>                 
+>         *       Store results
+>         est store enviromod`counter'
+>         estadd local yearFE "Yes", replace
+>         estadd local firmFE "Yes", replace
+>         
+>         *       Increment
+>         local vars "`vars' `control'"
+>         local counter = `counter' + 1
+> }
+> 
+> *       Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==. & `iv'!=.                                                                                               /*      assumption      */
+> replace xrd=0 if xrd==. & `iv'!=.                                                                                               /*      assumption      */
+> 
+> qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+> est store enviroas1
+> estadd local yearFE "Yes", replace
+> estadd local firmFE "Yes", replace
+> restore 
+> 
+> *       Table
+> esttab enviromod* enviroas1, ///
+>         keep(enviro_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         order(enviro_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
+> 
+> 
+>         
+> ///     GOVERNANCE
+> 
+> local dv revt_yoy
+> local iv gov_rtg_lym
+> local controls "dltt at age emp tobinq xad xrd"
+> 
+> qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+> est store govmod0
+> estadd local yearFE "No", replace
+> estadd local firmFE "Yes", replace
+> 
+> qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+> est store govmod1
+> estadd local yearFE "Yes", replace
+> 
+> local vars ""
+> local counter 2
+> foreach control of local controls {
+>         *       Regression
+>         qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+>                 
+>         *       Store results
+>         est store govmod`counter'
+>         estadd local yearFE "Yes", replace
+>         estadd local firmFE "Yes", replace
+>         
+>         *       Increment
+>         local vars "`vars' `control'"
+>         local counter = `counter' + 1
+> }
+> 
+> *       Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==. & `iv'!=.                                                                                               /*      assumption      */
+> replace xrd=0 if xrd==. & `iv'!=.                                                                                               /*      assumption      */
+> 
+> qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+> est store govas1
+> estadd local yearFE "Yes", replace
+> estadd local firmFE "Yes", replace
+> restore 
+> 
+> *       Table
+> esttab govmod* govas1, ///
+>         keep(gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         order(gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
+> 
+> 
+>         
+> ///     COMPARE ALL CSRHUB CATEGORIES
+> qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym , fe cluster(cusip_n)
+> est store m1
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym i.year, fe cluster(cusip_n)
+> est store m2
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt i.year, fe cluster(cusip_n)
+> est store m3
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at i.year, fe cluster(cusip_n)
+> est store m4
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age i.year, fe cluster(cusip_n)
+> est store m5
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp i.year, fe cluster(cusip_n)
+> est store m6
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad i.year, fe cluster(cusip_n)
+> est store m7
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+> est store m8
+> estadd local yearFE "Yes", replace
+> 
+> 
+> ***     Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==.                                                                                                                 /*      assumption      */
+> replace xrd=0 if xrd==.                                                                                                                 /*      assumption      */
+> 
+> qui xtreg F.revt_yoy cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+> est store m9
+> restore 
+> 
+> ***     Table
+> esttab m1 m2 m3 m4 m5 m6 m7 m8 m9, ///
+>         keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         s(yearFE N N_g r2 r2_a aic, label("Year FEs" "Observations" "Firms" "R^2" "Adj'd R^2" "AIC"))   
+> 
+> ***     Full model comparisons of CATEGORY-level CSRHub
+> esttab cmtymod8 cmtyas1 empmod8 empas1 enviromod8 enviroas1 govmod8 govas1 m8 m9 , ///
+>         keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         order(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         s(N N_g r2 r2_a aic, label("Observations" "Firms" "R^2" "Adj'd R^2" "AIC"))     
+>         
+> esttab cmtymod8 empmod8 enviromod8 govmod8 m8 cmtyas1 empas1 enviroas1 govas1 m9, ///
+>         keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         order(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         s(yearFEs N N_g r2 r2_a aic, label("Year FEs" "Observations" "Firms" "R^2" "Adj'd R^2" "AIC"))  
+> 
+>         
+>         
+> /*      
+> ///     REVENUE = F (CSRHUB subcategories)
+>                 CSRHub CATEGORIES and subcategories:
+>                         -       COMMUNITY
+>                                 *       Community development and philanthropy
+>                                 *       Product
+>                                 *       Human rights and supply chain
+>                         -       EMPLOYEES
+>                                 *       Compensation and benefits
+>                                 *       Diversity and labor rights
+>                                 *       Training health and safety
+>                         -       ENVIRONMENT
+>                                 *       Energy and climate change
+>                                 *       Environmental policy and reporting
+>                                 *       Resource management
+>                         -       GOVERNANCE
+>                                 *       Board
+>                                 *       Leadership ethics
+>                                 *       Transparency and reporting
+> 
+>  ///
+>                                         
+>                                 */
+> 
+> local dv revt_yoy
+> local ivs "com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mg
+> mt_rtg_lym board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym"
+> local controls "dltt at age emp tobinq xad xrd"
+> 
+> foreach iv of local ivs {
+>         local vars ""
+>         display "`iv'"
+>         qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+>         est store `iv'0
+>         qui estadd local yearFE "No", replace
+>         qui estadd local firmFE "Yes", replace
+> 
+>         qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+>         est store `iv'1
+>         qui estadd local yearFE "Yes", replace
+>         qui estadd local firmFE "Yes", replace
+>         
+>         local vars ""
+>         local counter 2
+>         foreach control of local controls {
+>                 *       Regression
+>                 qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+>                         
+>                 *       Store results
+>                 est store `iv'`counter'
+>                 estadd local yearFE "Yes", replace
+>                 estadd local firmFE "Yes", replace
+>                 
+>                 *       Increment
+>                 local vars "`vars' `control'"
+>                 local counter = `counter' + 1
+>         }
+> 
+>         *       Many xad and xrd observations are missing. Assume missing = 0.
+>         preserve
+>         replace xad=0 if xad==. & `iv'!=.                                                                                       /*      assumption      */
+>         replace xrd=0 if xrd==. & `iv'!=.                                                                                       /*      assumption      */
+> 
+>         qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+>         est store `iv'as1
+>         qui estadd local yearFE "Yes", replace
+>         qui estadd local firmFE "Yes", replace
+>         restore 
+> 
+>         *       Table
+>         esttab `iv'* `iv'as1, ///
+>                 keep(`iv' dltt at age emp tobinq xad xrd) ///
+>                 order(`iv' dltt at age emp tobinq xad xrd) ///
+>                 s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
+> }
+> 
+> 
+> ///     ALL SUBCATEGORIES
+> xtreg F.revt_yoy com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
+>         comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym ///
+>         enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym ///
+>         board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym ///
+>         dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+>         
+> preserve
+> replace xad=0 if xad==.
+> replace xrd=0 if xrd==.
+> 
+> xtreg F.revt_yoy com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
+>         comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym ///
+>         enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym ///
+>         board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym ///
+>         dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+> est sto subcat_all
+> qui estadd local yearFE "Yes", replace
+> qui estadd local firmFE "Yes", replace
+> 
+> restore
+> 
+> esttab subcat_all, ///
+>         drop(*.year) ///
+>         s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
+> 
+> 
+> 
+> 
+> 
+>                                                 ***===========================***
+>                                                 *       FIXED EFFECTS REGRESSION        *
+>                                                 *                       DV: SALES                       *
+>                                                 ***===========================***       
+> ***===========================***
+> *       REVENUE = F (CSRHUB)    *
+> ***===========================***
+> ///     CONTROL VARIABLE MODELS
+> 
+> ***     DV: Revenue (Level)
+> *mark mark3
+> *markout mark3 revt over_rtg dltt at xad xrd emp year
+> qui xtreg revt over_rtg, fe cluster(cusip_n)                                                                            
+> est store revtmod1
+> estadd local yearFE "No", replace
+> qui xtreg revt over_rtg i.year, fe cluster(cusip_n)                                                                     
+> est store revtmod2
+> estadd local yearFE "Yes", replace
+> qui xtreg revt over_rtg dltt i.year, fe cluster(cusip_n)                                                        
+> est store revtmod3
+> estadd local yearFE "Yes", replace
+> qui xtreg revt over_rtg dltt at i.year, fe cluster(cusip_n)                                                     
+> est store revtmod4
+> estadd local yearFE "Yes", replace
+> qui xtreg revt over_rtg dltt at emp i.year, fe cluster(cusip_n)                                         
+> est store revtmod5
+> estadd local yearFE "Yes", replace
+> qui xtreg revt over_rtg dltt at emp tobinq i.year, fe cluster(cusip_n)                                  
+> est store revtmod6
+> estadd local yearFE "Yes", replace
+> qui xtreg revt over_rtg dltt at emp tobinq age i.year, fe cluster(cusip_n)                              
+> est store revtmod7
+> estadd local yearFE "Yes", replace
+> qui xtreg revt over_rtg dltt at emp tobinq age xad i.year, fe cluster(cusip_n)                          
+> est store revtmod8
+> estadd local yearFE "Yes", replace
+> qui xtreg revt over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(cusip_n)                              
+> est store revtmod9
+> estadd local yearFE "Yes", replace
+> 
+> 
+> *       Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==. & over_rtg!=.                                                                                   /*      assumption      */
+> replace xrd=0 if xrd==. & over_rtg!=.                                                                                   /*      assumption      */
+> 
+> qui xtreg revt over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(cusip_n)                              
+> est store revtmod10
+> estadd local yearFE "Yes", replace
+> restore
+> 
+> esttab revtmod*, ///
+>         b se s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC")) ///
+>         keep(over_rtg dltt at xad xrd tobinq emp age)
+> 
+>         
+> /// DV: Revenue (1-year change)
+> local dv revt
+> local iv over_rtg 
+> local controls "dltt at age emp tobinq xad xrd"
+> 
+> qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+> est store over_rtgmod0
+> estadd local yearFE "No", replace
+> 
+> qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+> est store over_rtgmod1
+> estadd local yearFE "Yes", replace
+> 
+> local vars ""
+> local counter 2
+> foreach control of local controls {
+>         *       Regression
+>         qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+>                 
+>         *       Store results
+>         est store over_rtgmod`counter'
+>         estadd local yearFE "Yes", replace
+>         
+>         *       Increment
+>         local vars "`vars' `control'"
+>         local counter = `counter' + 1
+> }
+> 
+> *       Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==. & over_rtg!=.                                                                                   /*      assumption      */
+> replace xrd=0 if xrd==. & over_rtg!=.                                                                                   /*      assumption      */
+> 
+> qui xtreg F.revt over_rtg dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)    
+> est store over_rtgas1
+> estadd local yearFE "Yes", replace
+> restore 
+> 
+> *       Assume missing xad and xrd are 0, interact over_rtg and revt, 
+> *       all independent variables lagged
+> preserve
+> replace xad=0 if xad==. & over_rtg!=.                                                                                   /*      assumption      */
+> replace xrd=0 if xrd==. & over_rtg!=.                                                                                   /*      assumption      */
+> 
+> qui xtreg F.revt c.over_rtg##c.revt dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+> est store over_rtgint1
+> estadd local yearFE "Yes", replace
+> restore
+> 
+> *       Assume missing xad and xrd are 0, interact over_rtg and revt, 
+> *       all independent variables lagged, and standardized revt and over_rtg
+> preserve
+> replace xad=0 if xad==. & over_rtg!=.                                                                                   /*      assumption      */
+> replace xrd=0 if xrd==. & over_rtg!=.                                                                                   /*      assumption      */
+> 
+> egen Sover_rtg = std(over_rtg)
+> egen Srevt = std(revt)
+> 
+> qui xtreg F.revt c.Sover_rtg##c.Srevt dltt at emp tobinq xad xrd age i.year, fe cluster(cusip_n)
+> est store over_rtgint2
+> estadd local yearFE "Yes", replace
+> restore
+> 
+> esttab over_rtgmod* over_rtgas1, ///
+>         keep(over_rtg dltt at age emp tobinq xad xrd) ///
+>         order(over_rtg dltt at age emp tobinq xad xrd) ///
+>         s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
+>         
+> esttab over_rtgint1 over_rtgint2, ///
+>         keep(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at age emp tobinq xad xrd) ///
+>         order(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at age emp tobinq xad xrd) ///
+>         r2 ar2 aic
+> 
+>         
+> ***     COMPARE THE TWO DVs
+> esttab revtmod9 over_rtgmod8 revtmod10 over_rtgas1 , ///
+>         keep(over_rtg dltt at age emp tobinq xad xrd) ///
+>         order(over_rtg dltt at age emp tobinq xad xrd) ///
+>         s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
+> 
+>         
+> /*
+> ///     REVENUE = F (CSRHUB CATEGORIES)
+>                 CSRHub CATEGORIES and subcategories:
+>                         -       COMMUNITY
+>                                 *       Community development and philanthropy
+>                                 *       Product
+>                                 *       Human rights and supply chain
+>                         -       EMPLOYEES
+>                                 *       Compensation and benefits
+>                                 *       Diversity and labor rights
+>                                 *       Training health and safety
+>                         -       ENVIRONMENT
+>                                 *       Energy and climate change
+>                                 *       Environmental policy and reporting
+>                                 *       Resource management
+>                         -       GOVERNANCE
+>                                 *       Board
+>                                 *       Leadership ethics
+>                                 *       Transparency and reporting
+> */
+> 
+> ///     COMMUNITY
+> 
+> local dv revt
+> local iv cmty_rtg_lym
+> local controls "dltt at age emp tobinq xad xrd"
+> 
+> qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+> est store cmtymod0
+> estadd local yearFE "No", replace
+> 
+> qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+> est store cmtymod1
+> estadd local yearFE "Yes", replace
+> 
+> local vars ""
+> local counter 2
+> foreach control of local controls {
+>         *       Regression
+>         qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+>                 
+>         *       Store results
+>         est store cmtymod`counter'
+>         estadd local yearFE "Yes", replace
+>         
+>         *       Increment
+>         local vars "`vars' `control'"
+>         local counter = `counter' + 1
+> }
+> 
+> *       Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==. & `iv'!=.                                                                                               /*      assumption      */
+> replace xrd=0 if xrd==. & `iv'!=.                                                                                               /*      assumption      */
+> 
+> qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+> est store cmtyas1
+> estadd local yearFE "Yes", replace
+> restore 
+> 
+> *       Table
+> esttab cmtymod* cmtyas1, ///
+>         keep(cmty_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         order(cmty_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
+> 
+> 
+>         
+>         
+>         
+> ///     EMPLOYEES
+> 
+> local dv revt
+> local iv emp_rtg_lym
+> local controls "dltt at age emp tobinq xad xrd"
+> 
+> qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+> est store empmod0
+> estadd local yearFE "No", replace
+> 
+> qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+> est store empmod1
+> estadd local yearFE "Yes", replace
+> 
+> local vars ""
+> local counter 2
+> foreach control of local controls {
+>         *       Regression
+>         qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+>                 
+>         *       Store results
+>         est store empmod`counter'
+>         estadd local yearFE "Yes", replace
+>         
+>         *       Increment
+>         local vars "`vars' `control'"
+>         local counter = `counter' + 1
+> }
+> 
+> *       Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==. & `iv'!=.                                                                                               /*      assumption      */
+> replace xrd=0 if xrd==. & `iv'!=.                                                                                               /*      assumption      */
+> 
+> qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+> est store empas1
+> estadd local yearFE "Yes", replace
+> restore 
+> 
+> *       Table
+> esttab empmod* empas1, ///
+>         keep(emp_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         order(emp_rtg_lym  dltt at age emp tobinq xad xrd) ///
+>         s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
+> 
+> 
+> ///     ENVIRONMENT
+> 
+> local dv revt
+> local iv enviro_rtg_lym
+> local controls "dltt at age emp tobinq xad xrd"
+> 
+> qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+> est store enviromod0
+> estadd local yearFE "No", replace
+> estadd local firmFE "Yes", replace
+> 
+> qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+> est store enviromod1
+> estadd local yearFE "Yes", replace
+> 
+> local vars ""
+> local counter 2
+> foreach control of local controls {
+>         *       Regression
+>         qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+>                 
+>         *       Store results
+>         est store enviromod`counter'
+>         estadd local yearFE "Yes", replace
+>         estadd local firmFE "Yes", replace
+>         
+>         *       Increment
+>         local vars "`vars' `control'"
+>         local counter = `counter' + 1
+> }
+> 
+> *       Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==. & `iv'!=.                                                                                               /*      assumption      */
+> replace xrd=0 if xrd==. & `iv'!=.                                                                                               /*      assumption      */
+> 
+> qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+> est store enviroas1
+> estadd local yearFE "Yes", replace
+> estadd local firmFE "Yes", replace
+> restore 
+> 
+> *       Table
+> esttab enviromod* enviroas1, ///
+>         keep(enviro_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         order(enviro_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
+> 
+> 
+>         
+> ///     GOVERNANCE
+> 
+> local dv revt
+> local iv gov_rtg_lym
+> local controls "dltt at age emp tobinq xad xrd"
+> 
+> qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+> est store govmod0
+> estadd local yearFE "No", replace
+> estadd local firmFE "Yes", replace
+> 
+> qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+> est store govmod1
+> estadd local yearFE "Yes", replace
+> 
+> local vars ""
+> local counter 2
+> foreach control of local controls {
+>         *       Regression
+>         qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+>                 
+>         *       Store results
+>         est store govmod`counter'
+>         estadd local yearFE "Yes", replace
+>         estadd local firmFE "Yes", replace
+>         
+>         *       Increment
+>         local vars "`vars' `control'"
+>         local counter = `counter' + 1
+> }
+> 
+> *       Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==. & `iv'!=.                                                                                               /*      assumption      */
+> replace xrd=0 if xrd==. & `iv'!=.                                                                                               /*      assumption      */
+> 
+> qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+> est store govas1
+> estadd local yearFE "Yes", replace
+> estadd local firmFE "Yes", replace
+> restore 
+> 
+> *       Table
+> esttab govmod* govas1, ///
+>         keep(gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         order(gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
+> 
+> 
+>         
+> ///     COMPARE ALL CSRHUB CATEGORIES
+> qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym , fe cluster(cusip_n)
+> est store m1
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym i.year, fe cluster(cusip_n)
+> est store m2
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt i.year, fe cluster(cusip_n)
+> est store m3
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at i.year, fe cluster(cusip_n)
+> est store m4
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age i.year, fe cluster(cusip_n)
+> est store m5
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp i.year, fe cluster(cusip_n)
+> est store m6
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad i.year, fe cluster(cusip_n)
+> est store m7
+> estadd local yearFE "Yes", replace
+> qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+> est store m8
+> estadd local yearFE "Yes", replace
+> 
+> 
+> ***     Many xad and xrd observations are missing. Assume missing = 0.
+> preserve
+> replace xad=0 if xad==.                                                                                                                 /*      assumption      */
+> replace xrd=0 if xrd==.                                                                                                                 /*      assumption      */
+> 
+> qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+> est store m9
+> restore 
+> 
+> ***     Table
+> esttab m1 m2 m3 m4 m5 m6 m7 m8 m9, ///
+>         keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         s(yearFE N N_g r2 r2_a aic, label("Year FEs" "Observations" "Firms" "R^2" "Adj'd R^2" "AIC"))   
+> 
+> ***     Full model comparisons of CATEGORY-level CSRHub
+> esttab cmtymod8 cmtyas1 empmod8 empas1 enviromod8 enviroas1 govmod8 govas1 m8 m9 , ///
+>         keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         order(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         s(N N_g r2 r2_a aic, label("Observations" "Firms" "R^2" "Adj'd R^2" "AIC"))     
+>         
+> esttab cmtymod8 empmod8 enviromod8 govmod8 m8 cmtyas1 empas1 enviroas1 govas1 m9, ///
+>         keep(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         order(cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd) ///
+>         s(yearFEs N N_g r2 r2_a aic, label("Year FEs" "Observations" "Firms" "R^2" "Adj'd R^2" "AIC"))  
+> 
+>         
+>         
+> /*      
+> ///     REVENUE = F (CSRHUB subcategories)
+>                 CSRHub CATEGORIES and subcategories:
+>                         -       COMMUNITY
+>                                 *       Community development and philanthropy
+>                                 *       Product
+>                                 *       Human rights and supply chain
+>                         -       EMPLOYEES
+>                                 *       Compensation and benefits
+>                                 *       Diversity and labor rights
+>                                 *       Training health and safety
+>                         -       ENVIRONMENT
+>                                 *       Energy and climate change
+>                                 *       Environmental policy and reporting
+>                                 *       Resource management
+>                         -       GOVERNANCE
+>                                 *       Board
+>                                 *       Leadership ethics
+>                                 *       Transparency and reporting
+> 
+>  ///
+>                                         
+>                                 */
+> 
+> local dv revt
+> local ivs "com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mg
+> mt_rtg_lym board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym"
+> local controls "dltt at age emp tobinq xad xrd"
+> 
+> foreach iv of local ivs {
+>         local vars ""
+>         display "`iv'"
+>         qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+>         est store `iv'0
+>         qui estadd local yearFE "No", replace
+>         qui estadd local firmFE "Yes", replace
+> 
+>         qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+>         est store `iv'1
+>         qui estadd local yearFE "Yes", replace
+>         qui estadd local firmFE "Yes", replace
+>         
+>         local vars ""
+>         local counter 2
+>         foreach control of local controls {
+>                 *       Regression
+>                 qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+>                         
+>                 *       Store results
+>                 est store `iv'`counter'
+>                 estadd local yearFE "Yes", replace
+>                 estadd local firmFE "Yes", replace
+>                 
+>                 *       Increment
+>                 local vars "`vars' `control'"
+>                 local counter = `counter' + 1
+>         }
+> 
+>         *       Many xad and xrd observations are missing. Assume missing = 0.
+>         preserve
+>         replace xad=0 if xad==. & `iv'!=.                                                                                       /*      assumption      */
+>         replace xrd=0 if xrd==. & `iv'!=.                                                                                       /*      assumption      */
+> 
+>         qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+>         est store `iv'as1
+>         qui estadd local yearFE "Yes", replace
+>         qui estadd local firmFE "Yes", replace
+>         restore 
+> 
+>         *       Table
+>         esttab `iv'* `iv'as1, ///
+>                 keep(`iv' dltt at age emp tobinq xad xrd) ///
+>                 order(`iv' dltt at age emp tobinq xad xrd) ///
+>                 s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
+> }
+> 
+> 
+> ///     ALL SUBCATEGORIES
+> xtreg F.revt com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
+>         comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym ///
+>         enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym ///
+>         board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym ///
+>         dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+>         
+> preserve
+> replace xad=0 if xad==.
+> replace xrd=0 if xrd==.
+> 
+> xtreg F.revt com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
+>         comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym ///
+>         enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym ///
+>         board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym ///
+>         dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+> est sto subcat_all
+> qui estadd local yearFE "Yes", replace
+> qui estadd local firmFE "Yes", replace
+> 
+> restore
+> 
+> esttab subcat_all, ///
+>         drop(*.year) ///
+>         s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> capt n log close
+> 
+> 
+> 
+> 
+> */
+.                                                 ***===============================***
+.                                                 *  PROPENSITY SCORE MATCHING MODELS     *       
+.                                                 ***===============================***
+. *       Matching variables: dltt at age emp tobinq xad xrd
+. *       Using https://ssc.wisc.edu/sscc/pubs/stata_psmatch.htm
+. 
+. ///     LOAD DATA
+> use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
+. 
+. est clear
+
+. 
+. /// SET PANEL
+> encode cusip, gen(cusip_n)
+
+. xtset cusip_n year, y
+       panel variable:  cusip_n (unbalanced)
+        time variable:  year, 1990 to 2018, but with gaps
+                delta:  1 year
+
+. 
+. ///     GENERATE YEAR-ON-YEAR REVENUE CHANGE
+> gen revt_yoy = revt - l.revt
+(74,693 missing values generated)
+
+. label var revt_yoy "Year-on-year change in revenue (revt - previous year revt)"
+
+. 
+. 
+. /// CREATE INDUSTRY VARIABLE USING 2-DIGIT SIC
+> gen sic2 = substr(sic,1,2)
+(64,100 missing values generated)
+
+. destring sic2, replace
+sic2: all characters numeric; replaced as byte
+(64100 missing values generated)
+
+. 
+. gen sic2cat=""
+(177,901 missing values generated)
+
+. 
+. replace sic2cat="agforfish" if sic2==1
+variable sic2cat was str1 now str9
+(202 real changes made)
+
+. replace sic2cat="agforfish" if sic2==2
+(33 real changes made)
+
+. replace sic2cat="agforfish" if sic2==7
+(27 real changes made)
+
+. replace sic2cat="agforfish" if sic2==8
+(28 real changes made)
+
+. replace sic2cat="agforfish" if sic2==9
+(0 real changes made)
+
+. 
+. replace sic2cat="mining" if sic2==10
+(2,146 real changes made)
+
+. replace sic2cat="mining" if sic2==12
+(268 real changes made)
+
+. replace sic2cat="mining" if sic2==13
+(4,438 real changes made)
+
+. replace sic2cat="mining" if sic2==14
+(250 real changes made)
+
+. 
+. replace sic2cat="construction" if sic2==15
+variable sic2cat was str9 now str12
+(640 real changes made)
+
+. replace sic2cat="construction" if sic2==16
+(435 real changes made)
+
+. replace sic2cat="construction" if sic2==17
+(141 real changes made)
+
+. 
+. replace sic2cat="manufacture" if sic2==20
+(2,472 real changes made)
+
+. replace sic2cat="manufacture" if sic2==21
+(122 real changes made)
+
+. replace sic2cat="manufacture" if sic2==22
+(307 real changes made)
+
+. replace sic2cat="manufacture" if sic2==23
+(712 real changes made)
+
+. replace sic2cat="manufacture" if sic2==24
+(692 real changes made)
+
+. replace sic2cat="manufacture" if sic2==25
+(494 real changes made)
+
+. replace sic2cat="manufacture" if sic2==26
+(1,091 real changes made)
+
+. replace sic2cat="manufacture" if sic2==27
+(1,000 real changes made)
+
+. replace sic2cat="manufacture" if sic2==28
+(9,695 real changes made)
+
+. replace sic2cat="manufacture" if sic2==29
+(810 real changes made)
+
+. replace sic2cat="manufacture" if sic2==30
+(692 real changes made)
+
+. replace sic2cat="manufacture" if sic2==31
+(322 real changes made)
+
+. replace sic2cat="manufacture" if sic2==32
+(547 real changes made)
+
+. replace sic2cat="manufacture" if sic2==33
+(1,339 real changes made)
+
+. replace sic2cat="manufacture" if sic2==34
+(1,228 real changes made)
+
+. replace sic2cat="manufacture" if sic2==35
+(5,061 real changes made)
+
+. replace sic2cat="manufacture" if sic2==36
+(7,300 real changes made)
+
+. replace sic2cat="manufacture" if sic2==37
+(2,412 real changes made)
+
+. replace sic2cat="manufacture" if sic2==38
+(5,661 real changes made)
+
+. replace sic2cat="manufacture" if sic2==39
+(598 real changes made)
+
+. 
+. replace sic2cat="transport" if sic2==40
+(255 real changes made)
+
+. replace sic2cat="transport" if sic2==41
+(76 real changes made)
+
+. replace sic2cat="transport" if sic2==42
+(669 real changes made)
+
+. replace sic2cat="transport" if sic2==43
+(0 real changes made)
+
+. replace sic2cat="transport" if sic2==44
+(571 real changes made)
+
+. replace sic2cat="transport" if sic2==45
+(787 real changes made)
+
+. replace sic2cat="transport" if sic2==46
+(144 real changes made)
+
+. replace sic2cat="transport" if sic2==47
+(289 real changes made)
+
+. replace sic2cat="transport" if sic2==48
+(3,614 real changes made)
+
+. replace sic2cat="transport" if sic2==49
+(4,266 real changes made)
+
+. 
+. replace sic2cat="wholesale" if sic2==50
+(1,886 real changes made)
+
+. replace sic2cat="wholesale" if sic2==51
+(1,203 real changes made)
+
+. 
+. replace sic2cat="retail" if sic2==52
+(157 real changes made)
+
+. replace sic2cat="retail" if sic2==53
+(653 real changes made)
+
+. replace sic2cat="retail" if sic2==54
+(709 real changes made)
+
+. replace sic2cat="retail" if sic2==55
+(552 real changes made)
+
+. replace sic2cat="retail" if sic2==56
+(1,090 real changes made)
+
+. replace sic2cat="retail" if sic2==57
+(396 real changes made)
+
+. replace sic2cat="retail" if sic2==58
+(1,259 real changes made)
+
+. replace sic2cat="retail" if sic2==59
+(1,760 real changes made)
+
+. 
+. replace sic2cat="finance" if sic2==60
+(11,426 real changes made)
+
+. replace sic2cat="finance" if sic2==61
+(1,134 real changes made)
+
+. replace sic2cat="finance" if sic2==62
+(1,865 real changes made)
+
+. replace sic2cat="finance" if sic2==63
+(3,770 real changes made)
+
+. replace sic2cat="finance" if sic2==64
+(365 real changes made)
+
+. replace sic2cat="finance" if sic2==65
+(676 real changes made)
+
+. replace sic2cat="finance" if sic2==67
+(5,913 real changes made)
+
+. 
+. replace sic2cat="services" if sic2==70
+(387 real changes made)
+
+. replace sic2cat="services" if sic2==72
+(334 real changes made)
+
+. replace sic2cat="services" if sic2==73
+(10,400 real changes made)
+
+. replace sic2cat="services" if sic2==75
+(182 real changes made)
+
+. replace sic2cat="services" if sic2==76
+(0 real changes made)
+
+. replace sic2cat="services" if sic2==78
+(376 real changes made)
+
+. replace sic2cat="services" if sic2==79
+(1,063 real changes made)
+
+. replace sic2cat="services" if sic2==80
+(1,728 real changes made)
+
+. replace sic2cat="services" if sic2==81
+(42 real changes made)
+
+. replace sic2cat="services" if sic2==82
+(407 real changes made)
+
+. replace sic2cat="services" if sic2==83
+(103 real changes made)
+
+. replace sic2cat="services" if sic2==84
+(0 real changes made)
+
+. replace sic2cat="services" if sic2==86
+(0 real changes made)
+
+. replace sic2cat="services" if sic2==87
+(1,599 real changes made)
+
+. replace sic2cat="services" if sic2==88
+(0 real changes made)
+
+. replace sic2cat="services" if sic2==89
+(0 real changes made)
+
+. 
+. replace sic2cat="publicadmin" if sic2==91
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==92
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==93
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==94
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==95
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==96
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==97
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==99
+(532 real changes made)
+
+. 
+. encode sic2cat, gen(sic2division)
+
+. label var sic2division "SIC division (2-digit level)"
+
+. 
+. ///     KEEP VARIABLES IN REGRESSION MODELS TO REDUCE FILE SIZE
+> keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
+>         over_rtg *rtg_lym sic tobinq trt* sic sic2division
+
+.         
+.         
+.         
+.         
+. 
+. ///     2 STANDARD DEVIATION TREATMENT IN SINGLE YEARS
+> ***     Manually calculate propensity scores
+. /*
+> replace xad = 0 if xad == .                                                                                                             /*      ASSUMPTION      */
+> replace xrd = 0 if xrd == .                                                                                                             /*      ASSUMPTION      */
+> */
+. forvalues year = 2008/2016 {
+  2.         display ""
+  3.         display ""
+  4.         display "Regression for year `year' observations"
+  5.         logit F.trt2_sdg_pos dltt at age emp tobinq if year==`year'
+  6.         predict ps_trt2_sdg_pos_`year' if e(sample)
+  7. }
+
+
+Regression for year 2008 observations
+
+Iteration 0:   log likelihood = -69.928361  
+Iteration 1:   log likelihood =  -67.61844  
+Iteration 2:   log likelihood = -67.031693  
+Iteration 3:   log likelihood = -66.154093  
+Iteration 4:   log likelihood = -62.504593  
+Iteration 5:   log likelihood = -61.341445  
+Iteration 6:   log likelihood =  -60.89893  
+Iteration 7:   log likelihood = -60.806449  
+Iteration 8:   log likelihood = -60.804102  
+Iteration 9:   log likelihood = -60.804099  
+
+Logistic regression                             Number of obs     =        391
+                                                LR chi2(5)        =      18.25
+                                                Prob > chi2       =     0.0027
+Log likelihood = -60.804099                     Pseudo R2         =     0.1305
+
+--------------------------------------------------------------------------------
+F.trt2_sdg_pos |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+          dltt |   .0000343   .0000245     1.40   0.162    -.0000137    .0000822
+            at |  -.0000108   .0000107    -1.01   0.313    -.0000319    .0000102
+           age |  -.0541006   .0186076    -2.91   0.004    -.0905708   -.0176305
+           emp |   2.60e-07   2.61e-06     0.10   0.921    -4.85e-06    5.38e-06
+        tobinq |  -.0378309   .2702302    -0.14   0.889    -.5674724    .4918107
+         _cons |  -1.428979   .6663003    -2.14   0.032    -2.734904   -.1230546
+--------------------------------------------------------------------------------
+Note: 1 failure and 0 successes completely determined.
+(option pr assumed; Pr(F.trt2_sdg_pos))
+(177,510 missing values generated)
+
+
+Regression for year 2009 observations
+
+Iteration 0:   log likelihood = -172.83867  
+Iteration 1:   log likelihood = -172.06044  
+Iteration 2:   log likelihood = -171.62535  
+Iteration 3:   log likelihood = -168.93179  
+Iteration 4:   log likelihood = -168.15576  
+Iteration 5:   log likelihood = -168.03603  
+Iteration 6:   log likelihood = -168.03401  
+Iteration 7:   log likelihood = -168.03401  
+
+Logistic regression                             Number of obs     =        748
+                                                LR chi2(5)        =       9.61
+                                                Prob > chi2       =     0.0871
+Log likelihood = -168.03401                     Pseudo R2         =     0.0278
+
+--------------------------------------------------------------------------------
+F.trt2_sdg_pos |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+          dltt |    .000033   .0000203     1.63   0.104    -6.76e-06    .0000727
+            at |  -.0000142   .0000104    -1.37   0.172    -.0000347    6.19e-06
+           age |   .0044089   .0087857     0.50   0.616    -.0128108    .0216286
+           emp |   5.77e-07   1.67e-06     0.35   0.729    -2.69e-06    3.84e-06
+        tobinq |   .2173783   .1590274     1.37   0.172    -.0943098    .5290663
+         _cons |  -3.134135   .4682384    -6.69   0.000    -4.051865   -2.216404
+--------------------------------------------------------------------------------
+Note: 3 failures and 0 successes completely determined.
+(option pr assumed; Pr(F.trt2_sdg_pos))
+(177,153 missing values generated)
+
+
+Regression for year 2010 observations
+
+Iteration 0:   log likelihood = -101.73609  
+Iteration 1:   log likelihood =  -100.8759  
+Iteration 2:   log likelihood = -99.793698  
+Iteration 3:   log likelihood = -99.017609  
+Iteration 4:   log likelihood = -98.653775  
+Iteration 5:   log likelihood = -98.648802  
+Iteration 6:   log likelihood = -98.648795  
+
+Logistic regression                             Number of obs     =      1,201
+                                                LR chi2(5)        =       6.17
+                                                Prob > chi2       =     0.2896
+Log likelihood = -98.648795                     Pseudo R2         =     0.0303
+
+--------------------------------------------------------------------------------
+F.trt2_sdg_pos |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+          dltt |  -.0000469   .0001771    -0.26   0.791    -.0003939    .0003001
+            at |  -.0000407   .0000447    -0.91   0.363    -.0001284     .000047
+           age |   .0152025   .0134003     1.13   0.257    -.0110615    .0414665
+           emp |   1.25e-07   7.65e-06     0.02   0.987    -.0000149    .0000151
+        tobinq |  -.0253997   .2132613    -0.12   0.905    -.4433842    .3925847
+         _cons |  -4.075278   .6687909    -6.09   0.000    -5.386084   -2.764472
+--------------------------------------------------------------------------------
+Note: 19 failures and 0 successes completely determined.
+(option pr assumed; Pr(F.trt2_sdg_pos))
+(176,700 missing values generated)
+
+
+Regression for year 2011 observations
+
+Iteration 0:   log likelihood =  -128.1054  
+Iteration 1:   log likelihood = -126.42826  
+Iteration 2:   log likelihood = -122.77624  
+Iteration 3:   log likelihood = -118.57432  
+Iteration 4:   log likelihood =  -112.7089  
+Iteration 5:   log likelihood = -110.04036  
+Iteration 6:   log likelihood = -109.95098  
+Iteration 7:   log likelihood = -109.94975  
+Iteration 8:   log likelihood = -109.94975  
+
+Logistic regression                             Number of obs     =      1,558
+                                                LR chi2(5)        =      36.31
+                                                Prob > chi2       =     0.0000
+Log likelihood = -109.94975                     Pseudo R2         =     0.1417
+
+--------------------------------------------------------------------------------
+F.trt2_sdg_pos |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+          dltt |   .0007852   .0003044     2.58   0.010     .0001886    .0013817
+            at |  -.0008029   .0002406    -3.34   0.001    -.0012744   -.0003313
+           age |   .0211003    .013813     1.53   0.127    -.0059726    .0481732
+           emp |  -.0000161   .0000272    -0.59   0.553    -.0000694    .0000372
+        tobinq |   -.024167   .1783814    -0.14   0.892     -.373788    .3254541
+         _cons |  -3.123971   .6070796    -5.15   0.000    -4.313825   -1.934117
+--------------------------------------------------------------------------------
+Note: 219 failures and 0 successes completely determined.
+(option pr assumed; Pr(F.trt2_sdg_pos))
+(176,343 missing values generated)
+
+
+Regression for year 2012 observations
+
+Iteration 0:   log likelihood = -970.53206  
+Iteration 1:   log likelihood = -938.32577  
+Iteration 2:   log likelihood =  -915.7493  
+Iteration 3:   log likelihood = -883.23753  
+Iteration 4:   log likelihood = -860.23525  
+Iteration 5:   log likelihood = -857.26617  
+Iteration 6:   log likelihood = -857.22212  
+Iteration 7:   log likelihood =  -857.2221  
+
+Logistic regression                             Number of obs     =      2,079
+                                                LR chi2(5)        =     226.62
+                                                Prob > chi2       =     0.0000
+Log likelihood =  -857.2221                     Pseudo R2         =     0.1168
+
+--------------------------------------------------------------------------------
+F.trt2_sdg_pos |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+          dltt |  -.0005864   .0001231    -4.76   0.000    -.0008277   -.0003452
+            at |  -.0000745   .0000225    -3.30   0.001    -.0001187   -.0000303
+           age |  -.0097051   .0044785    -2.17   0.030    -.0184827   -.0009274
+           emp |  -5.21e-06   4.51e-06    -1.16   0.248    -.0000141    3.63e-06
+        tobinq |  -.0272732   .0411326    -0.66   0.507    -.1078915    .0533452
+         _cons |  -.5542088   .1544964    -3.59   0.000    -.8570161   -.2514015
+--------------------------------------------------------------------------------
+Note: 60 failures and 0 successes completely determined.
+(option pr assumed; Pr(F.trt2_sdg_pos))
+(175,822 missing values generated)
+
+
+Regression for year 2013 observations
+
+Iteration 0:   log likelihood = -649.79899  
+Iteration 1:   log likelihood = -635.13235  
+Iteration 2:   log likelihood = -614.85449  
+Iteration 3:   log likelihood = -603.61117  
+Iteration 4:   log likelihood = -601.16062  
+Iteration 5:   log likelihood = -601.11982  
+Iteration 6:   log likelihood = -601.11972  
+Iteration 7:   log likelihood = -601.11972  
+
+Logistic regression                             Number of obs     =      2,345
+                                                LR chi2(5)        =      97.36
+                                                Prob > chi2       =     0.0000
+Log likelihood = -601.11972                     Pseudo R2         =     0.0749
+
+--------------------------------------------------------------------------------
+F.trt2_sdg_pos |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+          dltt |   -.000021   .0000726    -0.29   0.772    -.0001632    .0001212
+            at |  -.0000257    .000018    -1.42   0.154     -.000061    9.65e-06
+           age |  -.0025138   .0057457    -0.44   0.662    -.0137752    .0087476
+           emp |  -.0000999    .000021    -4.75   0.000    -.0001411   -.0000587
+        tobinq |   .0073501   .0366008     0.20   0.841    -.0643861    .0790864
+         _cons |  -1.785055   .1822895    -9.79   0.000    -2.142336   -1.427774
+--------------------------------------------------------------------------------
+Note: 58 failures and 0 successes completely determined.
+(option pr assumed; Pr(F.trt2_sdg_pos))
+(175,556 missing values generated)
+
+
+Regression for year 2014 observations
+
+Iteration 0:   log likelihood = -8.8741686  
+Iteration 1:   log likelihood = -8.6832173  
+Iteration 2:   log likelihood = -8.1827375  
+Iteration 3:   log likelihood = -8.0494553  
+Iteration 4:   log likelihood = -7.9849995  
+Iteration 5:   log likelihood =  -7.982393  
+Iteration 6:   log likelihood = -7.9823771  
+Iteration 7:   log likelihood = -7.9823771  
+
+Logistic regression                             Number of obs     =      2,629
+                                                LR chi2(5)        =       1.78
+                                                Prob > chi2       =     0.8782
+Log likelihood = -7.9823771                     Pseudo R2         =     0.1005
+
+--------------------------------------------------------------------------------
+F.trt2_sdg_pos |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+          dltt |   .0001101   .0002597     0.42   0.672     -.000399    .0006192
+            at |  -.0001058   .0002492    -0.42   0.671    -.0005941    .0003826
+           age |   .0597447   .0554173     1.08   0.281    -.0488712    .1683606
+           emp |   9.10e-07   .0000215     0.04   0.966    -.0000413    .0000431
+        tobinq |   -1.17102   2.245644    -0.52   0.602    -5.572402    3.230361
+         _cons |  -7.627483   3.857727    -1.98   0.048    -15.18849    -.066476
+--------------------------------------------------------------------------------
+Note: 81 failures and 0 successes completely determined.
+(option pr assumed; Pr(F.trt2_sdg_pos))
+(175,272 missing values generated)
+
+
+Regression for year 2015 observations
+
+Iteration 0:   log likelihood = -23.433182  
+Iteration 1:   log likelihood = -23.155728  
+Iteration 2:   log likelihood = -22.908322  
+Iteration 3:   log likelihood = -22.709465  
+Iteration 4:   log likelihood = -22.683915  
+Iteration 5:   log likelihood = -22.683551  
+Iteration 6:   log likelihood = -22.683551  
+
+Logistic regression                             Number of obs     =      2,725
+                                                LR chi2(5)        =       1.50
+                                                Prob > chi2       =     0.9132
+Log likelihood = -22.683551                     Pseudo R2         =     0.0320
+
+--------------------------------------------------------------------------------
+F.trt2_sdg_pos |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+          dltt |  -3.94e-07   .0000339    -0.01   0.991    -.0000668     .000066
+            at |   6.21e-07   .0000322     0.02   0.985    -.0000624    .0000637
+           age |   .0273774   .0340437     0.80   0.421     -.039347    .0941017
+           emp |  -.0000736   .0001182    -0.62   0.534    -.0003052    .0001581
+        tobinq |   .1082173    .158977     0.68   0.496     -.203372    .4198065
+         _cons |  -7.383259    1.25988    -5.86   0.000     -9.85258   -4.913939
+--------------------------------------------------------------------------------
+Note: 42 failures and 0 successes completely determined.
+(option pr assumed; Pr(F.trt2_sdg_pos))
+(175,176 missing values generated)
+
+
+Regression for year 2016 observations
+
+Iteration 0:   log likelihood = -55.237441  
+Iteration 1:   log likelihood = -52.558089  
+Iteration 2:   log likelihood = -51.199104  
+Iteration 3:   log likelihood = -48.948201  
+Iteration 4:   log likelihood = -47.416397  
+Iteration 5:   log likelihood = -47.209082  
+Iteration 6:   log likelihood = -47.192351  
+Iteration 7:   log likelihood = -47.192328  
+Iteration 8:   log likelihood = -47.192328  
+
+Logistic regression                             Number of obs     =      2,938
+                                                LR chi2(5)        =      16.09
+                                                Prob > chi2       =     0.0066
+Log likelihood = -47.192328                     Pseudo R2         =     0.1456
+
+--------------------------------------------------------------------------------
+F.trt2_sdg_pos |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+          dltt |  -.0000137   .0000413    -0.33   0.739    -.0000947    .0000673
+            at |   .0000142   .0000374     0.38   0.703     -.000059    .0000875
+           age |  -.0668932   .0473208    -1.41   0.157    -.1596402    .0258539
+           emp |  -.0005918   .0004358    -1.36   0.174     -.001446    .0002623
+        tobinq |  -.6862572    .525842    -1.31   0.192    -1.716889    .3443742
+         _cons |  -2.835444   1.018795    -2.78   0.005    -4.832247   -.8386421
+--------------------------------------------------------------------------------
+Note: 406 failures and 0 successes completely determined.
+(option pr assumed; Pr(F.trt2_sdg_pos))
+(174,963 missing values generated)
+
+. 
+. 
+. ***     Propensity score estimation using teffects psmatch
+. gen Frevt_yoy = F.revt-revt
+(74,693 missing values generated)
+
+. label var Frevt_yoy "Next year revt - current year revt"
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) ///
+>         if year == 2009, osample(ps2009)
+there are 4 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2009)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) ///
+>         if year == 2009 & ps2009==0
+
+Treatment-effects estimation                   Number of obs      =        370
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_pos |
+   (1 vs 0)  |  -1938.941    498.502    -3.89   0.000    -2915.987   -961.8946
+------------------------------------------------------------------------------
+
+. predict ps0 ps1, ps
+postestimation can only be performed when the generate(stub) option is used during estimation; see help generate(stub)
+r(322);
+
+end of do-file
+
+r(322);
+
+. do "C:\Users\poggi005\AppData\Local\Temp\STD27a8_000000.tmp"
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) ///
+>         if year == 2009 & ps2009==0
+
+Treatment-effects estimation                   Number of obs      =        370
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_pos |
+   (1 vs 0)  |  -1938.941    498.502    -3.89   0.000    -2915.987   -961.8946
+------------------------------------------------------------------------------
+
+. *predict ps0 ps1, ps
+. estimates store ps2009
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) ///
+>         if year == 2009 & ps2009==0, nneighbor(5)
+
+Treatment-effects estimation                   Number of obs      =        370
+Estimator      : propensity-score matching     Matches: requested =          5
+Outcome model  : matching                                     min =          5
+Treatment model: logit                                        max =          5
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_pos |
+   (1 vs 0)  |  -1458.589   377.2546    -3.87   0.000    -2197.995   -719.1841
+------------------------------------------------------------------------------
+
+.         
+.         
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2010, ///
+>         osample(ps2010)
+there are 4 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2010)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) ///
+>         if year == 2010 & ps2010==0
+
+Treatment-effects estimation                   Number of obs      =        714
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_pos |
+   (1 vs 0)  |  -22.87166   318.7011    -0.07   0.943    -647.5143     601.771
+------------------------------------------------------------------------------
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) ///
+>         if year == 2010 & ps2010==0, nneighbor(5)
+
+Treatment-effects estimation                   Number of obs      =        714
+Estimator      : propensity-score matching     Matches: requested =          5
+Outcome model  : matching                                     min =          5
+Treatment model: logit                                        max =          5
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_pos |
+   (1 vs 0)  |    -246.97   298.6794    -0.83   0.408    -832.3709    338.4309
+------------------------------------------------------------------------------
+
+. estimates store ps2010  
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2011, ///
+>         osample(ps2011)
+there are 37 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2011)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2011 & ps2011==0
+
+Treatment-effects estimation                   Number of obs      =      1,121
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_pos |
+   (1 vs 0)  |  -36.87197   191.8263    -0.19   0.848    -412.8445    339.1006
+------------------------------------------------------------------------------
+
+. estimates store ps2011
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2012, ///
+>         osample(ps2012)
+there are 361 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2012)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2012 & ps2012==0
+
+Treatment-effects estimation                   Number of obs      =      1,133
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_pos |
+   (1 vs 0)  |  -174.8471   34.39622    -5.08   0.000    -242.2625   -107.4317
+------------------------------------------------------------------------------
+
+. estimates store ps2012
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2013, ///
+>         osample(ps2013)
+there are 114 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2013)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2013 & ps2013==0
+
+Treatment-effects estimation                   Number of obs      =      1,834
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_pos |
+   (1 vs 0)  |   16.75239    12.9837     1.29   0.197    -8.695192    42.19997
+------------------------------------------------------------------------------
+
+. estimates store ps2013
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2014, ///
+>         osample(ps2014)
+there are 99 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2014)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2014 & ps2014==0
+
+Treatment-effects estimation                   Number of obs      =      2,042
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_pos |
+   (1 vs 0)  |   160.3106   174.0881     0.92   0.357    -180.8959     501.517
+------------------------------------------------------------------------------
+
+. estimates store ps2014
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2015, ///
+>         osample(ps2015)
+there are 232 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2015)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) ///
+>         if year == 2015 & ps2015==0, osample(ps2015_2)
+2109 observations have fewer than 2 propensity-score matches; they are identified in the osample() variable
+
+. *capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) ///
+> *       if year == 2015 & ps2015==0 & ps2015_2==0       
+. estimates store ps2015
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2016, ///
+>         osample(ps2016)
+there are 118 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2016)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) if year == 2016 & ps2016==0
+note: variance correction results in a negative variance estimate; ignoring the correction term
+
+Treatment-effects estimation                   Number of obs      =      2,313
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_pos |
+   (1 vs 0)  |   519.7164   2952.862     0.18   0.860    -5267.787     6307.22
+------------------------------------------------------------------------------
+
+. estimates store ps2016
+
+. 
+. 
+. estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
+>         b se p ///
+>         stats(N)
+
+----------------------------------------------------------------------------------------------------------------------
+    Variable |   ps2009       ps2010       ps2011       ps2012       ps2013       ps2014       ps2015       ps2016    
+-------------+--------------------------------------------------------------------------------------------------------
+ATE          |
+trt2_sdg_pos |
+   (1 vs 0)  | -1938.9406   -246.97001   -36.871965   -174.84709    16.752389    160.31057                 519.71639  
+             |  498.50199    298.67941    191.82627    34.396224    12.983698    174.08813                 2952.8623  
+             |     0.0001       0.4083       0.8476       0.0000       0.1970       0.3571                    0.8603  
+-------------+--------------------------------------------------------------------------------------------------------
+__000002     |
+        dltt |                                                                                .00014136               
+             |                                                                                .00033086               
+             |                                                                                   0.6692               
+          at |                                                                               -.00013722               
+             |                                                                                .00032111               
+             |                                                                                   0.6691               
+         age |                                                                                .05977202               
+             |                                                                                .05631559               
+             |                                                                                   0.2885               
+         emp |                                                                               -1.234e-06               
+             |                                                                                .00003655               
+             |                                                                                   0.9731               
+      tobinq |                                                                               -.72368764               
+             |                                                                                1.8203904               
+             |                                                                                   0.6910               
+       _cons |                                                                               -8.1777025               
+             |                                                                                3.6288731               
+             |                                                                                   0.0242               
+-------------+--------------------------------------------------------------------------------------------------------
+Statistics   |                                                                                                        
+           N |        370          714         1121         1133         1834         2042         2110         2313  
+----------------------------------------------------------------------------------------------------------------------
+                                                                                                        legend: b/se/p
+
+. 
+. 
+. ***     Propensity score estimation using teffects psmatch: trt2_sdg_neg
+. drop ps2*
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2008, ///
+>         osample(ps2008)
+no observations after dropping observations with missing values
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2009, ///
+>         osample(ps2009)
+there is 1 propensity score less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2009)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) ///
+>         if year == 2009 & ps2009==0
+
+Treatment-effects estimation                   Number of obs      =        373
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_neg |
+   (1 vs 0)  |   984.0198   1116.518     0.88   0.378    -1204.315    3172.355
+------------------------------------------------------------------------------
+
+. estimates store ps2009
+
+.         
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) ///
+>         if year == 2009 & ps2009==0, nneighbor(5)
+
+Treatment-effects estimation                   Number of obs      =        373
+Estimator      : propensity-score matching     Matches: requested =          5
+Outcome model  : matching                                     min =          5
+Treatment model: logit                                        max =          5
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_neg |
+   (1 vs 0)  |    914.851   1040.977     0.88   0.379    -1125.426    2955.128
+------------------------------------------------------------------------------
+
+.         
+.         
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2010, ///
+>         osample(ps2010)
+there are 6 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2010)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) ///
+>         if year == 2010 & ps2010==0
+note: variance correction results in a negative variance estimate; ignoring the correction term
+
+Treatment-effects estimation                   Number of obs      =        712
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_neg |
+   (1 vs 0)  |  -197.9758   473.2696    -0.42   0.676    -1125.567    729.6156
+------------------------------------------------------------------------------
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) ///
+>         if year == 2010 & ps2010==0, nneighbor(5)
+note: variance correction results in a negative variance estimate; ignoring the correction term
+
+Treatment-effects estimation                   Number of obs      =        712
+Estimator      : propensity-score matching     Matches: requested =          5
+Outcome model  : matching                                     min =          5
+Treatment model: logit                                        max =          5
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_neg |
+   (1 vs 0)  |  -322.7436   376.3472    -0.86   0.391    -1060.371    414.8834
+------------------------------------------------------------------------------
+
+. estimates store ps2010
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2011, ///
+>         osample(ps2011)
+
+Treatment-effects estimation                   Number of obs      =      1,158
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_neg |
+   (1 vs 0)  |  -4435.208   3194.046    -1.39   0.165    -10695.42    1825.008
+------------------------------------------------------------------------------
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2011 & ps2011==0
+
+Treatment-effects estimation                   Number of obs      =      1,158
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_neg |
+   (1 vs 0)  |  -4435.208   3194.046    -1.39   0.165    -10695.42    1825.008
+------------------------------------------------------------------------------
+
+. estimates store ps2011
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2012, ///
+>         osample(ps2012)
+there are 114 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2012)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2012 & ps2012==0
+note: variance correction results in a negative variance estimate; ignoring the correction term
+
+Treatment-effects estimation                   Number of obs      =      1,380
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_neg |
+   (1 vs 0)  |  -146.6797   72.43416    -2.03   0.043     -288.648   -4.711323
+------------------------------------------------------------------------------
+
+. estimates store ps2012
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2013, ///
+>         osample(ps2013)
+there are 1265 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2013)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) ///
+>         if year == 2013 & ps2013==0, osample(ps2013_2)
+682 observations have fewer than 2 propensity-score matches; they are identified in the osample() variable
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) ///
+>         if year == 2013 & ps2013==0 & ps2013_2==0
+insufficient observations
+
+. estimates store ps2013
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2014, ///
+>         osample(ps2014)
+there are 297 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2014)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2014 & ps2014==0
+note: variance correction results in a negative variance estimate; ignoring the correction term
+
+Treatment-effects estimation                   Number of obs      =      1,844
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_neg |
+   (1 vs 0)  |  -176.3132   102.2957    -1.72   0.085    -376.8091    24.18274
+------------------------------------------------------------------------------
+
+. estimates store ps2014
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2015, ///
+>         osample(ps2015)
+there are 111 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2015)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2015 & ps2015==0
+
+Treatment-effects estimation                   Number of obs      =      2,231
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_neg |
+   (1 vs 0)  |   75.98663   53.42589     1.42   0.155    -28.72619    180.6994
+------------------------------------------------------------------------------
+
+. estimates store ps2015
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2016, ///
+>         osample(ps2016)
+there are 8 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2016)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq) if year == 2016 & ps2016==0
+
+Treatment-effects estimation                   Number of obs      =      2,423
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_neg |
+   (1 vs 0)  |  -239.0163   148.1648    -1.61   0.107     -529.414    51.38138
+------------------------------------------------------------------------------
+
+. estimates store ps2016
+
+. 
+. estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
+>         b se p ///
+>         stats(N)
+
+----------------------------------------------------------------------------------------------------------------------
+    Variable |   ps2009       ps2010       ps2011       ps2012       ps2013       ps2014       ps2015       ps2016    
+-------------+--------------------------------------------------------------------------------------------------------
+ATE          |
+trt2_sdg_neg |
+   (1 vs 0)  |  984.01975   -322.74355   -4435.2081   -146.67967                 -176.3132    75.986626   -239.01631  
+             |   1116.518    376.34721    3194.0464    72.434161                 102.29573    53.425888    148.16481  
+             |     0.3781       0.3911       0.1650       0.0429                    0.0848       0.1549       0.1067  
+-------------+--------------------------------------------------------------------------------------------------------
+__000002     |
+        dltt |                                                      .00259862                                         
+             |                                                      .00193962                                         
+             |                                                         0.1803                                         
+          at |                                                     -.00251263                                         
+             |                                                      .00187471                                         
+             |                                                         0.1802                                         
+         age |                                                      .14793489                                         
+             |                                                      .09837164                                         
+             |                                                         0.1326                                         
+         emp |                                                      7.207e-06                                         
+             |                                                      9.720e-06                                         
+             |                                                         0.4584                                         
+      tobinq |                                                     -1.5575185                                         
+             |                                                      2.2369737                                         
+             |                                                         0.4863                                         
+       _cons |                                                     -8.4819434                                         
+             |                                                       6.490037                                         
+             |                                                         0.1912                                         
+-------------+--------------------------------------------------------------------------------------------------------
+Statistics   |                                                                                                        
+           N |        373          712         1158         1380          683         1844         2231         2423  
+----------------------------------------------------------------------------------------------------------------------
+                                                                                                        legend: b/se/p
+
+.         
+.         
+.         
+. 
+. ***     Propensity score estimation using teffects psmatch: trt2_sdw_pos
+. drop ps2*
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2008, ///
+>         osample(ps2008)
+there is only one level in treatment variable trt2_sdw_pos; this is not allowed
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2009, ///
+>         osample(ps2009)
+there are 23 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2009)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) ///
+>         if year == 2009 & ps2009==0
+
+Treatment-effects estimation                   Number of obs      =      3,887
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_pos |
+   (1 vs 0)  |  -88.56188   396.7729    -0.22   0.823    -866.2225    689.0987
+------------------------------------------------------------------------------
+
+. estimates store ps2009
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) ///
+>         if year == 2009 & ps2009==0, nneighbor(5)
+
+Treatment-effects estimation                   Number of obs      =      3,887
+Estimator      : propensity-score matching     Matches: requested =          5
+Outcome model  : matching                                     min =          5
+Treatment model: logit                                        max =          5
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_pos |
+   (1 vs 0)  |  -437.1362   432.3429    -1.01   0.312    -1284.513    410.2404
+------------------------------------------------------------------------------
+
+.         
+.         
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2010, ///
+>         osample(ps2010)
+
+Treatment-effects estimation                   Number of obs      =      3,868
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_pos |
+   (1 vs 0)  |   261.0473   218.8198     1.19   0.233    -167.8317    689.9262
+------------------------------------------------------------------------------
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) ///
+>         if year == 2010 & ps2010==0
+
+Treatment-effects estimation                   Number of obs      =      3,868
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_pos |
+   (1 vs 0)  |   261.0473   218.8198     1.19   0.233    -167.8317    689.9262
+------------------------------------------------------------------------------
+
+. estimates store ps2010  
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2011, ///
+>         osample(ps2011)
+there are 2 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2011)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) ///
+>         if year == 2011 & ps2011==0
+
+Treatment-effects estimation                   Number of obs      =      3,827
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_pos |
+   (1 vs 0)  |   130.1468   172.1506     0.76   0.450    -207.2622    467.5557
+------------------------------------------------------------------------------
+
+. estimates store ps2011
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2012, ///
+>         osample(ps2012)
+there are 177 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2012)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) ///
+>         if year == 2012 & ps2012==0
+
+Treatment-effects estimation                   Number of obs      =      3,639
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_pos |
+   (1 vs 0)  |    589.142   387.1209     1.52   0.128     -169.601    1347.885
+------------------------------------------------------------------------------
+
+. estimates store ps2012
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2013, ///
+>         osample(ps2013)
+there are 36 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2013)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) ///
+>         if year == 2013 & ps2013==0
+
+Treatment-effects estimation                   Number of obs      =      3,821
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_pos |
+   (1 vs 0)  |  -173.4399   156.0276    -1.11   0.266    -479.2485    132.3687
+------------------------------------------------------------------------------
+
+. estimates store ps2013
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2014, ///
+>         osample(ps2014)
+there are 79 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2014)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) ///
+>         if year == 2014 & ps2014==0
+
+Treatment-effects estimation                   Number of obs      =      3,779
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_pos |
+   (1 vs 0)  |     365.36   93.80065     3.90   0.000     181.5141    549.2059
+------------------------------------------------------------------------------
+
+. estimates store ps2014
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2015, ///
+>         osample(ps2015)
+there are 30 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2015)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) ///
+>         if year == 2015 & ps2015==0
+
+Treatment-effects estimation                   Number of obs      =      3,723
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_pos |
+   (1 vs 0)  |   402.5613   152.7887     2.63   0.008     103.1009    702.0217
+------------------------------------------------------------------------------
+
+. estimates store ps2015
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq) if year == 2016, ///
+>         osample(ps2016)
+
+Treatment-effects estimation                   Number of obs      =      3,586
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_pos |
+   (1 vs 0)  |   184.6543   414.1688     0.45   0.656    -627.1015    996.4102
+------------------------------------------------------------------------------
+
+. estimates store ps2016
+
+. 
+. estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
+>         b se p ///
+>         stats(N)
+
+----------------------------------------------------------------------------------------------------------------------
+    Variable |   ps2009       ps2010       ps2011       ps2012       ps2013       ps2014       ps2015       ps2016    
+-------------+--------------------------------------------------------------------------------------------------------
+trt2_sdw_pos |
+   (1 vs 0)  | -88.561876    261.04725    130.14676    589.14202   -173.43991    365.36002    402.56128    184.65432  
+             |  396.77292    218.81982     172.1506    387.12089    156.02765    93.800646    152.78873    414.16875  
+             |     0.8234       0.2329       0.4496       0.1280       0.2663       0.0001       0.0084       0.6557  
+-------------+--------------------------------------------------------------------------------------------------------
+           N |       3887         3868         3827         3639         3821         3779         3723         3586  
+----------------------------------------------------------------------------------------------------------------------
+                                                                                                        legend: b/se/p
+
+. 
+. 
+. 
+. 
+. 
+. ***     Propensity score estimation using teffects psmatch: trt2_sdw_net
+. drop ps2*
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) if year == 2009, ///
+>         osample(ps2009)
+
+Treatment-effects estimation                   Number of obs      =      3,910
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_neg |
+   (1 vs 0)  |    505.527   387.3577     1.31   0.192    -253.6802    1264.734
+------------------------------------------------------------------------------
+
+. estimates store ps2009
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) ///
+>         if year == 2009 & ps2009==0, nneighbor(5)
+
+Treatment-effects estimation                   Number of obs      =      3,910
+Estimator      : propensity-score matching     Matches: requested =          5
+Outcome model  : matching                                     min =          5
+Treatment model: logit                                        max =          5
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_neg |
+   (1 vs 0)  |   912.3609   478.0502     1.91   0.056    -24.60021    1849.322
+------------------------------------------------------------------------------
+
+.         
+.         
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) if year == 2010, ///
+>         osample(ps2010)
+there are 2 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2010)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) ///
+>         if year == 2010 & ps2010==0
+
+Treatment-effects estimation                   Number of obs      =      3,866
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_neg |
+   (1 vs 0)  |  -33.28146   196.8875    -0.17   0.866    -419.1739     352.611
+------------------------------------------------------------------------------
+
+. estimates store ps2010          
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) ///
+>         if year == 2010 & ps2010==0, nneighbor(5)
+
+Treatment-effects estimation                   Number of obs      =      3,866
+Estimator      : propensity-score matching     Matches: requested =          5
+Outcome model  : matching                                     min =          5
+Treatment model: logit                                        max =          5
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_neg |
+   (1 vs 0)  |   11.20546   196.1151     0.06   0.954    -373.1731     395.584
+------------------------------------------------------------------------------
+
+. 
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) if year == 2011, ///
+>         osample(ps2011)
+
+Treatment-effects estimation                   Number of obs      =      3,829
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_neg |
+   (1 vs 0)  |  -6.634332   1021.224    -0.01   0.995    -2008.196    1994.927
+------------------------------------------------------------------------------
+
+. estimates store ps2011
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) if year == 2012, ///
+>         osample(ps2012)
+there are 18 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2012)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) ///
+>         if year == 2012 & ps2012==0
+
+Treatment-effects estimation                   Number of obs      =      3,798
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_neg |
+   (1 vs 0)  |   320.5212   127.1674     2.52   0.012     71.27779    569.7647
+------------------------------------------------------------------------------
+
+. estimates store ps2012
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) if year == 2013, ///
+>         osample(ps2013)
+there are 833 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2013)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) ///
+>         if year == 2013 & ps2013==0
+fewer than 2 propensity-score matches for observation 110138 when in-group matching for the robust() option; use option osample() to identify all observations with deficient matches
+
+. estimates store ps2013
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) if year == 2014, ///
+>         osample(ps2014)
+there are 40 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2014)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) ///
+>         if year == 2014 & ps2014==0
+
+Treatment-effects estimation                   Number of obs      =      3,818
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_neg |
+   (1 vs 0)  |   121.8418    613.773     0.20   0.843    -1081.131    1324.815
+------------------------------------------------------------------------------
+
+. estimates store ps2014
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) if year == 2015, ///
+>         osample(ps2015)
+there are 118 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2015)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) ///
+>         if year == 2015 & ps2015==0
+
+Treatment-effects estimation                   Number of obs      =      3,635
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_neg |
+   (1 vs 0)  |  -172.3016   222.0119    -0.78   0.438    -607.4369    262.8337
+------------------------------------------------------------------------------
+
+. estimates store ps2015
+
+. 
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) if year == 2016, ///
+>         osample(ps2016)
+there are 147 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(ps2016)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq) ///
+>         if year == 2016 & ps2016 == 0
+
+Treatment-effects estimation                   Number of obs      =      3,439
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_neg |
+   (1 vs 0)  |  -121.5738   51.92071    -2.34   0.019    -223.3366   -19.81109
+------------------------------------------------------------------------------
+
+. estimates store ps2016
+
+. 
+. estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
+>         b se p ///
+>         stats(N)
+
+----------------------------------------------------------------------------------------------------------------------
+    Variable |   ps2009       ps2010       ps2011       ps2012       ps2013       ps2014       ps2015       ps2016    
+-------------+--------------------------------------------------------------------------------------------------------
+ATE          |
+trt2_sdw_neg |
+   (1 vs 0)  |  505.52701   -33.281458   -6.6343319    320.52123                 121.84178   -172.30161   -121.57382  
+             |  387.35773    196.88753    1021.2235    127.16736                 613.77305    222.01187    51.920713  
+             |     0.1919       0.8658       0.9948       0.0117                    0.8426       0.4377       0.0192  
+-------------+--------------------------------------------------------------------------------------------------------
+__000002     |
+        dltt |                                                       .0009801                                         
+             |                                                      .00107159                                         
+             |                                                         0.3604                                         
+          at |                                                     -.00094799                                         
+             |                                                      .00103558                                         
+             |                                                         0.3600                                         
+         age |                                                      .05067618                                         
+             |                                                      .04269338                                         
+             |                                                         0.2352                                         
+         emp |                                                      7.065e-06                                         
+             |                                                      8.784e-06                                         
+             |                                                         0.4213                                         
+      tobinq |                                                     -.28130668                                         
+             |                                                      .72483152                                         
+             |                                                         0.6979                                         
+       _cons |                                                     -7.4346712                                         
+             |                                                      2.0515633                                         
+             |                                                         0.0003                                         
+-------------+--------------------------------------------------------------------------------------------------------
+Statistics   |                                                                                                        
+           N |       3910         3866         3829         3798         3024         3818         3635         3439  
+----------------------------------------------------------------------------------------------------------------------
+                                                                                                        legend: b/se/p
+
+. 
+end of do-file
+
+. log close
+      name:  <unnamed>
+       log:  D:\Dropbox\papers\active\dissertation-csrhub\project\code/logs/201902078yearly-analysis.txt
+  log type:  text
+ closed on:   8 Feb 2019, 12:39:20
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
