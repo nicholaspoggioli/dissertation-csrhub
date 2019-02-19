@@ -1,0 +1,671 @@
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  D:\Dropbox\papers\active\dissertation-csrhub\project\code/logs/20190219-yearly-analysis.txt
+  log type:  text
+ opened on:  19 Feb 2019, 12:25:08
+
+. 
+. ///     LOAD DATA
+> use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+
+. 
+. *       Clear estimates
+. est clear
+
+. 
+. *       Drop 2017
+. drop if year>=2017
+(13,884 observations deleted)
+
+. 
+. /// SET PANEL
+> encode cusip, gen(cusip_n)
+
+. xtset cusip_n year, y
+       panel variable:  cusip_n (unbalanced)
+        time variable:  year, 1990 to 2016, but with gaps
+                delta:  1 year
+
+. 
+. ///     GENERATE YEAR-ON-YEAR REVENUE CHANGE
+> gen revt_yoy = revt - l.revt
+(64,898 missing values generated)
+
+. label var revt_yoy "Year-on-year change in revenue (revt - previous year revt)"
+
+. 
+. /// CREATE INDUSTRY VARIABLE USING 2-DIGIT SIC
+> gen sic2 = substr(sic,1,2)
+(54,316 missing values generated)
+
+. destring sic2, replace
+sic2: all characters numeric; replaced as byte
+(54316 missing values generated)
+
+. 
+. gen sic2cat=""
+(164,017 missing values generated)
+
+. 
+. replace sic2cat="agforfish" if sic2==1
+variable sic2cat was str1 now str9
+(196 real changes made)
+
+. replace sic2cat="agforfish" if sic2==2
+(31 real changes made)
+
+. replace sic2cat="agforfish" if sic2==7
+(27 real changes made)
+
+. replace sic2cat="agforfish" if sic2==8
+(27 real changes made)
+
+. replace sic2cat="agforfish" if sic2==9
+(0 real changes made)
+
+. 
+. replace sic2cat="mining" if sic2==10
+(2,054 real changes made)
+
+. replace sic2cat="mining" if sic2==12
+(262 real changes made)
+
+. replace sic2cat="mining" if sic2==13
+(4,297 real changes made)
+
+. replace sic2cat="mining" if sic2==14
+(236 real changes made)
+
+. 
+. replace sic2cat="construction" if sic2==15
+variable sic2cat was str9 now str12
+(619 real changes made)
+
+. replace sic2cat="construction" if sic2==16
+(417 real changes made)
+
+. replace sic2cat="construction" if sic2==17
+(136 real changes made)
+
+. 
+. replace sic2cat="manufacture" if sic2==20
+(2,375 real changes made)
+
+. replace sic2cat="manufacture" if sic2==21
+(119 real changes made)
+
+. replace sic2cat="manufacture" if sic2==22
+(297 real changes made)
+
+. replace sic2cat="manufacture" if sic2==23
+(684 real changes made)
+
+. replace sic2cat="manufacture" if sic2==24
+(669 real changes made)
+
+. replace sic2cat="manufacture" if sic2==25
+(467 real changes made)
+
+. replace sic2cat="manufacture" if sic2==26
+(1,059 real changes made)
+
+. replace sic2cat="manufacture" if sic2==27
+(967 real changes made)
+
+. replace sic2cat="manufacture" if sic2==28
+(9,300 real changes made)
+
+. replace sic2cat="manufacture" if sic2==29
+(785 real changes made)
+
+. replace sic2cat="manufacture" if sic2==30
+(670 real changes made)
+
+. replace sic2cat="manufacture" if sic2==31
+(311 real changes made)
+
+. replace sic2cat="manufacture" if sic2==32
+(529 real changes made)
+
+. replace sic2cat="manufacture" if sic2==33
+(1,302 real changes made)
+
+. replace sic2cat="manufacture" if sic2==34
+(1,184 real changes made)
+
+. replace sic2cat="manufacture" if sic2==35
+(4,901 real changes made)
+
+. replace sic2cat="manufacture" if sic2==36
+(7,049 real changes made)
+
+. replace sic2cat="manufacture" if sic2==37
+(2,318 real changes made)
+
+. replace sic2cat="manufacture" if sic2==38
+(5,487 real changes made)
+
+. replace sic2cat="manufacture" if sic2==39
+(583 real changes made)
+
+. 
+. replace sic2cat="transport" if sic2==40
+(248 real changes made)
+
+. replace sic2cat="transport" if sic2==41
+(74 real changes made)
+
+. replace sic2cat="transport" if sic2==42
+(652 real changes made)
+
+. replace sic2cat="transport" if sic2==43
+(0 real changes made)
+
+. replace sic2cat="transport" if sic2==44
+(542 real changes made)
+
+. replace sic2cat="transport" if sic2==45
+(759 real changes made)
+
+. replace sic2cat="transport" if sic2==46
+(138 real changes made)
+
+. replace sic2cat="transport" if sic2==47
+(278 real changes made)
+
+. replace sic2cat="transport" if sic2==48
+(3,507 real changes made)
+
+. replace sic2cat="transport" if sic2==49
+(4,129 real changes made)
+
+. 
+. replace sic2cat="wholesale" if sic2==50
+(1,813 real changes made)
+
+. replace sic2cat="wholesale" if sic2==51
+(1,152 real changes made)
+
+. 
+. replace sic2cat="retail" if sic2==52
+(148 real changes made)
+
+. replace sic2cat="retail" if sic2==53
+(619 real changes made)
+
+. replace sic2cat="retail" if sic2==54
+(688 real changes made)
+
+. replace sic2cat="retail" if sic2==55
+(529 real changes made)
+
+. replace sic2cat="retail" if sic2==56
+(1,025 real changes made)
+
+. replace sic2cat="retail" if sic2==57
+(373 real changes made)
+
+. replace sic2cat="retail" if sic2==58
+(1,204 real changes made)
+
+. replace sic2cat="retail" if sic2==59
+(1,693 real changes made)
+
+. 
+. replace sic2cat="finance" if sic2==60
+(11,032 real changes made)
+
+. replace sic2cat="finance" if sic2==61
+(1,089 real changes made)
+
+. replace sic2cat="finance" if sic2==62
+(1,784 real changes made)
+
+. replace sic2cat="finance" if sic2==63
+(3,655 real changes made)
+
+. replace sic2cat="finance" if sic2==64
+(355 real changes made)
+
+. replace sic2cat="finance" if sic2==65
+(647 real changes made)
+
+. replace sic2cat="finance" if sic2==67
+(5,648 real changes made)
+
+. 
+. replace sic2cat="services" if sic2==70
+(375 real changes made)
+
+. replace sic2cat="services" if sic2==72
+(326 real changes made)
+
+. replace sic2cat="services" if sic2==73
+(10,019 real changes made)
+
+. replace sic2cat="services" if sic2==75
+(175 real changes made)
+
+. replace sic2cat="services" if sic2==76
+(0 real changes made)
+
+. replace sic2cat="services" if sic2==78
+(366 real changes made)
+
+. replace sic2cat="services" if sic2==79
+(1,028 real changes made)
+
+. replace sic2cat="services" if sic2==80
+(1,678 real changes made)
+
+. replace sic2cat="services" if sic2==81
+(40 real changes made)
+
+. replace sic2cat="services" if sic2==82
+(389 real changes made)
+
+. replace sic2cat="services" if sic2==83
+(101 real changes made)
+
+. replace sic2cat="services" if sic2==84
+(0 real changes made)
+
+. replace sic2cat="services" if sic2==86
+(0 real changes made)
+
+. replace sic2cat="services" if sic2==87
+(1,546 real changes made)
+
+. replace sic2cat="services" if sic2==88
+(0 real changes made)
+
+. replace sic2cat="services" if sic2==89
+(0 real changes made)
+
+. 
+. replace sic2cat="publicadmin" if sic2==91
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==92
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==93
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==94
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==95
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==96
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==97
+(0 real changes made)
+
+. replace sic2cat="publicadmin" if sic2==99
+(519 real changes made)
+
+. 
+. encode sic2cat, gen(sic2division)
+
+. label var sic2division "SIC division (2-digit level)"
+
+. 
+. ///     KEEP VARIABLES IN REGRESSION MODELS TO REDUCE FILE SIZE
+> keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
+>         over_rtg *rtg_lym sic tobinq trt* sic sic2division
+
+. 
+.         
+. ///     REPLACE trt_sdw variables with missing for years without CSRHub data
+> foreach variable of varlist *sdw* {
+  2.         display "`variable'"
+  3.         replace `variable'=. if year < 2009
+  4. }
+trt4_sdw_pos
+(82,447 real changes made, 82,447 to missing)
+trt4_sdw_neg
+(82,447 real changes made, 82,447 to missing)
+trt4_sdw_pos_grp
+(44,711 real changes made, 44,711 to missing)
+trt4_sdw_neg_grp
+(44,711 real changes made, 44,711 to missing)
+trt3_sdw_pos
+(82,447 real changes made, 82,447 to missing)
+trt3_sdw_neg
+(82,447 real changes made, 82,447 to missing)
+trt3_sdw_pos_grp
+(44,711 real changes made, 44,711 to missing)
+trt3_sdw_neg_grp
+(44,711 real changes made, 44,711 to missing)
+trt2_sdw_pos
+(82,447 real changes made, 82,447 to missing)
+trt2_sdw_neg
+(82,447 real changes made, 82,447 to missing)
+trt2_sdw_pos_grp
+(44,711 real changes made, 44,711 to missing)
+trt2_sdw_neg_grp
+(44,711 real changes made, 44,711 to missing)
+trt_cont_sdw
+(0 real changes made)
+trt_cont_sdw_pos
+(0 real changes made)
+trt_cont_sdw_neg
+(0 real changes made)
+trt_cat_sdw_pos
+(0 real changes made)
+trt_cat_sdw_neg
+(0 real changes made)
+
+. 
+. ///     CREATE STANDARDIZED VARIABLES
+> foreach variable of varlist over_rtg dltt at emp tobinq age xad xrd {
+  2.         capt n egen z`variable'=std(`variable')
+  3.         label var z`variable' "Standardized value of `variable'"
+  4. }
+(120578 missing values generated)
+(57842 missing values generated)
+(57500 missing values generated)
+(66841 missing values generated)
+(65116 missing values generated)
+(54316 missing values generated)
+(126200 missing values generated)
+(111551 missing values generated)
+
+. 
+end of do-file
+
+. do "C:\Users\poggi005\AppData\Local\Temp\STD33c4_000000.tmp"
+
+.                                                 ***===============================***
+.                                                 *  PROPENSITY SCORE MATCHING MODELS     *
+.                                                 *                       BY ALL YEARS                    *
+.                                                 ***===============================***
+. ***     Generate firmyear variable
+. egen firmyear = group(cusip year)
+
+. 
+. ***     Generate year-on-year revenue change
+. capt n gen Frevt_yoy = F.revt-revt
+(64,898 missing values generated)
+
+. label var Frevt_yoy "Next year revt - current year revt"
+
+. 
+. ///     PROPENSITY SCORE MATCHING
+> 
+. ***     Global standard deviation
+. 
+. *       Positive
+. drop prop*
+variable prop* not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\poggi005\AppData\Local\Temp\STD33c4_000000.tmp"
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq sic2division), ///
+>         osample(prop1)
+there are 138 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(prop1)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq sic2division) ///
+>         if prop1 == 0, osample(prop2)
+there are 64 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(prop2)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq sic2division) ///
+>         if prop1 == 0 & prop2==0
+
+Treatment-effects estimation                   Number of obs      =      9,973
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_pos |
+   (1 vs 0)  |   55.54031   80.48212     0.69   0.490    -102.2017    213.2824
+------------------------------------------------------------------------------
+
+.         
+. 
+. drop prop*
+
+. capt n teffects psmatch (Frevt_yoy) (trt3_sdg_pos dltt at age emp tobinq sic2division), ///
+>         osample(prop1)
+there are 252 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(prop1)
+
+. capt n teffects psmatch (Frevt_yoy) (trt3_sdg_pos dltt at age emp tobinq sic2division) ///
+>         if prop1 == 0
+note: variance correction results in a negative variance estimate; ignoring the correction term
+
+Treatment-effects estimation                   Number of obs      =      9,923
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt3_sdg_pos |
+   (1 vs 0)  |   914.1962   915.9422     1.00   0.318    -881.0175     2709.41
+------------------------------------------------------------------------------
+
+.         
+.         
+. drop prop*      
+
+. capt n teffects psmatch (Frevt_yoy) (trt4_sdg_pos dltt at age emp tobinq sic2division), ///
+>         osample(prop1)
+there are 768 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(prop1)
+
+. capt n teffects psmatch (Frevt_yoy) (trt4_sdg_pos dltt at age emp tobinq sic2division) ///
+>         if prop1 == 0
+note: variance correction results in a negative variance estimate; ignoring the correction term
+
+Treatment-effects estimation                   Number of obs      =      9,407
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt4_sdg_pos |
+   (1 vs 0)  |   235.4846   150.6152     1.56   0.118    -59.71585     530.685
+------------------------------------------------------------------------------
+
+. 
+. 
+. 
+. *       Negative
+. drop prop*
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq sic2division)
+
+Treatment-effects estimation                   Number of obs      =     10,175
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdg_neg |
+   (1 vs 0)  |   141.1252   868.1386     0.16   0.871    -1560.395    1842.646
+------------------------------------------------------------------------------
+
+.         
+. capt n teffects psmatch (Frevt_yoy) (trt3_sdg_neg dltt at age emp tobinq sic2division), ///
+>         osample(prop1)
+there are 66 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(prop1)
+
+. capt n teffects psmatch (Frevt_yoy) (trt3_sdg_neg dltt at age emp tobinq sic2division) ///
+>         if prop1 == 0
+
+Treatment-effects estimation                   Number of obs      =     10,109
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt3_sdg_neg |
+   (1 vs 0)  |   241.6446    107.186     2.25   0.024     31.56393    451.7253
+------------------------------------------------------------------------------
+
+.                 
+. drop prop*      
+
+. capt n teffects psmatch (Frevt_yoy) (trt4_sdg_neg dltt at age emp tobinq sic2division), ///
+>         osample(prop1)
+there are 28 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(prop1)
+
+. capt n teffects psmatch (Frevt_yoy) (trt4_sdg_neg dltt at age emp tobinq sic2division) ///
+>         if prop1 == 0
+
+Treatment-effects estimation                   Number of obs      =     10,147
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt4_sdg_neg |
+   (1 vs 0)  |   520.3936   252.1974     2.06   0.039     26.09577    1014.691
+------------------------------------------------------------------------------
+
+. 
+. 
+.         
+.         
+. ***     Firm-specific standard deviation
+. 
+. *       Positive
+. drop prop*
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq sic2division), ///
+>         osample(prop1)
+there are 14 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(prop1)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq sic2division) ///
+>         if prop1 == 0
+
+Treatment-effects estimation                   Number of obs      =     26,877
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_pos |
+   (1 vs 0)  |   212.0382   57.92148     3.66   0.000     98.51418    325.5622
+------------------------------------------------------------------------------
+
+. 
+. drop prop*
+
+. capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq sic2division)
+
+Treatment-effects estimation                   Number of obs      =     26,891
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt3_sdw_pos |
+   (1 vs 0)  |   113.2569   122.5349     0.92   0.355    -126.9071    353.4209
+------------------------------------------------------------------------------
+
+. 
+. 
+. *       Negative
+. drop prop*
+variable prop* not found
+r(111);
+
+end of do-file
+
+r(111);
+
+. do "C:\Users\poggi005\AppData\Local\Temp\STD33c4_000000.tmp"
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq sic2division), ///
+>         osample(prop1)
+there are 7 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(prop1)
+
+. capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq sic2division) ///
+>         if prop1 == 0
+
+Treatment-effects estimation                   Number of obs      =     26,884
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt2_sdw_neg |
+   (1 vs 0)  |  -257.0043   397.5746    -0.65   0.518    -1036.236    522.2275
+------------------------------------------------------------------------------
+
+.         
+. drop prop*
+
+. capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq sic2division), ///
+>         osample(prop1)
+there are 27 propensity scores less than 1.00e-05
+treatment overlap assumption has been violated by observations identified in variable osample(prop1)
+
+. capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq sic2division) ///
+>         if prop1 == 0
+
+Treatment-effects estimation                   Number of obs      =     26,864
+Estimator      : propensity-score matching     Matches: requested =          1
+Outcome model  : matching                                     min =          1
+Treatment model: logit                                        max =          1
+------------------------------------------------------------------------------
+             |              AI Robust
+   Frevt_yoy |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+ATE          |
+trt3_sdw_neg |
+   (1 vs 0)  |   1106.154   464.1926     2.38   0.017     196.3529    2015.954
+------------------------------------------------------------------------------
+
+. 
+end of do-file
+
+. log close
+      name:  <unnamed>
+       log:  D:\Dropbox\papers\active\dissertation-csrhub\project\code/logs/20190219-yearly-analysis.txt
+  log type:  text
+ closed on:  19 Feb 2019, 12:32:49
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
