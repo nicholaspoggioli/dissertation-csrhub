@@ -1,11 +1,15 @@
 ///	LOG
 capt n log close
-log using code/logs/201902078yearly-analysis.txt, text replace
+log using code/logs/20190212-yearly-analysis.txt, text
 
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
+*	Clear estimates
 est clear
+
+*	Drop 2017
+drop if year>=2017
 
 /// SET PANEL
 encode cusip, gen(cusip_n)
@@ -126,9 +130,13 @@ keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
 foreach variable of varlist *sdw* {
 	display "`variable'"
 	replace `variable'=. if year < 2009
-	replace `variable'=. if year >2017
 }
 
+///	CREATE STANDARDIZED VARIABLES
+foreach variable of varlist over_rtg dltt at emp tobinq age xad xrd {
+	capt n egen z`variable'=std(`variable')
+	label var z`variable' "Standardized value of `variable'"
+}
 	
 
 /*	
@@ -1168,7 +1176,8 @@ capt n log close
 
 */
 						***===============================***
-						*  PROPENSITY SCORE MATCHING MODELS	*	
+						*  PROPENSITY SCORE MATCHING MODELS	*
+						*			BY YEAR					*
 						***===============================***
 *	Matching variables: dltt at age emp tobinq xad xrd
 *	Using https://ssc.wisc.edu/sscc/pubs/stata_psmatch.htm
@@ -1195,11 +1204,10 @@ gen Frevt_yoy = F.revt-revt
 label var Frevt_yoy "Next year revt - current year revt"
 
 ***	Propensity score estimation using teffects psmatch: trt2_sdg_pos
-drop mark
+capt n drop mark
 mark mark1
 markout mark1 trt2_sdg_pos Frevt_yoy dltt at age emp tobinq
 tab year trt2_sdg_pos if mark1==1
-
 
 
 capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq) ///
@@ -1687,6 +1695,53 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
 	
 	
 	
+	
+	
+	
+						***===============================***
+						*  PROPENSITY SCORE MATCHING MODELS	*
+						*			BY ALL YEARS			*
+						***===============================***
+***	Generate firmyear variable
+egen firmyear = group(cusip year)
+
+***	Generate year-on-year revenue change
+capt n gen Frevt_yoy = F.revt-revt
+label var Frevt_yoy "Next year revt - current year revt"
+
+///	GENERATE PROPENSITY SCORES
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq sic2division), ///
+	nn(10) osample(prop1)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq sic2division) ///
+	if prop1 == 0, nn(10) osample(prop2)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq sic2division) ///
+	if prop1 == 0 & prop2==0, nn(10) gen(prop1_match)
+predict ps0 ps1, ps
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
