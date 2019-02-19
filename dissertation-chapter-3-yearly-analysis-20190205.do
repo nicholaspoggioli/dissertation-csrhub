@@ -1,6 +1,6 @@
 ///	LOG
 capt n log close
-log using code/logs/20190212-yearly-analysis.txt, text
+log using code/logs/20190219-yearly-analysis.txt, text
 
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
@@ -1709,31 +1709,82 @@ egen firmyear = group(cusip year)
 capt n gen Frevt_yoy = F.revt-revt
 label var Frevt_yoy "Next year revt - current year revt"
 
-///	GENERATE PROPENSITY SCORES
+///	PROPENSITY SCORE MATCHING
+
+***	Global standard deviation
+
+*	Positive
 capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq sic2division), ///
-	nn(10) osample(prop1)
+	osample(prop1)
 capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq sic2division) ///
-	if prop1 == 0, nn(10) osample(prop2)
+	if prop1 == 0, osample(prop2)
 capt n teffects psmatch (Frevt_yoy) (trt2_sdg_pos dltt at age emp tobinq sic2division) ///
-	if prop1 == 0 & prop2==0, nn(10) gen(prop1_match)
-predict ps0 ps1, ps
+	if prop1 == 0 & prop2==0
+	
+
+drop prop*
+capt n teffects psmatch (Frevt_yoy) (trt3_sdg_pos dltt at age emp tobinq sic2division), ///
+	osample(prop1)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdg_pos dltt at age emp tobinq sic2division) ///
+	if prop1 == 0
+	
+	
+drop prop*	
+capt n teffects psmatch (Frevt_yoy) (trt4_sdg_pos dltt at age emp tobinq sic2division), ///
+	osample(prop1)
+capt n teffects psmatch (Frevt_yoy) (trt4_sdg_pos dltt at age emp tobinq sic2division) ///
+	if prop1 == 0
 
 
 
+*	Negative
+drop prop*
+capt n teffects psmatch (Frevt_yoy) (trt2_sdg_neg dltt at age emp tobinq sic2division)
+	
+capt n teffects psmatch (Frevt_yoy) (trt3_sdg_neg dltt at age emp tobinq sic2division), ///
+	osample(prop1)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdg_neg dltt at age emp tobinq sic2division) ///
+	if prop1 == 0
+		
+drop prop*	
+capt n teffects psmatch (Frevt_yoy) (trt4_sdg_neg dltt at age emp tobinq sic2division), ///
+	osample(prop1)
+capt n teffects psmatch (Frevt_yoy) (trt4_sdg_neg dltt at age emp tobinq sic2division) ///
+	if prop1 == 0
+
+
+	
+	
+***	Firm-specific standard deviation
+
+*	Positive
+drop prop*
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq sic2division), ///
+	osample(prop1)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq sic2division) ///
+	if prop1 == 0
+
+drop prop*
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq sic2division)
+
+
+*	Negative
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq sic2division), ///
+	osample(prop1)
+capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq sic2division) ///
+	if prop1 == 0
+	
+drop prop*
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq sic2division), ///
+	osample(prop1)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq sic2division) ///
+	if prop1 == 0
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+	
+	
+	
 
 
 
