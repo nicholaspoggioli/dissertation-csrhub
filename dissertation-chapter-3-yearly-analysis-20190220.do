@@ -123,7 +123,9 @@ label var sic2division "SIC division (2-digit level)"
 
 ///	KEEP VARIABLES IN REGRESSION MODELS TO REDUCE FILE SIZE
 keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
-	over_rtg *rtg_lym sic tobinq trt* sic sic2division
+	over_rtg *rtg_lym sic tobinq sic sic2division ///
+	trt2_sdw_neg trt2_sdw_neg_grp trt2_sdw_pos trt2_sdw_pos_grp ///
+	trt3_sdw_neg trt3_sdw_neg_grp trt3_sdw_pos trt3_sdw_pos_grp
 
 	
 ///	REPLACE trt_sdw variables with missing for years without CSRHub data
