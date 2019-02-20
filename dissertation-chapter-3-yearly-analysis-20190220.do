@@ -1728,8 +1728,6 @@ foreach variable in trt_cont_sdg trt_cont_sdw revt revt_yoy rd emp debt {
 	gen `variable'_dm = `variable' - `variable'_m
 }
 
-
-
 ///	CONTINUOUS TREATMENT
 ***	DV: Change in revenue
 xtreg f.revt_yoy trt_cont_sdg_dm revt_yoy_dm rd_dm emp_dm debt_dm ///
