@@ -128,18 +128,6 @@ keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
 	trt2_sdw_neg trt2_sdw_neg_grp trt2_sdw_pos trt2_sdw_pos_grp ///
 	trt3_sdw_neg trt3_sdw_neg_grp trt3_sdw_pos trt3_sdw_pos_grp
 
-	
-///	REPLACE trt_sdw variables with missing for years without CSRHub data
-foreach variable of varlist *sdw* {
-	display "`variable'"
-	replace `variable'=. if year < 2009
-}
-
-///	CREATE STANDARDIZED VARIABLES
-foreach variable of varlist over_rtg dltt at emp tobinq age xad xrd {
-	capt n egen z`variable'=std(`variable')
-	label var z`variable' "Standardized value of `variable'"
-}
 
 
 /*	
