@@ -465,7 +465,7 @@ gen over_rtg_yoy = over_rtg - l.over_rtg
 label var over_rtg_yoy "Year-on-year change in CSRHub overall rating"
 
 *	Generate treatment variables
-foreach threshold in 4 3 2 {
+foreach threshold in 4 3 2 1 {
 	*	Treatment event
 	gen trt`threshold'_sdg_pos = over_rtg_yoy > (`threshold' * sdg) & over_rtg_yoy!=.
 	label var trt`threshold'_sdg_pos "Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdg and positive"
@@ -518,7 +518,7 @@ label var post4_only_sdg "Indicator =1 if post-treatment year of ONLY 4 global s
 gen trt4_only_sdg = trt4_sdg
 label var trt4_only_sdg "Indicator = 1 if treatment group of ONLY 4 global std dev treated"
 
-foreach threshold in 3 2 {
+foreach threshold in 3 2 1 {
 	local y = `threshold' + 1
 
 	gen trt`threshold'_year_only_sdg = trt`threshold'_year_sdg
@@ -544,7 +544,7 @@ label var sdw "Within-firm standard deviation of over_rtg for each cusip_n"
 replace sdw=. if over_rtg==.
 
 *	Generate treatment variables
-foreach threshold in 4 3 2 {
+foreach threshold in 4 3 2 1 {
 	*	Treatment event
 	gen trt`threshold'_sdw_pos = over_rtg_yoy > (`threshold' * sdw) & ///
 		over_rtg_yoy!=.
@@ -596,7 +596,7 @@ label var post4_only_sdg "Indicator =1 if post-treatment year of ONLY 4 global s
 gen trt4_only_sdg = trt4_sdg
 label var trt4_only_sdg "Indicator = 1 if treatment group of ONLY 4 global std dev treated"
 
-foreach threshold in 3 2 {
+foreach threshold in 3 2 1 {
 	local y = `threshold' + 1
 
 	gen trt`threshold'_year_only_sdg = trt`threshold'_year_sdg
