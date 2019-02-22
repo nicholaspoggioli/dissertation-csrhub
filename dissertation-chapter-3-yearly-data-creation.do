@@ -44,6 +44,7 @@ foreach variable of varlist over_rtg board_rtg cmty_rtg com_dev_phl_rtg comp_ben
 	gen `variable'_lym = `variable' if month==maxmth
 	label var `variable'_lym "(CSRHUB) Last ym of `variable' for each year"
 }
+
 drop var maxmth
 
 
@@ -727,6 +728,20 @@ replace trt_cat_sdw_pos = . if trt_cat_sdw_pos > 3
 replace trt_cat_sdw_neg = . if trt_cat_sdw_neg < -3
 
 
+
+///	REPLACE trt_sdw variables with missing for years without CSRHub data
+foreach variable of varlist *sdw* {
+	display "`variable'"
+	replace `variable'=. if year < 2009
+}
+
+///	CREATE STANDARDIZED VARIABLES
+foreach variable of varlist over_rtg dltt at emp tobinq age xad xrd {
+	capt n egen z`variable'=std(`variable')
+	label var z`variable' "Standardized value of `variable'"
+}
+
+
 ///	Save
 compress
 drop cusip_n
@@ -1083,27 +1098,6 @@ forvalues year = 1990/2018 {
 		capt n predict ps`threshold'_`year'_sdg if e(sample), pr
 	}
 }
-
-
-///	Identify best matches from results of the three algorithms
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
