@@ -755,6 +755,25 @@ foreach variable of varlist in_csrhub in_kld in_cstat {
 	replace `variable'=0 if `variable'==.
 }
 
+/// SET PANEL
+drop cusip_n
+label drop _all
+encode cusip, gen(cusip_n)
+xtset cusip_n year, y
+
+///	SALES GROWTH VARIABLES
+***	Current year minus previous year
+gen revt_yoy = revt - l.revt
+label var revt_yoy "Year-on-year change in revenue (revt - previous year revt)"
+
+***	Next year minus current year
+gen Frevt_yoy = F.revt-revt
+label var Frevt_yoy "Next year revt - current year revt"
+
+***	Percent change in sales, current to next year
+gen revt_pct = (revt_yoy/L.revt)*100
+label var revt_pct "Percent change in revenue, current to previous year"
+
 
 
 ///	SAVE

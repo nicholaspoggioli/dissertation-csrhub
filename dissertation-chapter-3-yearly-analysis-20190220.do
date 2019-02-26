@@ -15,9 +15,7 @@ drop if year>=2017
 encode cusip, gen(cusip_n)
 xtset cusip_n year, y
 
-///	GENERATE YEAR-ON-YEAR REVENUE CHANGE
-gen revt_yoy = revt - l.revt
-label var revt_yoy "Year-on-year change in revenue (revt - previous year revt)"
+
 
 /// CREATE INDUSTRY VARIABLE USING 2-DIGIT SIC
 gen sic2 = substr(sic,1,2)
