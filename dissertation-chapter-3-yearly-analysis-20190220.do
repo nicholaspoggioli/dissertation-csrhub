@@ -126,7 +126,19 @@ keep cusip cusip_n year revt revt_yoy dltt at xad xrd emp age ///
 	over_rtg *rtg_lym sic tobinq sic sic2division ///
 	trt1_sdw_neg trt1_sdw_neg_grp trt1_sdw_pos trt1_sdw_pos_grp ///
 	trt2_sdw_neg trt2_sdw_neg_grp trt2_sdw_pos trt2_sdw_pos_grp ///
-	trt3_sdw_neg trt3_sdw_neg_grp trt3_sdw_pos trt3_sdw_pos_grp
+	trt3_sdw_neg trt3_sdw_neg_grp trt3_sdw_pos trt3_sdw_pos_grp ///
+	in_cstat in_csrhub in_kld in_all
+
+///	CREATE DUMMY FOR FIRMS IN THE CSRHUB DATA FOR ALL YEARS OF PANEL
+***	CSRHub data have 9 years of observations
+bysort cusip: egen csrhub_years = total(in_csrhub)
+gen in_csrhub_all=(csrhub_years==9)
+label var in_csrhub_all "(CSRHub) =1 if firm in all 9 years of CSRHub data"
+drop csrhub_years
+replace in_csrhub_all=0 if in_csrhub==0
+
+
+
 
 
 
