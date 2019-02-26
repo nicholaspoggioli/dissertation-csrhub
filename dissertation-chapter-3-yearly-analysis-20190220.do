@@ -11,12 +11,6 @@ est clear
 *	Drop 2017
 drop if year>=2017
 
-/// SET PANEL
-encode cusip, gen(cusip_n)
-xtset cusip_n year, y
-
-
-
 /// CREATE INDUSTRY VARIABLE USING 2-DIGIT SIC
 gen sic2 = substr(sic,1,2)
 destring sic2, replace
@@ -1199,10 +1193,6 @@ forvalues year = 2008/2016 {
 	predict ps_trt2_sdg_pos_`year' if e(sample)
 }
 */
-
-***	Generate year-on-year revenue change
-gen Frevt_yoy = F.revt-revt
-label var Frevt_yoy "Next year revt - current year revt"
 
 
 /*	THIS SECTION NEEDS TO BE CORRECTED
