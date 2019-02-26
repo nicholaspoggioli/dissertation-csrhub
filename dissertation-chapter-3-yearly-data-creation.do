@@ -786,9 +786,6 @@ sort cusip year
 gen in_all = (in_cstat==1 & in_kld==1 & in_csrhub==1)
 label var in_all "Indicator = 1 if in CSRHub, CSTAT, and KLD data"
 
-drop cusip_n
-label drop _all
-
 compress
 save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 
