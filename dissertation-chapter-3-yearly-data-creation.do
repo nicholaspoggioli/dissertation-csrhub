@@ -750,6 +750,12 @@ foreach variable of varlist over_rtg dltt at emp tobinq age xad xrd {
 }
 
 
+///	FIX MARKER VARIABLES
+foreach variable of varlist in_csrhub in_kld in_cstat {
+	replace `variable'=0 if `variable'==.
+}
+
+
 
 ///	SAVE
 ***	Order variables
