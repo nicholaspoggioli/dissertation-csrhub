@@ -8,7 +8,7 @@ use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 ***	Clear estimates
 est clear
 
-*** Assess zscores
+*** Assess treatment variables distribution and zscores
 gen zscore = over_rtg_yoy/sdw
 bysort zscore: gen N=_N
 tab N, sort
@@ -229,7 +229,10 @@ replace in_csrhub_all=0 if in_csrhub==0
 
 
 ///	Descriptive statistics
-
+mark both
+markout both over_rtg revt
+keep if both==1
+compress
 
 
 
