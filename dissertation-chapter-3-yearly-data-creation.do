@@ -54,7 +54,7 @@ foreach variable of varlist *rtg {
 	gen `variable'_med = `variable'
 }
 
-collapse (max) *lym (mean) *_mean (median) *_med, by(cusip year firm isin)
+collapse (max) *lym (mean) *_mean (median) *_med, by(cusip year firm isin) 		*Keep industry here
 
 order *, alpha
 order cusip year firm
@@ -458,7 +458,13 @@ encode cusip, gen(cusip_n)
 xtset cusip_n year
 
 
+*	Generate year-on-year change in over_rtg
+gen over_rtg_yoy = over_rtg - l.over_rtg
+label var over_rtg_yoy "Year-on-year change in CSRHub overall rating"
+
 ///	Binary +/- deviation from standard deviation
+
+/*	COMMENTED OUT THE GLOBAL STANDARD DEVIATION ON APRIL 22, 2019
 
 ***	Global standard deviation
 
@@ -469,9 +475,6 @@ gen sdg = `r(sd_w)'
 label var sdg "global within-firm standard deviation of over_rtg"
 replace sdg = . if over_rtg==.
 
-*	Generate year-on-year change in over_rtg
-gen over_rtg_yoy = over_rtg - l.over_rtg
-label var over_rtg_yoy "Year-on-year change in CSRHub overall rating"
 
 *	Generate treatment variables
 foreach threshold in 4 3 2 1 {
@@ -518,6 +521,10 @@ foreach threshold in 4 3 2 1 {
 	qui xtset
 	drop trt_yr_sdg_*
 }
+
+*/
+
+
 
 /*	Remove overlap in treatment groups											/*	Still needs to be done */
 gen trt4_year_only_sdg = trt4_year_sdg
@@ -596,6 +603,7 @@ foreach threshold in 4 3 2 1 {
 	qui xtset
 	drop trt_yr_sdw_*
 }
+
 
 /*	Remove overlap in treatment groups											/*	Still needs to be done */
 gen trt4_year_only_sdg = trt4_year_sdg
