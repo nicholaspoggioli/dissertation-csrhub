@@ -3,7 +3,21 @@
 ***===================================***
 ///	SET ENVIRONMENT
 clear all
-set scheme plotplainblind
+set scheme plotplain
+
+///	CHAPTER 1
+
+///	CHAPTER 2
+
+***	Number of rating sources by firm
+scatter over_rtg num_sources, m(oh) jitter(.1) mcolor(black%05) ///
+	ylab(0(10)100)
+
+***	Distribution of revenue
+
+
+	
+
 
 
 
@@ -84,7 +98,6 @@ graph tw kdensity `rating' if year==2008 || ///
 	legend(pos(3) col(1) label(1 "2008") label(2 "2009") label(3 "2010") label(4 "2011") ///
 		label(5 "2012") label(6 "2013") label(7 "2014") label(8 "2015") ///
 		label(9 "2016"))
-
 
 
 
