@@ -5,11 +5,105 @@ log using code/logs/20190219-yearly-analysis.txt, text
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
-*	Clear estimates
+***	Clear estimates
 est clear
 
-*	Drop 2017
-drop if year>=2017
+*** Assess zscores
+gen zscore = over_rtg_yoy/sdw
+bysort zscore: gen N=_N
+tab N, sort
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+     135667 |    135,667       76.26       76.26
+          1 |     40,799       22.93       99.19
+        457 |        457        0.26       99.45
+        393 |        393        0.22       99.67
+        317 |        317        0.18       99.85
+        100 |        100        0.06       99.91
+         71 |         71        0.04       99.95
+          2 |         28        0.02       99.96
+         21 |         21        0.01       99.97
+         18 |         18        0.01       99.98
+         14 |         14        0.01       99.99
+          7 |          7        0.00       99.99
+          5 |          5        0.00      100.00
+          4 |          4        0.00      100.00
+------------+-----------------------------------
+      Total |    177,901      100.00
+
+N = 457 and N = 317 are the problem.
+	  */
+gen ch1=(N==457)
+replace ch1=1 if N==317
+bysort cusip: egen ch2=max(ch1)
+
+*For some reason, the problem clusters in 2017
+tab year if ch1==1
+/*
+ (KLD) Year |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       2009 |          5        0.65        0.65
+       2010 |         34        4.39        5.04
+       2011 |         21        2.71        7.75
+       2012 |          7        0.90        8.66
+       2013 |         14        1.81       10.47
+       2014 |          9        1.16       11.63
+       2015 |          4        0.52       12.14
+       2016 |          8        1.03       13.18
+       2017 |        672       86.82      100.00
+------------+-----------------------------------
+      Total |        774      100.00
+*/
+
+*	Z-score for deviation of over_rtg compared to within-firm standard deviation
+histogram zscore, bin(100) percent normal ///
+	scheme(plotplain) ///
+	xti("") ///
+	ti("Number of standard deviations from the within-firm mean" "for each year-on-year change in overall rating") ///
+	xline(-4 -3 -2 -1 0 1 2 3 4) ///
+	xlab(-4(1)4)
+
+*	 Table of descriptive statistics for treatment variables
+tab trt1_sdw_pos
+tab trt1_sdw_neg
+tab trt2_sdw_pos
+tab trt2_sdw_neg
+tab trt3_sdw_pos
+tab trt3_sdw_neg
+
+
+
+*	Drop firms with problematic zscores resulting from only 2 observations in the data
+foreach variable of varlist trt1_sdw_pos trt1_sdw_neg trt2_sdw_pos ///
+	trt2_sdw_neg trt3_sdw_pos trt3_sdw_neg {
+	replace `variable'=. if N==457
+	replace `variable'=. if N==317
+	replace zscore=. if N==457
+	replace zscore=. if N==317
+}
+
+histogram zscore, bin(100) percent normal ///
+	scheme(plotplain) ///
+	xti("") ///
+	xline(-4 -3 -2 -1 0 1 2 3 4) ///
+	xlab(-4(1)4)
+
+*	Table of descriptive statistics for treatment variables
+tab trt1_sdw_pos
+tab trt1_sdw_neg
+tab trt2_sdw_pos
+tab trt2_sdw_neg
+tab trt3_sdw_pos
+tab trt3_sdw_neg	
+	
+	
+***	Keep only years with CSRHub data
+drop if year>2017
+drop if year<2008
+
+
+
 
 /// CREATE INDUSTRY VARIABLE USING 2-DIGIT SIC
 gen sic2 = substr(sic,1,2)
@@ -133,6 +227,8 @@ drop csrhub_years
 replace in_csrhub_all=0 if in_csrhub==0
 
 
+
+///	Descriptive statistics
 
 
 
