@@ -227,7 +227,6 @@ drop csrhub_years
 replace in_csrhub_all=0 if in_csrhub==0
 
 
-
 ///	Descriptive statistics
 mark both
 markout both over_rtg revt
@@ -235,6 +234,19 @@ keep if both==1
 compress
 
 
+/*
+///	Revenue distribution
+mark both
+markout both revt over_rtg
+
+keep if both ==1 
+
+histogram revt, bin(100) scheme(plotplain) percent ///
+	xtitle("Annual Revenue (millions US dollars)") ///
+	xlabel(,format(%9.0gc))
+
+sum revt, d
+*/
 
 /*	
 						***===========================***
