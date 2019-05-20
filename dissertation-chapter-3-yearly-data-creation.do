@@ -1,11 +1,11 @@
 
-
+/*
 ***===============================***
 *	CREATE YEAR LEVEL CSRHUB DATA	*
 ***===============================***
 ///	LOAD DATA
 use data/csrhub-all.dta, clear
-
+/*	Created at D:\Dropbox\Data\csrhub-data\code-csrHub-data\CREATE-CSRHub-full-dataset.do	*/
 drop firm_n csrhub_cr
 
 ///	Keep unique cusip ym
@@ -560,7 +560,7 @@ label var sdw "Within-firm standard deviation of over_rtg for each cusip_n"
 replace sdw=. if over_rtg==.
 
 *	Generate treatment variables
-foreach threshold in 4 3 2 1 {
+foreach threshold in 3 2 1 {
 	*	Treatment event
 	gen trt`threshold'_sdw_pos = over_rtg_yoy > (`threshold' * sdw) & ///
 		over_rtg_yoy!=.
@@ -634,15 +634,16 @@ foreach threshold in 3 2 1 {
 
 ***	Combined
 xtset
-gen trt_cont_sdg = over_rtg_yoy / sdg
-label var trt_cont_sdg "Continuous treatment = over_rtg_yoy / sdg"
+
+*gen trt_cont_sdg = over_rtg_yoy / sdg
+*label var trt_cont_sdg "Continuous treatment = over_rtg_yoy / sdg"
 
 gen trt_cont_sdw = over_rtg_yoy / sdw
 label var trt_cont_sdw "Continuous treatment = over_rtg_yoy / sdw"
 
 ***	Positive and negative
 
-*	sdg
+/*	sdg
 gen trt_cont_sdg_pos = trt_cont_sdg
 replace trt_cont_sdg_pos = . if trt_cont_sdg_pos < 0
 label var trt_cont_sdg_pos "Continuous value of trt_cont_sdg if trt_cont_sdg >= 0"
@@ -650,6 +651,7 @@ label var trt_cont_sdg_pos "Continuous value of trt_cont_sdg if trt_cont_sdg >= 
 gen trt_cont_sdg_neg = trt_cont_sdg
 replace trt_cont_sdg_neg = . if trt_cont_sdg_neg > 0
 label var trt_cont_sdg_neg "Continuous value of trt_cont_sdg if trt_cont_sdg <= 0"
+*/
 
 *	sdw
 gen trt_cont_sdw_pos = trt_cont_sdw
@@ -663,7 +665,7 @@ label var trt_cont_sdw_neg "Continuous value of trt_cont_sdw if trt_cont_sdw <= 
 
 ///	Categorical measure standard deviations rounded to integer
 
-***	Global standard deviation
+/***	Global standard deviation
 xtset
 gen trt_cat_sdg_pos = .
 gen trt_cat_sdg_neg = .
@@ -694,6 +696,7 @@ sum over_rtg_yoy if trt_cat_sdg_pos==0 & trt_cat_sdg_neg==0
     Variable |        Obs        Mean    Std. Dev.       Min        Max
 -------------+---------------------------------------------------------
 over_rtg_yoy |        514           0           0          0          0
+*/
 */
 
 ***	Firm-specific standard deviation
@@ -751,11 +754,13 @@ foreach variable of varlist *sdw* {
 	replace `variable'=. if year < 2009
 }
 
+/*
 ///	CREATE STANDARDIZED VARIABLES
 foreach variable of varlist over_rtg dltt at emp tobinq age xad xrd {
 	capt n egen z`variable'=std(`variable')
 	label var z`variable' "Standardized value of `variable'"
 }
+*/
 
 
 ///	FIX MARKER VARIABLES
