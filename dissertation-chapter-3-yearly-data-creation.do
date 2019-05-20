@@ -1,4 +1,4 @@
-/*
+
 
 ***===============================***
 *	CREATE YEAR LEVEL CSRHUB DATA	*
@@ -54,7 +54,7 @@ foreach variable of varlist *rtg {
 	gen `variable'_med = `variable'
 }
 
-collapse (max) *lym (mean) *_mean (median) *_med, by(cusip year firm isin) 		*Keep industry here
+collapse (max) *lym (mean) *_mean (median) *_med, by(cusip year firm isin industry)
 
 order *, alpha
 order cusip year firm
