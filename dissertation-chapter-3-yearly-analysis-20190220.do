@@ -5,11 +5,57 @@ log using code/logs/20190219-yearly-analysis.txt, text
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
+drop over_rtg_mean over_rtg_med over_pct_rank_lym
+
 ***	Clear estimates
 est clear
 
 *** Assess treatment variables distribution and zscores
-gen zscore = over_rtg_yoy/sdw
+bysort cusip: egen yoy_mean = mean(over_rtg_yoy)
+replace yoy_mean=. if over_rtg_yoy==.
+
+bysort cusip: egen yoy_std_dev = sd(over_rtg_yoy)
+replace yoy_std_dev=. if over_rtg_yoy==.
+
+gen yoy_zscore = (over_rtg_yoy - yoy_mean) / yoy_std_dev
+
+*	Histogram
+histogram yoy_zscore, bin(100) percent normal ///
+	xti("Z-score") xlab(-4(1)4) scheme(plotplain)
+
+***	Remove firms with only two observations on year-on-year change
+gen ch1 = (over_rtg_yoy!=.)
+bysort cusip: egen ch2=total(ch1)
+replace yoy_zscore=. if ch2==2
+
+drop ch1 ch2
+
+*	Histogram
+histogram yoy_zscore, bin(100) percent normal ///
+	xti("Z-score") xlab(-4(1)4) scheme(plotplain)
+	
+
+*	Example
+scatter over_rtg_yoy year if cusip=="00103079", ///
+	xti("Year") ///
+	yline(1.974611, lstyle(solid)) ///
+	ti("Jyske Bank A/S year-on-year change in overall rating.") ///
+	subti("Solid line is average year-on-year change for the firm." "Treatment at -2 z-score occurs in 2014.")
+	
+*	Treatment indicators
+gen trt1pos = (yoy_zscore>1 & yoy_zscore!=.)
+gen trt1neg = (yoy_zscore<-1 & yoy_zscore!=.)	
+gen trt2pos = (yoy_zscore>2 & yoy_zscore!=.)
+gen trt2neg = (yoy_zscore<-2 & yoy_zscore!=.)
+gen trt3pos = (yoy_zscore>3 & yoy_zscore!=.)
+gen trt3neg = (yoy_zscore<-3 & yoy_zscore!=.)
+
+
+
+
+/*	THESE ARE NOT CORRECT ZSCORE CALCULATIONS
+
+gen zscore = over_rtg_yoy/sdw	/*	This is not how to calculate a zscore	*/
 bysort zscore: gen N=_N
 tab N, sort
 /*
@@ -96,7 +142,8 @@ tab trt2_sdw_pos
 tab trt2_sdw_neg
 tab trt3_sdw_pos
 tab trt3_sdw_neg	
-	
+
+*/
 	
 ***	Keep only years with CSRHub data
 drop if year>2017
