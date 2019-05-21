@@ -2,6 +2,10 @@
 *capt n log close
 *log using code/logs/20190219-yearly-analysis.txt, text
 
+///	SET ENVIRONMENT
+clear all
+set scheme plotplain
+
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
@@ -40,7 +44,8 @@ scatter over_rtg_yoy year if cusip=="00103079", ///
 	xti("Year") ///
 	yline(1.974611, lstyle(solid)) ///
 	ti("Jyske Bank A/S year-on-year change in overall rating.") ///
-	subti("Solid line is average year-on-year change for the firm." "Treatment at -2 z-score occurs in 2014.")
+	subti("Solid line is average year-on-year change for the firm." ///
+	"Treatment at -2 z-score occurs in 2014.")
 	
 *	Treatment indicators
 gen trt1pos = (yoy_zscore>1 & yoy_zscore!=.)
