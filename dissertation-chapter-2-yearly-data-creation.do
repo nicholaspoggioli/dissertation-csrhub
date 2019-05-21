@@ -564,14 +564,6 @@ foreach variable of varlist *sdw* {
 	replace `variable'=. if year < 2009
 }
 
-/*
-///	CREATE STANDARDIZED VARIABLES
-foreach variable of varlist over_rtg dltt at emp tobinq age xad xrd {
-	capt n egen z`variable'=std(`variable')
-	label var z`variable' "Standardized value of `variable'"
-}
-*/
-
 
 ///	FIX MARKER VARIABLES
 foreach variable of varlist in_csrhub in_kld in_cstat {
