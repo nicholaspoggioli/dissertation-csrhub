@@ -175,11 +175,7 @@ label var pro_con_g "(KLD) Variable missing from kld data dictionary"
 label var row_id_kld "(KLD) Unique ID for each row of data"
 
 
-					***===========================***
-					*								*
-					*	CREATE AGGREGATE VARIABLES	*
-					*								*
-					***===========================***
+///	CREATE AGGREGATE VARIABLES
 
 ***	SUMMATION VARIABLES		/*	The variables included in KLD are wrong	*/
 drop *num
@@ -307,200 +303,9 @@ tab N
       Total |     47,499      100.00
 
 */
-
-list firm cusip year N if N>1, sepby(cusip)
-/*       +--------------------------------------------------------------------------------+
-       |                                                    firm      cusip   year    N |
-       |--------------------------------------------------------------------------------|
-43843. |                                   SANDFIRE RESOURCES NL   AU000000   2013   69 |
-43844. |                                         BURU ENERGY LTD   AU000000   2013   69 |
-43845. |                                     INVESTA OFFICE FUND   AU000000   2013   69 |
-43846. |                                               GPT GROUP   AU000000   2013   69 |
-43847. |                                       RCR TOMLINSON LTD   AU000000   2013   69 |
-43848. |                                          CARDNO LIMITED   AU000000   2013   69 |
-43849. |                             MACQUARIE ATLAS ROADS GROUP   AU000000   2013   69 |
-43850. |                                CHARTER HALL RETAIL REIT   AU000000   2013   69 |
-43851. |                                 GOODMAN GROUP PTY. LTD.   AU000000   2013   69 |
-43852. |                            TEN NETWORK HOLDINGS LIMITED   AU000000   2013   69 |
-43853. |      SHOPPING CENTRES AUSTRALASIA PROPERTY GROUP RE LTD   AU000000   2013   69 |
-43854. |                          SOUTHERN CROSS MEDIA GROUP LTD   AU000000   2013   69 |
-43855. |                                     HORIZON OIL LIMITED   AU000000   2013   69 |
-43856. |                                       GRAINCORP LIMITED   AU000000   2013   69 |
-43857. |                              FEDERATION CENTRES LIMITED   AU000000   2013   69 |
-43858. |                         M2 TELECOMMUNICATIONS GROUP LTD   AU000000   2013   69 |
-43859. |                                             ALS LIMITED   AU000000   2013   69 |
-43860. |                                   INDEPENDENCE GROUP NL   AU000000   2013   69 |
-43861. |                                             AWE LIMITED   AU000000   2013   69 |
-43862. |                                            ARB CORP LTD   AU000000   2013   69 |
-43863. |                                  PERSEUS MINING LIMITED   AU000000   2013   69 |
-43864. |                               STOCKLAND CORPORATION LTD   AU000000   2013   69 |
-43865. |                                        AUSDRILL LIMITED   AU000000   2013   69 |
-43866. |                            STW COMMUNICATIONS GROUP LTD   AU000000   2013   69 |
-43867. |                                   WESTERN AREAS LIMITED   AU000000   2013   69 |
-43868. |                                 GOODMAN FIELDER LIMITED   AU000000   2013   69 |
-43869. |                                               BWP TRUST   AU000000   2013   69 |
-43870. |                                   ABACUS PROPERTY GROUP   AU000000   2013   69 |
-43871. |                        ECHO ENTERTAINMENT GROUP LIMITED   AU000000   2013   69 |
-43872. |                       AUTOMOTIVE HOLDINGS GROUP LIMITED   AU000000   2013   69 |
-43873. |                                   SKILLED GROUP LIMITED   AU000000   2013   69 |
-43874. |                                             ASX LIMITED   AU000000   2013   69 |
-43875. |                                        TRANSURBAN GROUP   AU000000   2013   69 |
-43876. |                                       RIO TINTO LIMITED   AU000000   2013   69 |
-43877. |                                      CHARTER HALL GROUP   AU000000   2013   69 |
-43878. |                                    MINERAL DEPOSITS LTD   AU000000   2013   69 |
-43879. |                                     OZ MINERALS LIMITED   AU000000   2013   69 |
-43880. |                                EVOLUTION MINING LIMITED   AU000000   2013   69 |
-43881. |                              DRILLSEARCH ENERGY LIMITED   AU000000   2013   69 |
-43882. |                                            MIRVAC GROUP   AU000000   2013   69 |
-43883. |                                    NRW HOLDINGS LIMITED   AU000000   2013   69 |
-43884. |                                      DULUXGROUP LIMITED   AU000000   2013   69 |
-43885. |                                   FLIGHT CENTRE LIMITED   AU000000   2013   69 |
-43886. |                           SILVER LAKE RESOURCES LIMITED   AU000000   2013   69 |
-43887. |                                   MEDUSA MINING LIMITED   AU000000   2013   69 |
-43888. |                        MERMAID MARINE AUSTRALIA LIMITED   AU000000   2013   69 |
-43889. |                                      FLEXIGROUP LIMITED   AU000000   2013   69 |
-43890. |                                          NUFARM LIMITED   AU000000   2013   69 |
-43891. |                                              DUET GROUP   AU000000   2013   69 |
-43892. |                               AUSTRALAND PROPERTY GROUP   AU000000   2013   69 |
-43893. |                                        DECMIL GROUP LTD   AU000000   2013   69 |
-43894. |                                     STEADFAST GROUP LTD   AU000000   2013   69 |
-43895. |                       PLATINUM ASSET MANAGEMENT LIMITED   AU000000   2013   69 |
-43896. |                                   TOLL HOLDINGS LIMITED   AU000000   2013   69 |
-43897. |                                   BEADELL RESOURCES LTD   AU000000   2013   69 |
-43898. |                                               ACRUX LTD   AU000000   2013   69 |
-43899. |                             PREMIER INVESTMENTS LIMITED   AU000000   2013   69 |
-43900. |                                        INVOCARE LIMITED   AU000000   2013   69 |
-43901. |                              ARISTOCRAT LEISURE LIMITED   AU000000   2013   69 |
-43902. |                                               APA GROUP   AU000000   2013   69 |
-43903. |                                    DEXUS PROPERTY GROUP   AU000000   2013   69 |
-43904. |                                 REGIS RESOURCES LIMITED   AU000000   2013   69 |
-43905. |                                  PAPILLON RESOURCES LTD   AU000000   2013   69 |
-43906. |                                              NEXTDC LTD   AU000000   2013   69 |
-43907. |                                       PERPETUAL LIMITED   AU000000   2013   69 |
-43908. |                                 THE REJECT SHOP LIMITED   AU000000   2013   69 |
-43909. |                         SYDNEY AIRPORT HOLDINGS LIMITED   AU000000   2013   69 |
-43910. |                                          CUDECO LIMITED   AU000000   2013   69 |
-43911. |                                             UGL LIMITED   AU000000   2013   69 |
-       |--------------------------------------------------------------------------------|
-44016. |                                      AGUAS ANDINAS S.A.   CL000000   2013    2 |
-44017. |                                      EMPRESAS CMPC S.A.   CL000000   2013    2 |
-       |--------------------------------------------------------------------------------|
-44019. |            CHONGQING CHANGAN AUTOMOBILE COMPANY LIMITED   CNE00000   2013    2 |
-44020. |             YANTAI CHANGYU PIONEER WINE COMPANY LIMITED   CNE00000   2013    2 |
-       |--------------------------------------------------------------------------------|
-44021. |                                 CSR CORPORATION LIMITED   CNE10000   2013    6 |
-44022. |                              PETROCHINA COMPANY LIMITED   CNE10000   2013    6 |
-44023. |                   NEW CHINA LIFE INSURANCE COMPANY LTD.   CNE10000   2013    6 |
-44024. |                   CHINA CINDA ASSET MANAGEMENT CO., LTD   CNE10000   2013    6 |
-44025. |                        SINOPEC ENGINEERING GROUP CO LTD   CNE10000   2013    6 |
-44026. | THE PEOPLE'S INSURANCE COMPANY (GROUP) OF CHINA LIMITED   CNE10000   2013    6 |
-       |--------------------------------------------------------------------------------|
-44043. |                      ETABLISSEMENTS MAUREL ET PROM S.A.   FR000005   2013    2 |
-44044. |                               TELEVISION FRANCAISE 1 SA   FR000005   2013    2 |
-       |--------------------------------------------------------------------------------|
-44045. |                                                SEB S.A.   FR000012   2013    5 |
-44046. |                                              EURAZEO SA   FR000012   2013    5 |
-44047. |                                          KLEPIERRE S.A.   FR000012   2013    5 |
-44048. |                                                TOTAL SA   FR000012   2013    5 |
-44049. |                                             WENDEL S.A.   FR000012   2013    5 |
-       |--------------------------------------------------------------------------------|
-44728. |                                         WERELDHAVE N.V.   NL000028   2013    3 |
-44729. |                            EUROCOMMERCIAL PROPERTIES NV   NL000028   2013    3 |
-44730. |                                              CORIO N.V.   NL000028   2013    3 |
-       |--------------------------------------------------------------------------------|
-44776. |                                L E LUNDBERGFORETAGEN AB   SE000010   2013    3 |
-44777. |                                                 PEAB AB   SE000010   2013    3 |
-44778. |                             AKTIEBOLAGET INDUSTRIVARDEN   SE000010   2013    3 |
-       |--------------------------------------------------------------------------------|
-44779. |                                                RATOS AB   SE000011   2013    5 |
-44780. |                                           TRELLEBORG AB   SE000011   2013    5 |
-44781. |                                   INVESTMENT AB ORESUND   SE000011   2013    5 |
-44782. |                                          NCC AKTIEBOLAG   SE000011   2013    5 |
-44783. |                                                 SAAB AB   SE000011   2013    5 |
-       |--------------------------------------------------------------------------------|
-44785. |                                  AVANZA BANK HOLDING AB   SE000017   2013    2 |
-44786. |                                         HUFVUDSTADEN AB   SE000017   2013    2 |
-       |--------------------------------------------------------------------------------|
-44806. |                             NAN YA PLASTICS CORPORATION   TW000130   2013    2 |
-44807. |                            FORMOSA PLASTICS CORPORATION   TW000130   2013    2 |
-       |--------------------------------------------------------------------------------|
-44813. |                          ORIENTAL UNION CHEMICAL CORP.,   TW000171   2013    2 |
-44814. |                              ETERNAL CHEMICAL CO., LTD.   TW000171   2013    2 |
-       |--------------------------------------------------------------------------------|
-44820. |                         NANKANG RUBBER TIRE CORP., LTD.   TW000210   2013    3 |
-44821. |                                        TSRC CORPORATION   TW000210   2013    3 |
-44822. |                       CHENG SHIN RUBBER IND., CO., LTD.   TW000210   2013    3 |
-       |--------------------------------------------------------------------------------|
-44823. |                                 CHINA MOTOR CORPORATION   TW000220   2013    3 |
-44824. |                                    HOTAI MOTOR CO.,LTD.   TW000220   2013    3 |
-44825. |                                     YULON MOTOR CO.,LTD   TW000220   2013    3 |
-       |--------------------------------------------------------------------------------|
-44826. |                             FOXCONN TECHNOLOGY CO., LTD   TW000235   2013    2 |
-44827. |                                    INVENTEC CORPORATION   TW000235   2013    2 |
-       |--------------------------------------------------------------------------------|
-44830. |                  CHENG UEI PRECISION INDUSTRY CO., LTD.   TW000239   2013    2 |
-44831. |                                     ADVANTECH CO., LTD.   TW000239   2013    2 |
-       |--------------------------------------------------------------------------------|
-44832. |                             TRANSCEND INFORMATION, INC.   TW000245   2013    2 |
-44833. |                                           MEDIATEK INC.   TW000245   2013    2 |
-       |--------------------------------------------------------------------------------|
-44836. |                                     CHINA AIRLINES LTD.   TW000261   2013    3 |
-44837. |                                      WAN HAI LINES LTD.   TW000261   2013    3 |
-44838. |                                 EVA AIRWAYS CORPORATION   TW000261   2013    3 |
-       |--------------------------------------------------------------------------------|
-44843. |               CHINA DEVELOPMENT FINANCIAL HOLDING CORP.   TW000288   2013    5 |
-44844. |                      YUANTA FINANCIAL HOLDINGS CO., LTD   TW000288   2013    5 |
-44845. |                        MEGA FINANCIAL HOLDING CO., LTD.   TW000288   2013    5 |
-44846. |                     TAISHIN FINANCIAL HOLDING CO., LTD.   TW000288   2013    5 |
-44847. |                     HUA NAN FINANCIAL HOLDINGS CO.,LTD.   TW000288   2013    5 |
-       |--------------------------------------------------------------------------------|
-44850. |                       PRESIDENT CHAIN STORE CORPORATION   TW000291   2013    2 |
-44851. |                              RUENTEX INDUSTRIES LIMITED   TW000291   2013    2 |
-       |--------------------------------------------------------------------------------|
-44853. |                          NOVATEK MICROELECTRONICS CORP.   TW000303   2013    2 |
-44854. |                              UNIMICRON TECHNOLOGY CORP.   TW000303   2013    2 |
-       |--------------------------------------------------------------------------------|
-44855. |                           TRIPOD TECHNOLOGY CORPORATION   TW000304   2013    2 |
-44856. |                                 TAIWAN MOBILE CO., LTD.   TW000304   2013    2 |
-       |--------------------------------------------------------------------------------|
-44910. |                 HOSKEN CONSOLIDATED INVESTMENTS LIMITED   ZAE00000   2013    5 |
-44911. |                                   HUDACO INDUSTRIES LTD   ZAE00000   2013    5 |
-44912. |                                 ADCORP HOLDINGS LIMITED   ZAE00000   2013    5 |
-44913. |                             PICK N PAY HOLDINGS LIMITED   ZAE00000   2013    5 |
-44914. |                                  OMNIA HOLDINGS LIMITED   ZAE00000   2013    5 |
-       |--------------------------------------------------------------------------------|
-44915. |                               SHOPRITE HOLDINGS LIMITED   ZAE00001   2013    2 |
-44916. |                                     SYCOM PROPERTY FUND   ZAE00001   2013    2 |
-       |--------------------------------------------------------------------------------|
-44917. |                                    INVICTA HOLDINGS LTD   ZAE00002   2013    3 |
-44918. |                                      GROUP FIVE LIMITED   ZAE00002   2013    3 |
-44919. |                                    SPUR CORPORATION LTD   ZAE00002   2013    3 |
-       |--------------------------------------------------------------------------------|
-44923. |                                  TONGAAT HULETT LIMITED   ZAE00009   2013    4 |
-44924. |              FOUNTAINHEAD PROPERTY TRUST MANAGEMENT LTD   ZAE00009   2013    4 |
-44925. |                              METAIR INVESTMENTS LIMITED   ZAE00009   2013    4 |
-44926. |                                        RAUBEX GROUP LTD   ZAE00009   2013    4 |
-       |--------------------------------------------------------------------------------|
-44928. |                          STEFANUTTI STOCKS HOLDINGS LTD   ZAE00012   2013    2 |
-44929. |                              ADCOCK INGRAM HOLDINGS LTD   ZAE00012   2013    2 |
-       |--------------------------------------------------------------------------------|
-44930. |                                               MPACT LTD   ZAE00015   2013    2 |
-44931. |                    RAND MERCHANT INSURANCE HOLDINGS LTD   ZAE00015   2013    2 |
-       |--------------------------------------------------------------------------------|
-44933. |                    PINNACLE TECHNOLOGY HOLDINGS LIMITED   ZAE00018   2013    2 |
-44934. |                            VUKILE PROPERTY FUND LIMITED   ZAE00018   2013    2 |
-       |--------------------------------------------------------------------------------|
-44935. |                  RESILIENT PROPERTY INCOME FUND LIMITED   ZAE00019   2013    2 |
-44936. |                            FORTRESS INCOME FUND LIMITED   ZAE00019   2013    2 |
-       |--------------------------------------------------------------------------------|
-44937. |                                     EMIRA PROPERTY FUND   ZAE00020   2013    4 |
-44938. |                                ARROWHEAD PROPERTIES LTD   ZAE00020   2013    4 |
-44939. |                               REBOSIS PROPERTY FUND LTD   ZAE00020   2013    4 |
-44940. |                           SA CORPORATE REAL ESTATE FUND   ZAE00020   2013    4 |
-       +--------------------------------------------------------------------------------+
-*/
 drop if N>1
 drop N
+*(402 observations deleted)
 
 ***	Generate indicator variable
 gen in_kld = 1
@@ -508,33 +313,36 @@ label var in_kld "Indicator = 1 if in KLD data"
 
 
 ///	MERGE WITH CSRHUB YEARLY
-drop firm	/*	Avoids conflicts with the firm variable in csrhub-all-year-level	*/
+rename firm	firm_kld /*	Avoids conflicts with the firm variable in csrhub-all-year-level	*/
 
 merge 1:1 cusip year using data/csrhub-all-year-level.dta, update assert(1 2 3 4 5)
 /*    Result                           # of obs.
     -----------------------------------------
-    not matched                        94,862
-        from master                    30,422  (_merge==1)
-        from using                     64,440  (_merge==2)
+    not matched                        92,809
+        from master                    30,551  (_merge==1)
+        from using                     62,258  (_merge==2)
 
-    matched                            14,364
-        not updated                    14,364  (_merge==3)
+    matched                            16,546
+        not updated                    16,546  (_merge==3)
         missing updated                     0  (_merge==4)
         nonmissing conflict                 0  (_merge==5)
     -----------------------------------------
 */
 codebook cusip if _merge==3
-codebook cusip if firm_kld!="" & year > 2008 & year < 2016
-*	242 cusip matched between CSRHub and KLD
-*		That's 3,389 / 6,981 = 49% of CUSIPs in KLD matched to CSRHub
+*	3,549 unique CUSIPs matched between CSRHub and KLD
+codebook cusip if in_csrhub==1
+*	13,496 unique CUSIPs in CSRHub
+*	3,549 / 13,496 = 26.3% of CSRHub CUSIPs matched in KLD
 drop _merge
 
-tempfile d1
-save `d1'
+compress
+save data/mergefile-kld-csrhub-cusip-year.dta, replace
 
 
 ///	MERGE WITH CSTAT YEARLY
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
+
+xtset, clear
 
 gen year = year(datadate)
 rename cusip cusip9
@@ -558,20 +366,26 @@ gen in_cstat = 1
 label var in_cstat "Indicator = 1 if in CSTAT data"
 
 ***	Merge
-merge 1:1 cusip year using `d1', update assert(1 2 3 4 5)
+merge 1:1 cusip year using data/mergefile-kld-csrhub-cusip-year.dta, update assert(1 2 3 4 5)
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                       132,775
-        from master                    68,675  (_merge==1)
-        from using                     64,100  (_merge==2)
+    not matched                       132,890
+        from master                    68,668  (_merge==1)
+        from using                     64,222  (_merge==2)
 
-    matched                            45,126
-        not updated                    45,126  (_merge==3)
+    matched                            45,133
+        not updated                    45,133  (_merge==3)
         missing updated                     0  (_merge==4)
         nonmissing conflict                 0  (_merge==5)
     -----------------------------------------
 */
+
+codebook cusip if _merge==3
+*	6,373 unique CUSIPs matched between CSTAT and KLD-CSRHub
+codebook cusip if in_cstat==1 & in_csrhub==1 & in_kld==1
+*	3,194 unique CUSIPs matched across all three datasets
+
 
 ***	Drop variables
 drop _merge cusip_n
@@ -594,22 +408,10 @@ foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad size {
 	label var `variable'_dm "CUSIP-level de-meaned `variable'"
 }
 
-///	SAVE
+///	SET PANEL
+xtset cusip_n year, y
 compress
-drop cusip_n
 order cusip year conm firm_kld firm
-sort cusip year
-save data/csrhub-kld-cstat-year-level.dta, replace
-
-*/
-
-
-
-
-
-
-
-
 
 
 
@@ -620,11 +422,6 @@ save data/csrhub-kld-cstat-year-level.dta, replace
 *		- Continuous measure number of standard deviations
 *		- Categorical measure standard deviations rounded to integer
 ***======================================================***
-use data/csrhub-kld-cstat-year-level.dta, clear
-
-encode cusip, gen(cusip_n)
-xtset cusip_n year
-
 
 *	Generate year-on-year change in over_rtg
 gen over_rtg_yoy = over_rtg - l.over_rtg
