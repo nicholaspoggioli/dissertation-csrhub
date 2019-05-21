@@ -1,6 +1,6 @@
 ///	LOG
-capt n log close
-log using code/logs/20190219-yearly-analysis.txt, text
+*capt n log close
+*log using code/logs/20190219-yearly-analysis.txt, text
 
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
