@@ -497,16 +497,6 @@ label var trt_cont_sdw "Continuous treatment = over_rtg_yoy / sdw"
 
 ***	Positive and negative
 
-/*	sdg
-gen trt_cont_sdg_pos = trt_cont_sdg
-replace trt_cont_sdg_pos = . if trt_cont_sdg_pos < 0
-label var trt_cont_sdg_pos "Continuous value of trt_cont_sdg if trt_cont_sdg >= 0"
-
-gen trt_cont_sdg_neg = trt_cont_sdg
-replace trt_cont_sdg_neg = . if trt_cont_sdg_neg > 0
-label var trt_cont_sdg_neg "Continuous value of trt_cont_sdg if trt_cont_sdg <= 0"
-*/
-
 *	sdw
 gen trt_cont_sdw_pos = trt_cont_sdw
 replace trt_cont_sdw_pos = . if trt_cont_sdw_pos < 0
@@ -518,40 +508,6 @@ label var trt_cont_sdw_neg "Continuous value of trt_cont_sdw if trt_cont_sdw <= 
 
 
 ///	Categorical measure standard deviations rounded to integer
-
-/***	Global standard deviation
-xtset
-gen trt_cat_sdg_pos = .
-gen trt_cat_sdg_neg = .
-
-foreach threshold in 0 1 2 3 4 5 6 7 {
-	replace trt_cat_sdg_pos = `threshold' if over_rtg_yoy >= `threshold'*sdg
-	replace trt_cat_sdg_pos = . if over_rtg_yoy == .
-	replace trt_cat_sdg_neg = (-1*`threshold') if over_rtg_yoy <= `threshold'*(-1*sdg)
-	replace trt_cat_sdg_neg = . if over_rtg_yoy == .
-}
-label var trt_cat_sdg_pos "Categorical treatment = integer of over_rtg_yoy positive std dev from sdg"
-label var trt_cat_sdg_neg "Categorical treatment = integer of over_rtg_yoy negative std dev from sdg"
-
-***	These variables should be mutually exclusive except where year-on-year
-***		over_rtg change is zero
-tab trt_cat_sdg_pos trt_cat_sdg_neg
-/*
-           | trt_cat_sd
-trt_cat_sd |   g_neg
-     g_pos |         0 |     Total
------------+-----------+----------
-         0 |       514 |       514
------------+-----------+----------
-     Total |       514 |       514
-*/
-sum over_rtg_yoy if trt_cat_sdg_pos==0 & trt_cat_sdg_neg==0
-/*
-    Variable |        Obs        Mean    Std. Dev.       Min        Max
--------------+---------------------------------------------------------
-over_rtg_yoy |        514           0           0          0          0
-*/
-*/
 
 ***	Firm-specific standard deviation
 xtset
