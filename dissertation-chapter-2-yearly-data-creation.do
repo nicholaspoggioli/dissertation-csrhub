@@ -483,30 +483,6 @@ foreach threshold in 3 2 1 {
 }
 
 
-/*	Remove overlap in treatment groups											/*	Still needs to be done */
-gen trt4_year_only_sdg = trt4_year_sdg
-label var trt4_year_only_sdg "Indicator =1 if year of ONLY 4 global std dev treatment"
-gen post4_only_sdg = post4_sdg
-label var post4_only_sdg "Indicator =1 if post-treatment year of ONLY 4 global std dev treatment"
-gen trt4_only_sdg = trt4_sdg
-label var trt4_only_sdg "Indicator = 1 if treatment group of ONLY 4 global std dev treated"
-
-foreach threshold in 3 2 1 {
-	local y = `threshold' + 1
-
-	gen trt`threshold'_year_only_sdg = trt`threshold'_year_sdg
-	label var trt`threshold'_year_only_sdg "Indicator =1 if year of ONLY `threshold' global std dev treatment"
-	gen post`threshold'_only_sdg = post`threshold'_sdg
-	label var post`threshold'_only_sdg "Indicator =1 if post-treatment year of ONLY `threshold' global std dev treatment"
-	gen trt`threshold'_only_sdg = trt`threshold'_sdg
-	label var trt`threshold'_only_sdg "Indicator = 1 if treatment group of ONLY `threshold' global std dev treated"
-
-	replace trt`threshold'_year_only_sdg = 0 if trt`y'_year_sdg==1
-	replace post`threshold'_only_sdg = 0 if post`y'_sdg == 1
-	replace trt`threshold'_only_sdg = 0 if trt`y'_sdg == 1
-}
-*/
-
 
 ///	Continuous measure number of standard deviations
 
