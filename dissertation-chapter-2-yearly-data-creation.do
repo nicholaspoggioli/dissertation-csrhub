@@ -111,6 +111,8 @@ label var in_csrhub "Indicator = 1 if in CSRHub data"
 
 ***	Save year-level CSRHub data
 compress
+xtset, clear
+label data "Year-level CSRHub 2008-2017"
 save data/csrhub-all-year-level.dta, replace
 
 
@@ -311,10 +313,14 @@ drop N
 gen in_kld = 1
 label var in_kld "Indicator = 1 if in KLD data"
 
-
-///	MERGE WITH CSRHUB YEARLY
 rename firm	firm_kld /*	Avoids conflicts with the firm variable in csrhub-all-year-level	*/
 
+***	Save
+compress
+save data/kld-all.dta, replace
+
+
+///	MERGE WITH CSRHUB YEARLY
 merge 1:1 cusip year using data/csrhub-all-year-level.dta, update assert(1 2 3 4 5)
 /*    Result                           # of obs.
     -----------------------------------------
