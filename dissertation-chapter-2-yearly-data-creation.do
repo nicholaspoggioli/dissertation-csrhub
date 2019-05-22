@@ -400,6 +400,10 @@ drop in_cstat_csrhub_cusip in_cstat_kld_cusip
 
 
 
+
+
+
+
 ***=======================================***
 *	CREATE NEW VARIABLES FOR REWB MODELS	*
 ***=======================================***
@@ -495,9 +499,6 @@ foreach threshold in 3 2 1 {
 ***	Combined
 xtset
 
-*gen trt_cont_sdg = over_rtg_yoy / sdg
-*label var trt_cont_sdg "Continuous treatment = over_rtg_yoy / sdg"
-
 gen trt_cont_sdw = over_rtg_yoy / sdw
 label var trt_cont_sdw "Continuous treatment = over_rtg_yoy / sdw"
 
@@ -581,6 +582,8 @@ drop cusip_n
 label drop _all
 encode cusip, gen(cusip_n)
 xtset cusip_n year, y
+
+
 
 ///	SALES GROWTH VARIABLES
 ***	Current year minus previous year
