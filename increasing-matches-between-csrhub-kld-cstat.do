@@ -1,5 +1,7 @@
 ///	Increasing matches between CSRHub, KLD, and Compustat
 
+
+
 *** CSRHub
 *	Load data
 use data/csrhub-all-year-level.dta, clear
@@ -135,6 +137,16 @@ order firm year cusip8 cusip9
 save data/cstat-all-unique-firm-years-with-cusips.dta, replace
 
 
+
+
+
+
+
+
+
+
+
+
 ***	Merge on CUSIP
 /*	CSRHub
 		- 8-digit
@@ -173,6 +185,7 @@ merge 1:1 cusip9 year using data/kld-all-unique-firm-years-with-cusips.dta
 */
 
 
+
 *	Merge CSRHub and Compustat
 use data/csrhub-all-unique-firm-years-with-cusips.dta, clear
 merge 1:1 cusip8 year using data/cstat-all-unique-firm-years-with-cusips.dta
@@ -186,6 +199,7 @@ merge 1:1 cusip8 year using data/cstat-all-unique-firm-years-with-cusips.dta
     -----------------------------------------
 */
 
+/*
 use data/csrhub-all-unique-firm-years-with-cusips.dta, clear
 merge 1:1 cusip9 year using data/cstat-all-unique-firm-years-with-cusips.dta
 /*    Result                           # of obs.
@@ -197,6 +211,30 @@ merge 1:1 cusip9 year using data/cstat-all-unique-firm-years-with-cusips.dta
     matched                            25,426  (_merge==3)
     -----------------------------------------
 */
+*/
+
+*	Merge with KLD
+drop _merge
+merge 1:1 cusip8 year using data/kld-all-unique-firm-years-with-cusips.dta
+
+egen in_three=rowtotal(in_csrhub in_cstat in_kld)
+tab in_three
+/*   in_three |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    357,011       88.60       88.60
+          2 |     30,884        7.66       96.26
+          3 |     15,073        3.74      100.00
+------------+-----------------------------------
+      Total |    402,968      100.00
+*/
+
+
+
+
+
+
+
+
 
 
 
