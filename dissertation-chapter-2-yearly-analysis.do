@@ -9,12 +9,13 @@ set scheme plotplain
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
-drop over_rtg_mean over_rtg_med over_pct_rank_lym
 
-***	Clear estimates
-est clear
 
-*** Assess treatment variables distribution and zscores
+*************************************************************
+*															*
+*	Assess treatment variables distribution and zscores		*
+*															*
+*************************************************************
 bysort cusip: egen yoy_mean = mean(over_rtg_yoy)
 replace yoy_mean=. if over_rtg_yoy==.
 
@@ -154,10 +155,16 @@ tab trt3_sdw_neg
 drop if year>2017
 drop if year<2008
 
+compress
 
 
 
-/// CREATE INDUSTRY VARIABLE USING 2-DIGIT SIC
+
+*************************************************************
+*															*
+*	CREATE INDUSTRY VARIABLE USING 2-DIGIT SIC				*
+*															*
+*************************************************************
 gen sic2 = substr(sic,1,2)
 destring sic2, replace
 
@@ -259,7 +266,13 @@ replace sic2cat="publicadmin" if sic2==99
 encode sic2cat, gen(sic2division)
 label var sic2division "SIC division (2-digit level)"
 
-///	KEEP VARIABLES IN REGRESSION MODELS TO REDUCE FILE SIZE
+
+
+*************************************************************
+*															*
+*	KEEP VARIABLES IN REGRESSION MODELS TO REDUCE FILE SIZE	*
+*															*
+*************************************************************
 keep cusip cusip_n year revt revt_yoy revt_pct Frevt_yoy ///
 	dltt at xad xrd emp age ///
 	over_rtg *rtg_lym sic tobinq sic sic2division ///
@@ -267,53 +280,26 @@ keep cusip cusip_n year revt revt_yoy revt_pct Frevt_yoy ///
 	trt2_sdw_neg trt2_sdw_neg_grp trt2_sdw_pos trt2_sdw_pos_grp ///
 	trt3_sdw_neg trt3_sdw_neg_grp trt3_sdw_pos trt3_sdw_pos_grp ///
 	in_cstat in_csrhub in_kld in_all
-	
-	
 
-///	CREATE DUMMY FOR FIRMS IN THE CSRHUB DATA FOR ALL YEARS OF PANEL
-***	CSRHub data have 9 years of observations
-bysort cusip: egen csrhub_years = total(in_csrhub)
-gen in_csrhub_all=(csrhub_years==9)
-label var in_csrhub_all "(CSRHub) =1 if firm in all 9 years of CSRHub data"
-drop csrhub_years
-replace in_csrhub_all=0 if in_csrhub==0
-
-
-///	Descriptive statistics
-mark both
-markout both over_rtg revt
-keep if both==1
 compress
+	
 
-
-/*
-///	Revenue distribution
-mark both
-markout both revt over_rtg
-
-keep if both ==1 
-
-histogram revt, bin(100) scheme(plotplain) percent ///
-	xtitle("Annual Revenue (millions US dollars)") ///
-	xlabel(,format(%9.0gc))
-
-sum revt, d
-*/
-
-/*	
+	
+	
 						***===========================***
-						*	FIXED EFFECTS REGRESSION	*
-						*		DV: SALES GROWTH		*
+						*								*
+						*		FIXED EFFECTS 			*
+						*								*
 						***===========================***	
 ***===========================***
-*	REVENUE = F (CSRHUB) 	*
+*	REVENUE = F (CSRHUB) 		*
 ***===========================***
 ///	CONTROL VARIABLE MODELS
 
 ***	DV: Revenue (Level)
 *mark mark3
 *markout mark3 revt over_rtg dltt at xad xrd emp year
-qui xtreg revt_yoy over_rtg, fe cluster(cusip_n)										
+qui xtreg revt_yoy over_rtg, fe cluster(cusip_n)
 est store revt_yoymod1
 estadd local yearFE "No", replace
 qui xtreg revt_yoy over_rtg i.year, fe cluster(cusip_n)									
@@ -361,6 +347,8 @@ esttab revt_yoymod*, ///
 local dv revt_yoy
 local iv over_rtg 
 local controls "dltt at age emp tobinq xad xrd"
+
+xtset
 
 qui xtreg F.`dv' `iv', fe cluster(cusip_n)
 est store over_rtgmod0
@@ -432,7 +420,7 @@ esttab over_rtgint1 over_rtgint2, ///
 
 	
 ***	COMPARE THE TWO DVs
-esttab revt_yoymod9 over_rtgmod8 revt_yoymod10 over_rtgas1 , ///
+esttab revt_yoymod9 over_rtgmod8 revt_yoymod10 over_rtgas1, ///
 	keep(over_rtg dltt at age emp tobinq xad xrd) ///
 	order(over_rtg dltt at age emp tobinq xad xrd) ///
 	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
