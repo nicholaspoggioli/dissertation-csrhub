@@ -1,5 +1,12 @@
 ///	Increasing matches between CSRHub, KLD, and Compustat
 
+/*	Time coverage
+		Compustat: 	1988 - present
+		KLD:		1995 - 2016
+		CSRHub:		2008 - 2017
+		
+		Limiting coverage window: 2008 (CSRHub) - 2016 (KLD)
+*/
 
 
 *** CSRHub
@@ -11,6 +18,11 @@ keep cusip cusip9 isin firm year in_csrhub
 replace firm=upper(firm)
 sort firm year
 order firm year isin cusip cusip9
+gen firm_csrhub=firm
+
+label var firm_csrhub "(CSRHub) firm name"
+label var year "(CSRHub) year"
+label var in_csrhub "(CSRHub) =1 if in CSRHub data"
 
 *	Generate country code where stock is listed
 gen country_csrhub=substr(isin,1,2)
@@ -37,18 +49,22 @@ replace cusip=upper(cusip)
 sort cusip year
 order firm year cusip ticker firm_kld
 
+label var firm "(KLD) firm name"
+label var in_kld "(KLD) =1 if in KLD data"
+
 *	Export unique cusip for conversion to 9 digit
 preserve
 bysort cusip: gen n=_n
 keep if n==1
 keep cusip
-export delimited using "D:\Dropbox\papers\4 work in progress\dissertation-csrhub\project\data\unique-8-digit-cusips-in-kld-data.txt", delimiter(tab) novarnames replace
+export delimited using "data\unique-8-digit-cusips-in-kld-data.txt", delimiter(tab) novarnames replace
 restore
 
 *	Merge with 9-digit CUSIPs from WRDS cusip converter
 preserve
 use data/kld-9-digit-cusip-from-8-digit-in-kld-data.dta, clear
 rename cusip cusip9
+label var cusip9 "(KLD) 9-digit CUSIP"
 gen cusip=substr(cusip9,1,8)
 compress
 save data/kld-9-digit-cusip-from-8-digit-in-kld-data-with-8-digit-added.dta, replace
@@ -66,6 +82,7 @@ drop _merge
 *	Save
 compress
 rename cusip cusip8
+label var cusip8 "(KLD) 8-digit CUSIP"
 save data/kld-all-unique-firm-years-with-cusips.dta, replace
 
 
@@ -95,7 +112,7 @@ bysort cusip: gen n=_n
 keep if n==1
 keep cusip
 drop if cusip==""
-export delimited using "D:\Dropbox\papers\4 work in progress\dissertation-csrhub\project\data\unique-9-digit-cusips-in-cstat-data.txt", delimiter(tab) novarnames replace
+export delimited using "data\unique-9-digit-cusips-in-cstat-data.txt", delimiter(tab) novarnames replace
 restore
 
 *	Merge with 8-digit CUSIPs from WRDS cusip converter
@@ -134,7 +151,19 @@ compress
 rename cusip cusip9
 rename fyear year
 order firm year cusip8 cusip9
+label var firm "(CSTAT) firm name"
+label var year "(CSTAT) year"
+label var cusip8 "(CSTAT) 8-digit CUSIP"
+label var cusip9 "(CSTAT) 9-digit CUSIP"
+rename tic ticker
+label var ticker "(CSTAT) ticker symbol"
+gen ticker_cstat = ticker
+label var ticker_cstat "(CSTAT) ticker symbol"
+label var fic "(CSTAT) ISO country code - incorporation"
+label var in_cstat "(CSTAT) =1 if in Compustat"
+label var firm_cstat "(CSTAT) firm name"
 save data/cstat-all-unique-firm-years-with-cusips.dta, replace
+
 
 
 
@@ -160,7 +189,7 @@ save data/cstat-all-unique-firm-years-with-cusips.dta, replace
 */
 
 *	Merge CSRHub and KLD
-use data/csrhub-all-unique-firm-years-with-cusips.dta
+use data/csrhub-all-unique-firm-years-with-cusips.dta, clear
 merge 1:1 cusip8 year using data/kld-all-unique-firm-years-with-cusips.dta
 /*    Result                           # of obs.
     -----------------------------------------
@@ -183,6 +212,44 @@ merge 1:1 cusip9 year using data/kld-all-unique-firm-years-with-cusips.dta
     matched                            16,546  (_merge==3)
     -----------------------------------------
 */
+
+
+
+
+*	Merge KLD and Compustat
+use data/kld-all-unique-firm-years-with-cusips.dta, clear
+merge 1:1 cusip8 year using data/cstat-all-unique-firm-years-with-cusips.dta
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                       316,932
+        from master                    12,966  (_merge==1)
+        from using                    303,966  (_merge==2)
+
+    matched                            34,131  (_merge==3)
+    -----------------------------------------
+*/
+
+
+use data/kld-all-unique-firm-years-with-cusips.dta, clear
+merge 1:1 cusip9 year using data/cstat-all-unique-firm-years-with-cusips.dta
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                       316,932
+        from master                    12,966  (_merge==1)
+        from using                    303,966  (_merge==2)
+
+    matched                            34,131  (_merge==3)
+    -----------------------------------------
+
+*/
+
+
+
+
+
+
+
+
 
 
 
@@ -238,32 +305,8 @@ tab in_three
 
 
 
-*	Merge KLD and Compustat
-use data/kld-all-unique-firm-years-with-cusips.dta, clear
-merge 1:1 cusip8 year using data/cstat-all-unique-firm-years-with-cusips.dta
-/*    Result                           # of obs.
-    -----------------------------------------
-    not matched                       316,932
-        from master                    12,966  (_merge==1)
-        from using                    303,966  (_merge==2)
-
-    matched                            34,131  (_merge==3)
-    -----------------------------------------
-*/
 
 
-use data/kld-all-unique-firm-years-with-cusips.dta, clear
-merge 1:1 cusip9 year using data/cstat-all-unique-firm-years-with-cusips.dta
-/*    Result                           # of obs.
-    -----------------------------------------
-    not matched                       316,932
-        from master                    12,966  (_merge==1)
-        from using                    303,966  (_merge==2)
-
-    matched                            34,131  (_merge==3)
-    -----------------------------------------
-
-*/
 
 
 
