@@ -12,25 +12,54 @@ use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 						***===========================***
 						*								*
 						*	PROPENSITY SCORE MATCHING 	*
-						*								*
+						*		INDIVIDUAL YEARS		*
 						***===========================***	
-											***===============================***
-						*  PROPENSITY SCORE MATCHING MODELS	*
-						*			BY YEAR					*
-						***===============================***
-*	Matching variables: dltt at age emp tobinq xad xrd
-*	Using https://ssc.wisc.edu/sscc/pubs/stata_psmatch.htm
 
-***	Propensity score estimation using teffects psmatch: trt1_sdw_pos
+/// PSM by individual year
+/*	Treatment variables:
+		trt3_sdw_pos 
+		trt3_sdw_neg 
+		trt2_sdw_pos 
+		trt2_sdw_neg 
+		trt1_sdw_pos 
+		trt1_sdw_neg
+	
+	Years: 2009 - 2017
+	
+	Propensity model: treatment = f(dltt at age emp tobinq xad xrd)
+*/
+
+***	trt1_sdw_pos
 capt n drop ps2*
 capt n drop mark
 mark mark1
 markout mark1 trt1_sdw_pos Frevt_yoy dltt at age emp tobinq
 tab year trt1_sdw_pos if mark1==1
+/*
+           |   Treatment = 1 if
+           | year-on-year over_rtg
+           |  > 1 std dev of sdw
+           |     and positive
+(KLD) Year |         0          1 |     Total
+-----------+----------------------+----------
+      2009 |     3,839         71 |     3,910 
+      2010 |     3,676        192 |     3,868 
+      2011 |     3,634        195 |     3,829 
+      2012 |     3,666        150 |     3,816 
+      2013 |     2,771      1,086 |     3,857 
+      2014 |     3,267        591 |     3,858 
+      2015 |     3,708         45 |     3,753 
+      2016 |     3,388        198 |     3,586 
+      2017 |       400          5 |       405 
+-----------+----------------------+----------
+     Total |    28,349      2,533 |    30,882
+*/
 
-capt n teffects psmatch (Frevt_yoy) (trt1_sdw_pos dltt at age emp tobinq) if year == 2009, ///
-	osample(ps2009)
-estimates store ps2009
+replace xad=0 if xad==.
+replace xrd=0 if xrd==.
+
+teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq xad xrd) if year == 2009, ///
+	nneighbor(1) caliper(0.5)
 
 capt n teffects psmatch (Frevt_yoy) (trt1_sdw_pos dltt at age emp tobinq) if year == 2010, ///
 	osample(ps2010)
@@ -137,9 +166,6 @@ estimates store ps2016
 estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
 	b se p ///
 	stats(N)
-
-
-
 
 
 ***	Propensity score estimation using teffects psmatch: trt2_sdw_neg
@@ -261,9 +287,6 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
 	stats(N)
 
 
-
-
-
 ***	Propensity score estimation using teffects psmatch: trt3_sdw_neg
 drop ps2*
 drop mark
@@ -322,12 +345,8 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
 	
 	
 	
-	
-	
-						***===============================***
-						*  PROPENSITY SCORE MATCHING MODELS	*
-						*			BY ALL YEARS			*
-						***===============================***
+/// PSM combining all years
+						
 ***	Generate firmyear variable
 egen firmyear = group(cusip year)
 
@@ -335,7 +354,6 @@ egen firmyear = group(cusip year)
 capt n gen Frevt_yoy = F.revt-revt
 label var Frevt_yoy "Next year revt - current year revt"
 
-///	PROPENSITY SCORE MATCHING
 
 ***	Positive
 
@@ -461,6 +479,13 @@ graph box revt, over(period)
 
 	
 
+	
+	
+	
+	
+	
+	
+	
 	
 	
 						***===========================***
