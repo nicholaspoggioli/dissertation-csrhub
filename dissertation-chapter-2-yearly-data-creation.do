@@ -873,8 +873,11 @@ label var sic2division "SIC division (2-digit level)"
 
 
 
-
-///	SAVE
+*************************************************************
+*															*
+*					SAVE									*
+*															*
+*************************************************************
 ***	Order variables
 order cusip year firm firm_kld conm
 format %20s firm firm_kld conm
@@ -886,6 +889,129 @@ label var in_all "Indicator = 1 if in CSRHub, CSTAT, and KLD data"
 
 compress
 save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
+
+
+
+
+*************************************************************
+*															*
+*	EXPORT UNMATCHED CSRHUB FIRMS FOR MANUAL MATCHING		*
+*		WITH CSTAT AND KLD									*
+*															*
+*************************************************************
+///	DESCRIPTIVES
+tab in_csrhub
+/*
+Indicator = |
+    1 if in |
+CSRHub data |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     23,675       23.10       23.10
+          1 |     78,804       76.90      100.00
+------------+-----------------------------------
+      Total |    102,479      100.00
+*/
+
+tab in_cstat
+/*Indicator = |
+    1 if in |
+ CSTAT data |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     58,156       56.75       56.75
+          1 |     44,323       43.25      100.00
+------------+-----------------------------------
+      Total |    102,479      100.00
+*/
+
+tab in_kld
+/*Indicator = |
+1 if in KLD |
+       data |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     76,411       74.56       74.56
+          1 |     26,068       25.44      100.00
+------------+-----------------------------------
+      Total |    102,479      100.00
+*/
+
+tab in_csrhub in_cstat
+/* Indicator |
+ = 1 if in |  Indicator = 1 if in
+    CSRHub |      CSTAT data
+      data |         0          1 |     Total
+-----------+----------------------+----------
+         0 |     5,281     18,394 |    23,675 
+         1 |    52,875     25,929 |    78,804 
+-----------+----------------------+----------
+     Total |    58,156     44,323 |   102,479
+*/
+
+tab in_csrhub in_kld
+/* Indicator |
+ = 1 if in |  Indicator = 1 if in
+    CSRHub |       KLD data
+      data |         0          1 |     Total
+-----------+----------------------+----------
+         0 |    14,153      9,522 |    23,675 
+         1 |    62,258     16,546 |    78,804 
+-----------+----------------------+----------
+     Total |    76,411     26,068 |   102,479 
+*/
+
+
+///	CSRHub firms not matched to Compustat
+keep if in_csrhub==1 & in_cstat==0
+
+keep firm cusip cusip9 year isin
+order firm cusip cusip9 year isin
+
+bysort cusip9: gen n=_n
+tab n
+/*
+          n |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     10,162       19.22       19.22
+          2 |      8,745       16.54       35.76
+          3 |      7,113       13.45       49.21
+          4 |      6,139       11.61       60.82
+          5 |      5,300       10.02       70.84
+          6 |      4,505        8.52       79.36
+          7 |      3,764        7.12       86.48
+          8 |      3,149        5.96       92.44
+          9 |      2,385        4.51       96.95
+         10 |      1,613        3.05      100.00
+------------+-----------------------------------
+      Total |     52,875      100.00
+*/
+
+codebook firm
+/*                  type:  string (str65)
+
+         unique values:  10,162                   missing "":  0/52,875
+
+              examples:  "Cleveland BioLabs Inc"
+                         "Health Care REIT, Inc."
+                         "Multiplus SA"
+                         "Sekisui House Limited"
+
+               warning:  variable has embedded blanks
+*/
+
+keep if n==1
+drop n
+
+*	Export
+export excel using "D:\Dropbox\papers\4 work in progress\dissertation-csrhub\project\data\firms in csrhub and not in compustat.xlsx"
+
+
+
+
+
+
+
+
+
+
 
 
 
