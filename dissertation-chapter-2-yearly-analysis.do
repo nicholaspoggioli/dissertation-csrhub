@@ -9,6 +9,7 @@ set scheme plotplain
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
+keep if over_rtg!=.
 
 						***===============================***
 						*									*
@@ -16,6 +17,27 @@ use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 						*									*
 						***===============================***	
 ///	DESCRIPTIVE STATISTICS
+***	Treatment variables and observations with matches in all three datasets
+foreach var of varlist trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
+	trt1_sdw_pos trt1_sdw_neg {
+		display ""
+		display ""
+		display "`var'"
+		tab in_all `var'
+}
+
+***	Treatment variables and observations with matches in CSRHub and Compustat
+gen in_hub_cstat=(in_csrhub==1 & in_cstat==1)
+tab in_hub_cstat
+
+foreach var of varlist trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
+	trt1_sdw_pos trt1_sdw_neg {
+		display ""
+		display ""
+		display "`var'"
+		tab in_hub_cstat `var'
+}
+
 foreach var of varlist trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
 		tab year `var'
