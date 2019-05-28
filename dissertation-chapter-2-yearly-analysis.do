@@ -9,6 +9,21 @@ set scheme plotplain
 ///	LOAD DATA
 use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
 
+
+						***===============================***
+						*									*
+						*  TREATMENT VARIABLE DESCRIPTIVES	*
+						*									*
+						***===============================***	
+///	DESCRIPTIVE STATISTICS
+foreach var of varlist trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
+	trt1_sdw_pos trt1_sdw_neg {
+		tab year `var'
+}
+						
+						
+						
+						
 						***===========================***
 						*								*
 						*	PROPENSITY SCORE MATCHING 	*
@@ -42,17 +57,17 @@ tab year trt1_sdw_pos if mark1==1
            |     and positive
 (KLD) Year |         0          1 |     Total
 -----------+----------------------+----------
-      2009 |     3,839         71 |     3,910 
-      2010 |     3,676        192 |     3,868 
-      2011 |     3,634        195 |     3,829 
-      2012 |     3,666        150 |     3,816 
-      2013 |     2,771      1,086 |     3,857 
-      2014 |     3,267        591 |     3,858 
-      2015 |     3,708         45 |     3,753 
-      2016 |     3,388        198 |     3,586 
-      2017 |       400          5 |       405 
+      2009 |       658         71 |       729 
+      2010 |       984        192 |     1,176 
+      2011 |     1,327        195 |     1,522 
+      2012 |     1,874        150 |     2,024 
+      2013 |     1,181      1,086 |     2,267 
+      2014 |     1,890        591 |     2,481 
+      2015 |     2,522         45 |     2,567 
+      2016 |     2,568        198 |     2,766 
+      2017 |       320          5 |       325 
 -----------+----------------------+----------
-     Total |    28,349      2,533 |    30,882
+     Total |    13,324      2,533 |    15,857 
 */
 
 replace xad=0 if xad==.
