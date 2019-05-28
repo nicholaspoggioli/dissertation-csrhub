@@ -454,9 +454,12 @@ foreach threshold in 3 2 1 {
 		over_rtg_yoy!=.
 	label var trt`threshold'_sdw_pos ///
 		"Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdw and positive"
+	replace trt`threshold'_sdw_pos=. if over_rtg==.
+	
 	gen trt`threshold'_sdw_neg = over_rtg_yoy < (-`threshold' * sdw) & over_rtg_yoy!=.
 	label var trt`threshold'_sdw_neg "Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdw and negative"
-
+	replace trt`threshold'_sdw_neg=. if over_rtg==.
+	
 	*	Treatment year
 	by cusip_n: gen trt_yr_sdw_pos = year if trt`threshold'_sdw_pos==1
 	sort cusip_n trt_yr_sdw_pos
