@@ -70,8 +70,20 @@ tab year trt1_sdw_pos if mark1==1
      Total |    13,324      2,533 |    15,857 
 */
 
-teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq xad xrd) if year == 2009, ///
-	nneighbor(1) caliper(0.5)
+
+*	DV: Same year revenue
+forvalues neighbors = 1(1)10 {
+teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq xad xrd) ///
+	if year == 2009, ///
+	nneighbor(`neighbors')
+}
+
+*	DV: Next year revenue
+forvalues neighbors = 1(1)10 {
+	teffects psmatch (Frevt) (trt1_sdw_pos dltt at age emp tobinq xad xrd) ///
+		if year == 2009, ///
+		nneighbor(`neighbors')
+}
 
 capt n teffects psmatch (Frevt_yoy) (trt1_sdw_pos dltt at age emp tobinq) if year == 2010, ///
 	osample(ps2010)
