@@ -29,8 +29,6 @@ foreach var of varlist trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 						*	PROPENSITY SCORE MATCHING 	*
 						*		INDIVIDUAL YEARS		*
 						***===========================***	
-
-/// PSM by individual year
 /*	Treatment variables:
 		trt3_sdw_pos 
 		trt3_sdw_neg 
@@ -43,6 +41,7 @@ foreach var of varlist trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	
 	Propensity model: treatment = f(dltt at age emp tobinq xad xrd)
 */
+
 
 ***	trt1_sdw_pos
 capt n drop ps2*
@@ -71,19 +70,61 @@ tab year trt1_sdw_pos if mark1==1
 */
 
 
-*	DV: Same year revenue
+///	DV: Same year revenue
+
+/*	LOOP STRUCTURES FOR LATER USE
 forvalues neighbors = 1(1)10 {
 teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq xad xrd) ///
 	if year == 2009, ///
 	nneighbor(`neighbors')
 }
+*/ 
+
+capt n drop ps2* 
+capt n drop obs 
+capt n drop ps0 ps1
+
+teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq xad xrd) ///
+	if year == 2009, ///
+	nneighbor(2) ///
+	gen(ps2009)
+
+* Calculate propensity score (see https://www.ssc.wisc.edu/sscc/pubs/stata_psmatch.htm)
+* Propensity scores dependent on the sort order of the data
+gen obs=_n
+sort obs
+predict ps0 ps1, ps
+
+
+
+
+
+
+
+
+
 
 *	DV: Next year revenue
-forvalues neighbors = 1(1)10 {
-	teffects psmatch (Frevt) (trt1_sdw_pos dltt at age emp tobinq xad xrd) ///
-		if year == 2009, ///
-		nneighbor(`neighbors')
+/*	LOOP STRUCTURES FOR LATER USE
+forvalues year = 2009(1)2017 {
+	forvalues neighbors = 1(1)10 {
+		display "Year = `year' and Neighbors = `neighbors'"
+		teffects psmatch (Frevt) (trt1_sdw_pos dltt at age emp tobinq xad xrd) ///
+			if year == `year', ///
+			nneighbor(`neighbors')
+		}
 }
+*/
+
+capt n teffects psmatch (Frevt_yoy) (trt1_sdw_pos dltt at age emp tobinq) if year == 2009, ///
+	osample(ps2009)
+
+
+
+
+
+
+
 
 capt n teffects psmatch (Frevt_yoy) (trt1_sdw_pos dltt at age emp tobinq) if year == 2010, ///
 	osample(ps2010)
