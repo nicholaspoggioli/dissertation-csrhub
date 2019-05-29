@@ -413,9 +413,23 @@ rename (cusip8 cusip9 isin) (cusip8_csrhub cusip9_csrhub isin_csrhub)
 rename (firm tic cik gvkey) (firm_cstat tic_cstat cik_cstat gvkey_cstat)
 gen cusip_cstat=cusip
 
+drop if cusip8_csrhub=="CSMGACNO"
+
 ***	Merge with full Compustat data
 merge 1:m cusip using data/cstat-fundamentals-annual-all-firms-2006-2017.dta, ///
 	update assert(1 2 3 4 5)
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                       134,245
+        from master                         0  (_merge==1)
+        from using                    134,245  (_merge==2)
+
+    matched                             3,554
+        not updated                     3,554  (_merge==3)
+        missing updated                     0  (_merge==4)
+        nonmissing conflict                 0  (_merge==5)
+    -----------------------------------------
+*/
 
 keep if _merge==3
 drop _merge
