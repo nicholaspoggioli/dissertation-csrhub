@@ -320,7 +320,13 @@ compress
 save data/kld-all.dta, replace
 
 
+
+
+
+
 ///	MERGE WITH CSRHUB YEARLY
+use data/kld-all.dta, clear
+
 merge 1:1 cusip year using data/csrhub-all-year-level.dta, update assert(1 2 3 4 5)
 /*    Result                           # of obs.
     -----------------------------------------
@@ -392,13 +398,33 @@ codebook cusip if _merge==3
 codebook cusip if in_cstat==1 & in_csrhub==1 & in_kld==1
 *	3,194 unique CUSIPs matched across all three datasets
 
-
-***	Drop variables
 drop _merge cusip_n
 drop in_cstat_csrhub_cusip in_cstat_kld_cusip
 
 
 
+
+///	MERGE WITH MANUALLY MATCHED CSRHUB CSTAT FIRMS
+import excel "data\firms in csrhub and not in compustat.xlsx", ///
+	sheet("matches") firstrow allstring clear
+	
+***	Rename variables
+rename (cusip8 cusip9 isin) (cusip8_csrhub cusip9_csrhub isin_csrhub)
+rename (firm tic cik gvkey) (firm_cstat tic_cstat cik_cstat gvkey_cstat)
+gen cusip_cstat=cusip
+
+***	Merge with full Compustat data
+merge 1:m cusip using data/cstat-fundamentals-annual-all-firms-2006-2017.dta, ///
+	update assert(1 2 3 4 5)
+
+keep if _merge==3
+drop _merge
+
+***	Arrange
+order firm fyear cusip cusip_cstat cusip8_csrhub cusip9_csrhub
+gen cusip_dif = (cusip!=cusip9_csrhub)
+order cusip_dif, after(cusip9_csrhub)
+sort firm fyear
 
 
 
