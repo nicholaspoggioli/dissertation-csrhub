@@ -8,7 +8,7 @@
 		Limiting coverage window: 2008 (CSRHub) - 2016 (KLD)
 */
 
-
+/*
 *** CSRHub
 *	Load data
 use data/csrhub-all-year-level.dta, clear
@@ -213,7 +213,7 @@ save data/cstat-all-unique-firm-years-with-cusips.dta, replace
 
 
 
-
+*/
 
 
 
@@ -386,8 +386,7 @@ tab in_three
       Total |    150,824      100.00
 
 	  About 200 fewer matches than produced by the existing data creation file
-	  
-	  */
+*/
 
 
 
