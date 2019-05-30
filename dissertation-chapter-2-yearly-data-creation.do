@@ -282,6 +282,7 @@ xtset firm_n year, y
 compress
 label data "KLD Data 1991 - 2016 downloaded April 2, 2019 by poggi005@umn.edu"
 
+
 ///	CREATE CUSIP-YEAR PANEL
 drop firm_n
 
@@ -347,13 +348,24 @@ codebook cusip if in_csrhub==1
 *	3,549 / 13,496 = 26.3% of CSRHub CUSIPs matched in KLD
 drop _merge
 
+***	Save
 compress
 save data/mergefile-kld-csrhub-cusip-year.dta, replace
 
+*** Merge in firm names manually matched in CSRHub and Compustat
+import excel "data\firms in csrhub and not in compustat.xlsx", ///
+	sheet("matches") firstrow allstring clear
 
-///	MERGE WITH CSTAT YEARLY
+
+
+
+***===========================***
+*	MERGE WITH CSTAT YEARLY		*
+***===========================***
+///	LOAD DATA
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
 
+///	SET PANEL
 xtset, clear
 
 gen year = year(datadate)
@@ -373,14 +385,13 @@ tab N
 drop if N>1
 drop N
 
-***	Generate indicator variable
+///	GENERATE INDICATOR VARIABLE
 gen in_cstat = 1
 label var in_cstat "Indicator = 1 if in CSTAT data"
 
-***	Merge
+///	MERGE
 merge 1:1 cusip year using data/mergefile-kld-csrhub-cusip-year.dta, update assert(1 2 3 4 5)
-/*
-    Result                           # of obs.
+/*  Result                           # of obs.
     -----------------------------------------
     not matched                       132,890
         from master                    68,668  (_merge==1)
@@ -393,52 +404,52 @@ merge 1:1 cusip year using data/mergefile-kld-csrhub-cusip-year.dta, update asse
     -----------------------------------------
 */
 
+///	EXAMINE
 codebook cusip if _merge==3
 *	6,373 unique CUSIPs matched between CSTAT and KLD-CSRHub
 codebook cusip if in_cstat==1 & in_csrhub==1 & in_kld==1
 *	3,194 unique CUSIPs matched across all three datasets
 
-drop _merge cusip_n
+drop cusip_n
 drop in_cstat_csrhub_cusip in_cstat_kld_cusip
 
+rename cusip cusip8
+
+///	SAVE
+***	Full for years in CSRHub
+drop if year < 2008
+drop if year > 2017
+compress
+save data/mergefile-all-cstat-kld-csrhub-cusip8-year.dta, replace
+
+***	Non-matched
+keep if _merge!=3
+compress
+drop _merge
+save data/mergefile-nonmatched-cstat-kld-csrhub-cusip8-year.dta, replace
 
 
 
-///	MERGE WITH MANUALLY MATCHED CSRHUB CSTAT FIRMS
+***===========================================================***
+*	MERGE NONMATCHED WITH MANUALLY MATCHED CSRHUB CSTAT FIRMS	*
+***===========================================================***
+///	IMPORT MATCHED DATA
 import excel "data\firms in csrhub and not in compustat.xlsx", ///
 	sheet("matches") firstrow allstring clear
-	
-***	Rename variables
-rename (cusip8 cusip9 isin) (cusip8_csrhub cusip9_csrhub isin_csrhub)
-rename (firm tic cik gvkey) (firm_cstat tic_cstat cik_cstat gvkey_cstat)
-gen cusip_cstat=cusip
 
-drop if cusip8_csrhub=="CSMGACNO"
-
-***	Merge with full Compustat data
-merge 1:m cusip using data/cstat-fundamentals-annual-all-firms-2006-2017.dta, ///
-	update assert(1 2 3 4 5)
-/*    Result                           # of obs.
-    -----------------------------------------
-    not matched                       134,245
-        from master                         0  (_merge==1)
-        from using                    134,245  (_merge==2)
-
-    matched                             3,554
-        not updated                     3,554  (_merge==3)
-        missing updated                     0  (_merge==4)
-        nonmissing conflict                 0  (_merge==5)
-    -----------------------------------------
+///	MATCH WITH FULL COMPUSTAT DATA ON CSTAT CUSIP
+***	Keep unique CUSIP
+bysort cusip: gen N=_N
+tab N
+/*          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        421       99.53       99.53
+          2 |          2        0.47      100.00
+------------+-----------------------------------
+      Total |        423      100.00
 */
-
-keep if _merge==3
-drop _merge
-
-***	Arrange
-order firm fyear cusip cusip_cstat cusip8_csrhub cusip9_csrhub
-gen cusip_dif = (cusip!=cusip9_csrhub)
-order cusip_dif, after(cusip9_csrhub)
-sort firm fyear
+drop if firm_csrhub=="Companhia de Saneamento Basico do Estado de Sao Paulo - SABESP"
+drop N
 
 
 
