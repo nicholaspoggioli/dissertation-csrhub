@@ -114,13 +114,13 @@ label var in_csrhub "Indicator = 1 if in CSRHub data"
 compress
 xtset, clear
 label data "Year-level CSRHub 2008-2017"
-save data/csrhub-all-year-level.dta, replace
+save data/csrhub-all-year-level-pre-manual-match.dta, replace
 
 
 ///	MERGE IN HAND-MATCHED CSRHUB-CSTAT FIRM INFORMATION
 ***	Import data
-import excel "data\firms in csrhub and not in compustat.xlsx", ///
-	sheet("matches") firstrow allstring clear
+import excel "data\manual-match-csrhub-to-cstat.xlsx", ///
+	firstrow allstring clear
 
 ***	Label variables
 label var firm_csrhub "(CSRHub) firm name from manual CSRHUB-CSTAT match"
@@ -148,7 +148,7 @@ save data/manually-matched-csrhub-cstat-firms.dta, replace
 	
 ///	MATCH CSRHUB WITH HAND-MATCHED CSRHUB-CSTAT IDENTIFIERS
 ***	Load data
-use data/csrhub-all-year-level.dta, clear
+use data/csrhub-all-year-level-pre-manual-match.dta, clear
 
 ***	Match
 gen firm_csrhub=upper(firm)
@@ -165,6 +165,7 @@ merge m:1 firm_csrhub using data/manually-matched-csrhub-cstat-firms.dta, update
         nonmissing conflict                 0  (_merge==5)
     -----------------------------------------
 */
+drop _merge
 
 ***	Save
 save data/csrhub-all-year-level.dta, replace
