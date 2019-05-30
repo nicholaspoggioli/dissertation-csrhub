@@ -405,9 +405,7 @@ drop _merge
 compress
 save data/mergefile-kld-csrhub-cusip-year.dta, replace
 
-*** Merge in firm names manually matched in CSRHub and Compustat
-import excel "data\firms in csrhub and not in compustat.xlsx", ///
-	sheet("matches") firstrow allstring clear
+
 
 
 
