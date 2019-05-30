@@ -382,7 +382,9 @@ save data/kld-all.dta, replace
 ///	MERGE WITH CSRHUB YEARLY
 use data/kld-all.dta, clear
 
-merge 1:1 cusip year using data/csrhub-all-year-level.dta, update assert(1 2 3 4 5)
+merge 1:1 cusip year using data/csrhub-all-year-level.dta, ///
+	update assert(1 2 3 4 5) ///
+
 /*    Result                           # of obs.
     -----------------------------------------
     not matched                        92,809
@@ -416,10 +418,8 @@ save data/mergefile-kld-csrhub-cusip-year.dta, replace
 ***===========================***
 ///	LOAD DATA
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
-drop busdesc
-
-///	SET PANEL
 xtset, clear
+drop busdesc cusip_n
 
 gen year = fyear
 rename cusip cusip9
@@ -445,24 +445,25 @@ drop N
 gen in_cstat = 1
 label var in_cstat "Indicator = 1 if in CSTAT data"
 
-///	MERGE
+///	MERGE ON CUSIP IN CSRHUB DATA
 merge 1:1 cusip year using data/mergefile-kld-csrhub-cusip-year.dta, ///
-	update assert(1 2 3 4 5)
+	update assert(1 2 3 4 5) ///
+	gen(_merge_1)
 /*    Result                           # of obs.
     -----------------------------------------
     not matched                       133,308
-        from master                    68,969  (_merge==1)
-        from using                     64,339  (_merge==2)
+        from master                    68,969  (_merge_1==1)
+        from using                     64,339  (_merge_1==2)
 
     matched                            45,016
-        not updated                    45,016  (_merge==3)
-        missing updated                     0  (_merge==4)
-        nonmissing conflict                 0  (_merge==5)
+        not updated                    45,016  (_merge_1==3)
+        missing updated                     0  (_merge_1==4)
+        nonmissing conflict                 0  (_merge_1==5)
     -----------------------------------------
 */
 
-///	EXAMINE
-codebook cusip if _merge==3
+*** Examine
+codebook cusip if _merge_1==3
 *	6,356 unique CUSIPs matched between CSTAT and KLD-CSRHub
 codebook cusip if in_cstat==1 & in_csrhub==1 & in_kld==1
 *	3,191 unique CUSIPs matched across all three datasets
@@ -471,6 +472,9 @@ drop cusip_n
 drop in_cstat_csrhub_cusip in_cstat_kld_cusip
 
 rename cusip cusip8
+
+
+
 
 ///	SAVE
 ***	Full for years in CSRHub
