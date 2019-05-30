@@ -364,11 +364,12 @@ import excel "data\firms in csrhub and not in compustat.xlsx", ///
 ***===========================***
 ///	LOAD DATA
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
+drop busdesc
 
 ///	SET PANEL
 xtset, clear
 
-gen year = year(datadate)
+gen year = fyear
 rename cusip cusip9
 
 gen cusip=substr(cusip9,1,8)
@@ -377,8 +378,11 @@ bysort cusip year: gen N=_N
 tab N
 /*          N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |    113,801       99.66       99.66
-          2 |        390        0.34      100.00
+          1 |    113,985       99.82       99.82
+          2 |         58        0.05       99.87
+          3 |         99        0.09       99.96
+          4 |         44        0.04      100.00
+          5 |          5        0.00      100.00
 ------------+-----------------------------------
       Total |    114,191      100.00
 */
@@ -390,15 +394,16 @@ gen in_cstat = 1
 label var in_cstat "Indicator = 1 if in CSTAT data"
 
 ///	MERGE
-merge 1:1 cusip year using data/mergefile-kld-csrhub-cusip-year.dta, update assert(1 2 3 4 5)
-/*  Result                           # of obs.
+merge 1:1 cusip year using data/mergefile-kld-csrhub-cusip-year.dta, ///
+	update assert(1 2 3 4 5)
+/*    Result                           # of obs.
     -----------------------------------------
-    not matched                       132,890
-        from master                    68,668  (_merge==1)
-        from using                     64,222  (_merge==2)
+    not matched                       133,308
+        from master                    68,969  (_merge==1)
+        from using                     64,339  (_merge==2)
 
-    matched                            45,133
-        not updated                    45,133  (_merge==3)
+    matched                            45,016
+        not updated                    45,016  (_merge==3)
         missing updated                     0  (_merge==4)
         nonmissing conflict                 0  (_merge==5)
     -----------------------------------------
@@ -406,9 +411,9 @@ merge 1:1 cusip year using data/mergefile-kld-csrhub-cusip-year.dta, update asse
 
 ///	EXAMINE
 codebook cusip if _merge==3
-*	6,373 unique CUSIPs matched between CSTAT and KLD-CSRHub
+*	6,356 unique CUSIPs matched between CSTAT and KLD-CSRHub
 codebook cusip if in_cstat==1 & in_csrhub==1 & in_kld==1
-*	3,194 unique CUSIPs matched across all three datasets
+*	3,191 unique CUSIPs matched across all three datasets
 
 drop cusip_n
 drop in_cstat_csrhub_cusip in_cstat_kld_cusip
@@ -426,6 +431,7 @@ save data/mergefile-all-cstat-kld-csrhub-cusip8-year.dta, replace
 keep if _merge!=3
 compress
 drop _merge
+gen firm_csrhub=upper(firm)
 save data/mergefile-nonmatched-cstat-kld-csrhub-cusip8-year.dta, replace
 
 
@@ -450,6 +456,57 @@ tab N
 */
 drop if firm_csrhub=="Companhia de Saneamento Basico do Estado de Sao Paulo - SABESP"
 drop N
+
+***	Label variables
+label var firm_csrhub "(CSRHub) firm name"
+label var cusip8 "(CSRHub) cusip8"
+label var cusip9 "(CSRHub) cusip9"
+label var isin "(CSRHub) isin"
+label var firm "(CSTAT) firm name"
+label var tic "(CSTAT) ticker"
+label var cusip "(CSTAT) cusip9"
+label var cik "(CSTAT) cik"
+label var gvkey "(CSTAT) gvkey"
+
+***	Match with Compustat on cusip9
+merge 1:m cusip using data/cstat-fundamentals-annual-all-firms-2006-2017.dta, ///
+	update assert(1 2 3 4 5)
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                       134,245
+        from master                         0  (_merge==1)
+        from using                    134,245  (_merge==2)
+
+    matched                             3,554
+        not updated                     3,554  (_merge==3)
+        missing updated                     0  (_merge==4)
+        nonmissing conflict                 0  (_merge==5)
+    -----------------------------------------
+*/
+
+***	Keep matches
+keep if _merge==3
+drop _merge
+
+***	Drop Financial Services indfmt
+drop if indfmt=="FS"
+
+///	MERGE WITH NONMATCHED CSTAT-KLD-CSRHUB DATA ON FIRM_CSRHUB-YEAR
+***	Generate year variable for match
+gen year = fyear
+replace year  = year(datadate) if year==.
+
+***	Keep CSRHub years
+drop if year < 2008
+drop if year > 2017
+
+***	Merge
+replace firm_csrhub=upper(firm_csrhub)
+merge 1:m firm_csrhub year using data/mergefile-nonmatched-cstat-kld-csrhub-cusip8-year.dta, ///
+	update assert(1 2 3 4 5)
+/**/
+
+
 
 
 
