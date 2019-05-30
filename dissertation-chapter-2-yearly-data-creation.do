@@ -109,12 +109,65 @@ drop N
 gen in_csrhub=1
 label var in_csrhub "Indicator = 1 if in CSRHub data"
 
+
 ***	Save year-level CSRHub data
 compress
 xtset, clear
 label data "Year-level CSRHub 2008-2017"
 save data/csrhub-all-year-level.dta, replace
 
+
+///	MERGE IN HAND-MATCHED CSRHUB-CSTAT FIRM INFORMATION
+***	Import data
+import excel "data\firms in csrhub and not in compustat.xlsx", ///
+	sheet("matches") firstrow allstring clear
+
+***	Label variables
+label var firm_csrhub "(CSRHub) firm name from manual CSRHUB-CSTAT match"
+label var cusip8 "(CSRHub) cusip8 from manual CSRHUB-CSTAT match"
+label var cusip9 "(CSRHub) cusip9 from manual CSRHUB-CSTAT match"
+label var isin "(CSRHub) isin from manual CSRHUB-CSTAT match"
+label var firm "(CSTAT) firm name from manual CSRHUB-CSTAT match"
+label var tic "(CSTAT) ticker from manual CSRHUB-CSTAT match"
+label var cusip "(CSTAT) cusip9 from manual CSRHUB-CSTAT match"
+label var cik "(CSTAT) cik from manual CSRHUB-CSTAT match"
+label var gvkey "(CSTAT) gvkey from manual CSRHUB-CSTAT match"
+
+***	Rename variables to preserve through merge
+foreach variable of varlist cusip8 cusip9 isin firm tic cusip cik gvkey {
+	rename `variable' `variable'_alt
+}
+
+***	Clean
+replace firm_csrhub=upper(firm_csrhub)
+
+***	Save
+compress
+save data/manually-matched-csrhub-cstat-firms.dta, replace
+	
+	
+///	MATCH CSRHUB WITH HAND-MATCHED CSRHUB-CSTAT IDENTIFIERS
+***	Load data
+use data/csrhub-all-year-level.dta, clear
+
+***	Match
+gen firm_csrhub=upper(firm)
+merge m:1 firm_csrhub using data/manually-matched-csrhub-cstat-firms.dta, update assert(1 2 3 4 5)
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                        75,921
+        from master                    75,921  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                             2,883
+        not updated                     2,883  (_merge==3)
+        missing updated                     0  (_merge==4)
+        nonmissing conflict                 0  (_merge==5)
+    -----------------------------------------
+*/
+
+***	Save
+save data/csrhub-all-year-level.dta, replace
 
 
 ***===================================***
