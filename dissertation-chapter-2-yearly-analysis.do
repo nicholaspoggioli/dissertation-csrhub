@@ -2,6 +2,10 @@
 *capt n log close
 *log using code/logs/20190219-yearly-analysis.txt, text
 
+***===================***
+*	CHAPTER 2 ANALYSIS	*
+***===================***
+
 ///	SET ENVIRONMENT
 clear all
 set scheme plotplain
@@ -26,9 +30,11 @@ tab year
 ------------+-----------------------------------
       Total |    102,365      100.00
 */
+
 codebook cusip_n
 /*unique values:  16,860                   missing .:  3/102,365	*/
 drop if cusip_n==.
+drop if cusip=="#N/A"
 
 
 						***===============================***
