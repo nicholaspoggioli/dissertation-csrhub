@@ -119,7 +119,6 @@ replace firm_csrhub=upper(firm_csrhub)
 compress
 save data/manually-matched-csrhub-cstat-firms.dta, replace
 
-
 ///	LOAD CSRHUB DATA
 use data/csrhub-all-year-level-pre-manual-match.dta, clear
 
@@ -202,25 +201,38 @@ drop _merge
 ///	LOAD CSTAT DATA FOR ALL FIRMS 1989-2018
 use data/cstat-fundamentals-annual-all-firms-1989-2018.dta, clear
 xtset, clear
-drop busdesc cusip_n
 
+***	Drop financial services
+drop if indfmt=="FS"
+
+***	Generate matching variables
 gen year = fyear
 rename cusip cusip9
 
+
+***	Keep unique cusip9-years
 bysort cusip9 year: gen N=_N
 tab N
 /*          N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |    113,985       99.82       99.82
-          2 |         58        0.05       99.87
-          3 |         99        0.09       99.96
-          4 |         44        0.04      100.00
-          5 |          5        0.00      100.00
+          1 |    338,553       99.84       99.84
+          2 |        162        0.05       99.89
+          3 |        177        0.05       99.94
+          4 |         84        0.02       99.96
+          5 |         10        0.00       99.97
+          8 |          8        0.00       99.97
+         13 |         13        0.00       99.97
+         15 |         30        0.01       99.98
+         16 |         64        0.02      100.00
 ------------+-----------------------------------
-      Total |    114,191      100.00
+      Total |    339,101      100.00
 */
 drop if N>1
 drop N
+
+***	Generate cusip8
+gen cusip8=substr(cusip9,1,8)
+label var cusip8 "(CSTAT) CUSIP8 created from 1st 8 digits of CUSIP9"
 
 ///	GENERATE INDICATOR VARIABLE
 gen in_cstat = 1
@@ -231,70 +243,90 @@ merge 1:1 cusip9 year using data/csrhub-all-year-level.dta, ///
 	update assert(1 2 3 4 5)
 /*    Result                           # of obs.
     -----------------------------------------
-    not matched                       141,134
-        from master                    88,159  (_merge==1)
-        from using                     52,975  (_merge==2)
+    not matched                       366,505
+        from master                   313,127  (_merge==1)
+        from using                     53,378  (_merge==2)
 
-    matched                            25,829
-        not updated                    25,829  (_merge==3)
+    matched                            25,426
+        not updated                    25,426  (_merge==3)
         missing updated                     0  (_merge==4)
         nonmissing conflict                 0  (_merge==5)
     -----------------------------------------
 */
-drop _merge
 
-
-
-
-///	LOAD CSTAT DATA FOR ALL FIRMS 2006-2017
-use data/cstat-fundamentals-annual-all-firms-2006-2017.dta, clear
-xtset, clear
-drop busdesc cusip_n
-
-gen year = fyear
-rename cusip cusip9
-
-bysort cusip9 year: gen N=_N
+///	MERGE WITH CSRHUB ON CUSIP9
+***	Keep unique cusip8-years
+bysort cusip8 year: gen N=_N
 tab N
 /*          N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |    113,985       99.82       99.82
-          2 |         58        0.05       99.87
-          3 |         99        0.09       99.96
-          4 |         44        0.04      100.00
-          5 |          5        0.00      100.00
+          1 |    338,550       86.38       86.38
+       1827 |      1,827        0.47       86.85
+       3064 |      3,064        0.78       87.63
+       3961 |      3,961        1.01       88.64
+       4656 |      4,656        1.19       89.83
+       5011 |      5,011        1.28       91.11
+       5498 |      5,498        1.40       92.51
+       5586 |      5,586        1.43       93.93
+       6193 |      6,193        1.58       95.51
+       7713 |      7,713        1.97       97.48
+       9872 |      9,872        2.52      100.00
 ------------+-----------------------------------
-      Total |    114,191      100.00
+      Total |    391,931      100.00
 */
-drop if N>1
+keep if N==1
 drop N
 
-///	GENERATE INDICATOR VARIABLE
-gen in_cstat = 1
-label var in_cstat "Indicator = 1 if in CSTAT data"
-
-///	MERGE WITH CSRHUB ON CUSIP9
-merge 1:1 cusip9 year using data/csrhub-all-year-level.dta, ///
+***	Merge
+merge 1:1 cusip8 year using data/csrhub-all-year-level.dta, ///
 	update assert(1 2 3 4 5)
-/*    Result                           # of obs.
-    -----------------------------------------
-    not matched                       141,134
-        from master                    88,159  (_merge==1)
-        from using                     52,975  (_merge==2)
 
-    matched                            25,829
-        not updated                    25,829  (_merge==3)
-        missing updated                     0  (_merge==4)
-        nonmissing conflict                 0  (_merge==5)
-    -----------------------------------------
+
+///	KEEP IF NOT MATCHED FROM USING
+keep if _merge==2
+
+bysort cusip9: gen n=_n
+tab n
+/*          n |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     10,232       19.17       19.17
+          2 |      8,832       16.55       35.72
+          3 |      7,189       13.47       49.18
+          4 |      6,208       11.63       60.81
+          5 |      5,364       10.05       70.86
+          6 |      4,553        8.53       79.39
+          7 |      3,800        7.12       86.51
+          8 |      3,174        5.95       92.46
+          9 |      2,402        4.50       96.96
+         10 |      1,624        3.04      100.00
+------------+-----------------------------------
+      Total |     53,378      100.00
 */
-drop _merge
 
+codebook cusip9
+/*	unique values: 10,232	*/
 
+***	Keep unique cusip9
+keep if n==1
 
+***	Check CUSIP9s for more than 1 firm
+replace firm=upper(firm)
+bysort firm: gen firm_n=_n
 
+tab n firm_n
+/*
+           |   firm_n
+         n |         1 |     Total
+-----------+-----------+----------
+         1 |    10,232 |    10,232 
+-----------+-----------+----------
+     Total |    10,232 |    10,232 
+*/
+*	No duplicates
+drop n firm_n
 
-
+***	Keep firm identifiers
+keep firm 
 
 
 
