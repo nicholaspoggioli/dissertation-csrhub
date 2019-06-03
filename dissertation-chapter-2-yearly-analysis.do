@@ -13,31 +13,6 @@ xtset
 tab year
 /* (KLD) Year |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-       2008 |      7,319        7.14        7.14
-       2009 |      8,479        8.27       15.42
-       2010 |      9,219        9.00       24.41
-       2011 |      9,789        9.55       33.96
-       2012 |      9,992        9.75       43.71
-       2013 |     11,992       11.70       55.42
-       2014 |     10,225        9.98       65.39
-       2015 |     10,318       10.07       75.46
-       2016 |     11,677       11.39       86.86
-       2017 |     13,469       13.14      100.00
-------------+-----------------------------------
-      Total |    102,479      100.00
-*/
-codebook cusip_n
-/*unique values:  16,861                   missing .:  0/102,479*/
-
-use data/analysis-file-cstat-kld-csrhub-cusip8-year-all.dta, clear
-
-xtset
-tab year
-keep if year > 2007
-keep if year < 2018
-tab year
-/* (KLD) Year |      Freq.     Percent        Cum.
-------------+-----------------------------------
        2008 |      7,286        7.12        7.12
        2009 |      8,444        8.25       15.37
        2010 |      9,192        8.98       24.35
@@ -51,12 +26,10 @@ tab year
 ------------+-----------------------------------
       Total |    102,365      100.00
 */
-codebook cusip8_num
-/*unique values:  16,860                   missing .:  3/102,365*/
+codebook cusip_n
+/*unique values:  16,860                   missing .:  3/102,365	*/
+drop if cusip_n==.
 
-
-
-keep if over_rtg!=.
 
 						***===============================***
 						*									*
@@ -97,22 +70,11 @@ foreach var of varlist trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 						*								*
 						*	PROPENSITY SCORE MATCHING 	*
 						*		INDIVIDUAL YEARS		*
+						*								*
 						***===========================***	
-/*	Treatment variables:
-		trt3_sdw_pos 
-		trt3_sdw_neg 
-		trt2_sdw_pos 
-		trt2_sdw_neg 
-		trt1_sdw_pos 
-		trt1_sdw_neg
-	
-	Years: 2009 - 2017
-	
-	Propensity model: treatment = f(dltt at age emp tobinq xad xrd)
-*/
+///	Propensity model: treatment = f(dltt at age emp tobinq xad xrd)
 
-
-***	trt1_sdw_pos
+///	trt1_sdw_pos
 capt n drop ps2*
 capt n drop mark
 mark mark1
@@ -126,16 +88,16 @@ tab year trt1_sdw_pos if mark1==1
 (KLD) Year |         0          1 |     Total
 -----------+----------------------+----------
       2009 |       658         71 |       729 
-      2010 |       984        192 |     1,176 
-      2011 |     1,327        195 |     1,522 
-      2012 |     1,874        150 |     2,024 
-      2013 |     1,181      1,086 |     2,267 
-      2014 |     1,890        591 |     2,481 
-      2015 |     2,522         45 |     2,567 
-      2016 |     2,568        198 |     2,766 
-      2017 |       320          5 |       325 
+      2010 |       981        192 |     1,173 
+      2011 |     1,323        196 |     1,519 
+      2012 |     1,869        150 |     2,019 
+      2013 |     1,184      1,085 |     2,269 
+      2014 |     1,893        591 |     2,484 
+      2015 |     2,516         45 |     2,561 
+      2016 |     2,552        197 |     2,749 
+      2017 |        71          2 |        73 
 -----------+----------------------+----------
-     Total |    13,324      2,533 |    15,857 
+     Total |    13,047      2,529 |    15,576 
 */
 
 
@@ -150,13 +112,13 @@ teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq xad xrd) ///
 */ 
 
 capt n drop ps2* 
-capt n drop obs 
+capt n drop obs
 capt n drop ps0 ps1
 
-teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq xad xrd) ///
-	if year == 2009, ///
-	nneighbor(2) ///
-	gen(ps2009)
+teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq xad xrd) ///
+	if year == 2009, nneighbor(5)
+
+logistic trt1_sdw_pos dltt at age emp tobinq xad xrd if year==2009
 
 * Calculate propensity score (see https://www.ssc.wisc.edu/sscc/pubs/stata_psmatch.htm)
 * Propensity scores dependent on the sort order of the data
@@ -187,12 +149,6 @@ forvalues year = 2009(1)2017 {
 
 capt n teffects psmatch (Frevt_yoy) (trt1_sdw_pos dltt at age emp tobinq) if year == 2009, ///
 	osample(ps2009)
-
-
-
-
-
-
 
 
 capt n teffects psmatch (Frevt_yoy) (trt1_sdw_pos dltt at age emp tobinq) if year == 2010, ///
