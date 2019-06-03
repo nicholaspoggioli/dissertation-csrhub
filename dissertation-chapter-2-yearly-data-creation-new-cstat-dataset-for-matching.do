@@ -152,7 +152,7 @@ save data/csrhub-all-year-level.dta, replace
 ***=======================================***
 *	MERGE CSRHUB AND CSTAT ON CSTAT CUSIP9 	*
 ***=======================================***
-///	LOAD CSTAT DATA
+///	LOAD CSTAT DATA COLLECTED USING CUSIPS IN CSRHUB AND KLD
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
 xtset, clear
 drop busdesc cusip_n
@@ -198,6 +198,138 @@ drop _merge
 
 
 
+
+///	LOAD CSTAT DATA FOR ALL FIRMS 1989-2018
+use data/cstat-fundamentals-annual-all-firms-1989-2018.dta, clear
+xtset, clear
+drop busdesc cusip_n
+
+gen year = fyear
+rename cusip cusip9
+
+bysort cusip9 year: gen N=_N
+tab N
+/*          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    113,985       99.82       99.82
+          2 |         58        0.05       99.87
+          3 |         99        0.09       99.96
+          4 |         44        0.04      100.00
+          5 |          5        0.00      100.00
+------------+-----------------------------------
+      Total |    114,191      100.00
+*/
+drop if N>1
+drop N
+
+///	GENERATE INDICATOR VARIABLE
+gen in_cstat = 1
+label var in_cstat "Indicator = 1 if in CSTAT data"
+
+///	MERGE WITH CSRHUB ON CUSIP9
+merge 1:1 cusip9 year using data/csrhub-all-year-level.dta, ///
+	update assert(1 2 3 4 5)
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                       141,134
+        from master                    88,159  (_merge==1)
+        from using                     52,975  (_merge==2)
+
+    matched                            25,829
+        not updated                    25,829  (_merge==3)
+        missing updated                     0  (_merge==4)
+        nonmissing conflict                 0  (_merge==5)
+    -----------------------------------------
+*/
+drop _merge
+
+
+
+
+///	LOAD CSTAT DATA FOR ALL FIRMS 2006-2017
+use data/cstat-fundamentals-annual-all-firms-2006-2017.dta, clear
+xtset, clear
+drop busdesc cusip_n
+
+gen year = fyear
+rename cusip cusip9
+
+bysort cusip9 year: gen N=_N
+tab N
+/*          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    113,985       99.82       99.82
+          2 |         58        0.05       99.87
+          3 |         99        0.09       99.96
+          4 |         44        0.04      100.00
+          5 |          5        0.00      100.00
+------------+-----------------------------------
+      Total |    114,191      100.00
+*/
+drop if N>1
+drop N
+
+///	GENERATE INDICATOR VARIABLE
+gen in_cstat = 1
+label var in_cstat "Indicator = 1 if in CSTAT data"
+
+///	MERGE WITH CSRHUB ON CUSIP9
+merge 1:1 cusip9 year using data/csrhub-all-year-level.dta, ///
+	update assert(1 2 3 4 5)
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                       141,134
+        from master                    88,159  (_merge==1)
+        from using                     52,975  (_merge==2)
+
+    matched                            25,829
+        not updated                    25,829  (_merge==3)
+        missing updated                     0  (_merge==4)
+        nonmissing conflict                 0  (_merge==5)
+    -----------------------------------------
+*/
+drop _merge
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ///	PREPARE CSRHUB/CSTAT FOR MERGE WITH KLD
 ***	Create 8 digit CUSIPS in CSRHUB/CSTAT to merge with KLD
 gen cusip8 = substr(cusip9,1,8)
@@ -239,6 +371,68 @@ drop if cusip9_cstat_man==""
 ***	Save
 compress
 save data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018-for-manual-match.dta, replace
+
+
+
+///	PREP COMPUSTAT DATA FOR MERGE ON CUSIP9_CSTAT_MAN YEAR
+use data/cstat-fundamentals-annual-all-firms-1989-2018.dta, clear
+
+gen year=fyear
+gen cusip9_cstat_man = cusip
+
+bysort cusip9_cstat_man year: gen N=_N
+tab N
+/*          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    113,988       99.82       99.82
+          2 |         58        0.05       99.87
+          3 |         99        0.09       99.96
+          4 |         44        0.04      100.00
+          5 |          5        0.00      100.00
+------------+-----------------------------------
+      Total |    114,194      100.00
+*/
+keep if N==1
+drop N
+
+drop if cusip9_cstat_man==""
+
+
+
+
+
+
+
+
+
+///	PREP COMPUSTAT DATA FOR MERGE ON CUSIP9_CSTAT_MAN YEAR
+use data/cstat-fundamentals-annual-all-firms-2006-2017.dta, clear
+
+gen year=fyear
+gen cusip9_cstat_man = cusip
+
+bysort cusip9_cstat_man year: gen N=_N
+tab N
+/*          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    113,988       99.82       99.82
+          2 |         58        0.05       99.87
+          3 |         99        0.09       99.96
+          4 |         44        0.04      100.00
+          5 |          5        0.00      100.00
+------------+-----------------------------------
+      Total |    114,194      100.00
+*/
+keep if N==1
+drop N
+
+drop if cusip9_cstat_man==""
+
+
+
+
+
+
 
 
 
