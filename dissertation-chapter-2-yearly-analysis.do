@@ -5,6 +5,13 @@
 ***===================***
 *	CHAPTER 2 ANALYSIS	*
 ***===================***
+/*	WORKFLOW
+	1.	Treatment Variable Descriptive Statistics
+	2.	Propensity Score Matching: All Years
+	3.	Propensity Score Matching: Individual Years
+	4.	Difference-in-Differences
+	5.	Fixed Effects Estimation
+*/
 
 ///	SET ENVIRONMENT
 clear all
@@ -78,13 +85,14 @@ foreach var of varlist trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 						*		INDIVIDUAL YEARS		*
 						*								*
 						***===========================***	
-///	Propensity model: treatment = f(dltt at age emp tobinq xad xrd)
+/*		Propensity model: treatment = f(dltt at age emp tobinq xad xrd)
+*/
 
 ///	trt1_sdw_pos
 capt n drop ps2*
 capt n drop mark
 mark mark1
-markout mark1 trt1_sdw_pos Frevt_yoy dltt at age emp tobinq
+markout mark1 trt1_sdw_pos Frevt_yoy dltt at age emp tobinq ad rd
 tab year trt1_sdw_pos if mark1==1
 /*
            |   Treatment = 1 if
@@ -121,7 +129,7 @@ capt n drop ps2*
 capt n drop obs
 capt n drop ps0 ps1
 
-teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq xad xrd) ///
+teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq xad xrd) ///
 	if year == 2009, nneighbor(5)
 
 logistic trt1_sdw_pos dltt at age emp tobinq xad xrd if year==2009
