@@ -238,7 +238,7 @@ drop if cusip9_cstat_man==""
 
 ***	Save
 compress
-data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018-for-manual-match.dta
+save data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018-for-manual-match.dta, replace
 
 
 
@@ -502,7 +502,6 @@ merge 1:1 cusip8 year using data/mergefile-csrhub-cstat.dta, ///
         nonmissing conflict                 0  (_merge==5)
     -----------------------------------------
 */
-drop _merge
 
 
 ///	EXAMINE
@@ -575,7 +574,7 @@ xtset cusip8_num year, y
 ***	Drop unneeded variables
 drop in_cstat_csrhub_cusip in_cstat_kld_cusip
 
-***	Save
+***	Save all
 compress
 save data/analysis-file-cstat-kld-csrhub-cusip8-year-all.dta, replace
 
@@ -583,7 +582,6 @@ save data/analysis-file-cstat-kld-csrhub-cusip8-year-all.dta, replace
 keep if _merge!=3
 compress
 drop _merge
-gen firm_csrhub=upper(firm)
 save data/mergefile-nonmatched-cstat-kld-csrhub-cusip8-year.dta, replace
 
 
@@ -616,43 +614,23 @@ save data/mergefile-nonmatched-cstat-kld-csrhub-cusip8-year.dta, replace
 
 
 
-
-
-
-
-
-
-
-***=======================================***
-*	CREATE NEW VARIABLES FOR REWB MODELS	*
-***=======================================***
-encode cusip, gen(cusip_n)
-
-rename over_rtg_lym over_rtg
-/// Create de-meaned and mean variables for random effects within-between modeling
-foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad size {
-	bysort cusip_n: egen `variable'_m = mean(`variable')
-	label var `variable'_m "CUSIP-level mean of `variable'"
-	bysort cusip_n: gen `variable'_dm = `variable' - `variable'_m
-	label var `variable'_dm "CUSIP-level de-meaned `variable'"
-}
-
-///	SET PANEL
-xtset cusip_n year, y
-compress
-order cusip year conm firm_kld firm
-
-
-
-
 ***======================================================***
 *	CREATE TREATMENT VARIABLES
 *		- Binary +/- deviation from standard deviation
 *		- Continuous measure number of standard deviations
 *		- Categorical measure standard deviations rounded to integer
 ***======================================================***
+///	LOAD DATA
+clear all
+use data/analysis-file-cstat-kld-csrhub-cusip8-year-all.dta, clear
 
-*	Generate year-on-year change in over_rtg
+***	Set panel
+encode cusip8, gen(cusip_n)
+xtset cusip_n year, y
+
+///	Generate year-on-year change in over_rtg
+rename over_rtg_lym over_rtg
+
 gen over_rtg_yoy = over_rtg - l.over_rtg
 label var over_rtg_yoy "Year-on-year change in CSRHub overall rating"
 
@@ -1228,7 +1206,29 @@ export excel using "D:\Dropbox\papers\4 work in progress\dissertation-csrhub\pro
 
 
 
+/*
+***=======================================***
+*	CREATE NEW VARIABLES FOR REWB MODELS	*
+***=======================================***
+use data/analysis-file-cstat-kld-csrhub-cusip8-year-all.dta, clear
 
+encode cusip, gen(cusip_n)
+
+rename over_rtg_lym over_rtg
+/// Create de-meaned and mean variables for random effects within-between modeling
+foreach variable in net_kld_str net_kld_con over_rtg emp debt rd ad size {
+	bysort cusip_n: egen `variable'_m = mean(`variable')
+	label var `variable'_m "CUSIP-level mean of `variable'"
+	bysort cusip_n: gen `variable'_dm = `variable' - `variable'_m
+	label var `variable'_dm "CUSIP-level de-meaned `variable'"
+}
+
+///	SET PANEL
+xtset cusip_n year, y
+compress
+order cusip year conm firm_kld firm
+
+*/
 
 
 
