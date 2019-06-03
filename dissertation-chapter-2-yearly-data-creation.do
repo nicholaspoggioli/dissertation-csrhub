@@ -780,7 +780,7 @@ foreach variable of varlist in_csrhub in_kld in_cstat {
 /// SET PANEL
 drop cusip_n
 label drop _all
-encode cusip, gen(cusip_n)
+encode cusip8, gen(cusip_n)
 xtset cusip_n year, y
 
 
@@ -810,10 +810,10 @@ label var revt_pct "Percent change in revenue, current to previous year"
 *	Assess treatment variables distribution and zscores		*
 *															*
 *************************************************************
-bysort cusip: egen yoy_mean = mean(over_rtg_yoy)
+bysort cusip_n: egen yoy_mean = mean(over_rtg_yoy)
 replace yoy_mean=. if over_rtg_yoy==.
 
-bysort cusip: egen yoy_std_dev = sd(over_rtg_yoy)
+bysort cusip_n: egen yoy_std_dev = sd(over_rtg_yoy)
 replace yoy_std_dev=. if over_rtg_yoy==.
 
 gen yoy_zscore = (over_rtg_yoy - yoy_mean) / yoy_std_dev
@@ -824,7 +824,7 @@ histogram yoy_zscore, bin(100) percent normal ///
 
 ***	Remove firms with only two observations on year-on-year change
 gen ch1 = (over_rtg_yoy!=.)
-bysort cusip: egen ch2=total(ch1)
+bysort cusip_n: egen ch2=total(ch1)
 replace yoy_zscore=. if ch2==2
 
 drop ch1 ch2
@@ -835,7 +835,7 @@ histogram yoy_zscore, bin(100) percent normal ///
 	
 
 *	Example
-scatter over_rtg_yoy year if cusip=="00103079", ///
+scatter over_rtg_yoy year if cusip8=="00103079", ///
 	xti("Year") ///
 	yline(1.974611, lstyle(solid)) ///
 	ti("Jyske Bank A/S year-on-year change in overall rating.") ///
@@ -1079,11 +1079,12 @@ label var sic2division "SIC division (2-digit level)"
 order cusip year firm firm_kld conm
 format %20s firm firm_kld conm
 
-sort cusip year
+xtset
 
-gen in_all = (in_cstat==1 & in_kld==1 & in_csrhub==1)
-label var in_all "Indicator = 1 if in CSRHub, CSTAT, and KLD data"
+***	Label
+label data "Matched CSRHub, CSTAT, KLD 2008-2017"
 
+***	Save
 compress
 save data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, replace
 
