@@ -142,6 +142,8 @@ merge m:1 firm_csrhub using data/manually-matched-csrhub-cstat-firms.dta, ///
 drop _merge
 
 /// SAVE CSRHUB WITH MANUALLY-MATCHED CSTAT IDENTIFIERS
+rename cusip cusip8
+
 save data/csrhub-all-year-level.dta, replace
 
 
@@ -254,32 +256,23 @@ merge 1:1 cusip9 year using data/csrhub-all-year-level.dta, ///
     -----------------------------------------
 */
 
-///	MERGE WITH CSRHUB ON CUSIP9
-***	Keep unique cusip8-years
-bysort cusip8 year: gen N=_N
-tab N
-/*          N |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          1 |    338,550       86.38       86.38
-       1827 |      1,827        0.47       86.85
-       3064 |      3,064        0.78       87.63
-       3961 |      3,961        1.01       88.64
-       4656 |      4,656        1.19       89.83
-       5011 |      5,011        1.28       91.11
-       5498 |      5,498        1.40       92.51
-       5586 |      5,586        1.43       93.93
-       6193 |      6,193        1.58       95.51
-       7713 |      7,713        1.97       97.48
-       9872 |      9,872        2.52      100.00
-------------+-----------------------------------
-      Total |    391,931      100.00
-*/
-keep if N==1
-drop N
 
-***	Merge
+///	MERGE WITH CSRHUB ON CUSIP8
+
 merge 1:1 cusip8 year using data/csrhub-all-year-level.dta, ///
 	update assert(1 2 3 4 5)
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                       313,127
+        from master                   313,127  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                            78,804
+        not updated                    78,804  (_merge==3)
+        missing updated                     0  (_merge==4)
+        nonmissing conflict                 0  (_merge==5)
+    -----------------------------------------
+*/
 
 
 ///	KEEP IF NOT MATCHED FROM USING
