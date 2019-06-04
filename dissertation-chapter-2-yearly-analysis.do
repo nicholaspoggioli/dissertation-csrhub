@@ -41,8 +41,23 @@ tab year
 codebook cusip_n
 /*unique values:  16,860                   missing .:  3/102,365	*/
 drop if cusip_n==.
+*3 obs deleted
 drop if cusip=="#N/A"
+*2 obs deleted
 
+
+						***===============================***
+						*									*
+						*  			 ASSUMPTIONS			*
+						*									*
+						***===============================***
+///	MISSING ADVERTISING AND R&D ARE 0
+gen xad_original=xad
+label var xad_original "(CSTAT) xad before assuming missing=0"
+gen xrd_original=xrd
+label var xad_original "(CSTAT) xrd before assuming missing=0"
+replace xad=0 if xad==.
+replace xrd=0 if xrd==.
 
 						***===============================***
 						*									*
@@ -88,11 +103,152 @@ foreach var of varlist trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 /*		Propensity model: treatment = f(dltt at age emp tobinq xad xrd)
 */
 
-///	trt1_sdw_pos
+///	3 SDW
+
+***	Descriptives
 capt n drop ps2*
 capt n drop mark
 mark mark1
-markout mark1 trt1_sdw_pos Frevt_yoy dltt at age emp tobinq ad rd
+markout mark1 trt3_sdw_pos Frevt_yoy dltt at age emp tobinq xad xrd
+tab year trt3_sdw_pos if mark1==1
+/*           |   Treatment = 1 if
+           | year-on-year over_rtg
+           |  > 3 std dev of sdw
+           |     and positive
+(KLD) Year |         0          1 |     Total
+-----------+----------------------+----------
+      2009 |       727          2 |       729 
+      2010 |     1,159         14 |     1,173 
+      2011 |     1,518          1 |     1,519 
+      2012 |     2,019          0 |     2,019 
+      2013 |     2,266          3 |     2,269 
+      2014 |     2,482          2 |     2,484 
+      2015 |     2,561          0 |     2,561 
+      2016 |     2,748          1 |     2,749 
+      2017 |        73          0 |        73 
+-----------+----------------------+----------
+     Total |    15,553         23 |    15,576
+*/
+
+***	Estimation
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2008, ///
+	osample(ps2008)
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2009, ///
+	osample(ps2009)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+	if year == 2009 & ps2009==0
+estimates store ps2009
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2010, ///
+	osample(ps2010)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+	if year == 2010 & ps2010==0
+estimates store ps2010	
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2011, ///
+	osample(ps2011)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+	if year == 2011 & ps2011==0
+estimates store ps2011
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2012, ///
+	osample(ps2012)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+	if year == 2012 & ps2012==0
+estimates store ps2012
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2013, ///
+	osample(ps2013)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+	if year == 2013 & ps2013==0
+estimates store ps2013
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2014, ///
+	osample(ps2014)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+	if year == 2014 & ps2014==0
+estimates store ps2014
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2015, ///
+	osample(ps2015)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+	if year == 2015 & ps2015==0
+estimates store ps2015
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2016, ///
+	osample(ps2016)
+estimates store ps2016
+
+estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
+	b se p ///
+	stats(N)
+
+
+***	Propensity score estimation using teffects psmatch: trt3_sdw_neg
+drop ps2*
+drop mark
+mark mark1
+markout mark1 trt3_sdw_neg Frevt_yoy dltt at age emp tobinq
+tab year trt3_sdw_neg if mark1==1
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2009, ///
+	osample(ps2009)
+estimates store ps2009
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2010, ///
+	osample(ps2010)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
+	if year == 2010 & ps2010==0
+estimates store ps2010		
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2011, ///
+	osample(ps2011)
+estimates store ps2011
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2012, ///
+	osample(ps2012)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
+	if year == 2012 & ps2012==0
+estimates store ps2012
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2013, ///
+	osample(ps2013)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
+	if year == 2013 & ps2013==0
+estimates store ps2013
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2014, ///
+	osample(ps2014)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
+	if year == 2014 & ps2014==0
+estimates store ps2014
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2015, ///
+	osample(ps2015)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
+	if year == 2015 & ps2015==0
+estimates store ps2015
+
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2016, ///
+	osample(ps2016)
+capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
+	if year == 2016 & ps2016 == 0
+estimates store ps2016
+
+estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
+	b se p ///
+	stats(N)
+
+
+
+
+
+///	1 SDW
+capt n drop ps2*
+capt n drop mark
+mark mark1
+markout mark1 revt trt1_sdw_pos dltt at age emp tobinq xad xrd
 tab year trt1_sdw_pos if mark1==1
 /*
            |   Treatment = 1 if
@@ -101,17 +257,17 @@ tab year trt1_sdw_pos if mark1==1
            |     and positive
 (KLD) Year |         0          1 |     Total
 -----------+----------------------+----------
-      2009 |       658         71 |       729 
-      2010 |       981        192 |     1,173 
-      2011 |     1,323        196 |     1,519 
-      2012 |     1,869        150 |     2,019 
-      2013 |     1,184      1,085 |     2,269 
-      2014 |     1,893        591 |     2,484 
-      2015 |     2,516         45 |     2,561 
-      2016 |     2,552        197 |     2,749 
-      2017 |        71          2 |        73 
+      2009 |       675         73 |       748 
+      2010 |     1,010        194 |     1,204 
+      2011 |     1,359        197 |     1,556 
+      2012 |     1,928        151 |     2,079 
+      2013 |     1,224      1,126 |     2,350 
+      2014 |     1,998        628 |     2,626 
+      2015 |     2,680         45 |     2,725 
+      2016 |     2,727        203 |     2,930 
+      2017 |     2,701        151 |     2,852 
 -----------+----------------------+----------
-     Total |    13,047      2,529 |    15,576 
+     Total |    16,302      2,768 |    19,070
 */
 
 
@@ -328,129 +484,18 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
 	stats(N)
 	
 	
-***	Propensity score estimation using teffects psmatch: trt3_sdw_pos
-drop ps2*
-drop mark
-mark mark1
-markout mark1 trt3_sdw_pos Frevt_yoy dltt at age emp tobinq
-tab year trt3_sdw_pos if mark1==1
 
-
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2008, ///
-	osample(ps2008)
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2009, ///
-	osample(ps2009)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2009 & ps2009==0
-estimates store ps2009
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2010, ///
-	osample(ps2010)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2010 & ps2010==0
-estimates store ps2010	
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2011, ///
-	osample(ps2011)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2011 & ps2011==0
-estimates store ps2011
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2012, ///
-	osample(ps2012)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2012 & ps2012==0
-estimates store ps2012
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2013, ///
-	osample(ps2013)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2013 & ps2013==0
-estimates store ps2013
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2014, ///
-	osample(ps2014)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2014 & ps2014==0
-estimates store ps2014
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2015, ///
-	osample(ps2015)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2015 & ps2015==0
-estimates store ps2015
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2016, ///
-	osample(ps2016)
-estimates store ps2016
-
-estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
-	b se p ///
-	stats(N)
-
-
-***	Propensity score estimation using teffects psmatch: trt3_sdw_neg
-drop ps2*
-drop mark
-mark mark1
-markout mark1 trt3_sdw_neg Frevt_yoy dltt at age emp tobinq
-tab year trt3_sdw_neg if mark1==1
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2009, ///
-	osample(ps2009)
-estimates store ps2009
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2010, ///
-	osample(ps2010)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
-	if year == 2010 & ps2010==0
-estimates store ps2010		
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2011, ///
-	osample(ps2011)
-estimates store ps2011
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2012, ///
-	osample(ps2012)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
-	if year == 2012 & ps2012==0
-estimates store ps2012
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2013, ///
-	osample(ps2013)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
-	if year == 2013 & ps2013==0
-estimates store ps2013
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2014, ///
-	osample(ps2014)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
-	if year == 2014 & ps2014==0
-estimates store ps2014
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2015, ///
-	osample(ps2015)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
-	if year == 2015 & ps2015==0
-estimates store ps2015
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2016, ///
-	osample(ps2016)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
-	if year == 2016 & ps2016 == 0
-estimates store ps2016
-
-estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
-	b se p ///
-	stats(N)
 	
 	
 	
 	
-/// PSM combining all years
-						
+						***===========================***
+						*								*
+						*	PROPENSITY SCORE MATCHING 	*
+						*		ALL YEARS COMBINED		*
+						*								*
+						***===========================***
+
 ***	Generate firmyear variable
 egen firmyear = group(cusip year)
 
