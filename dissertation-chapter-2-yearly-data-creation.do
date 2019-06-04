@@ -154,24 +154,29 @@ save data/csrhub-all-year-level.dta, replace
 *	MERGE CSRHUB AND CSTAT ON CSTAT CUSIP9 	*
 ***=======================================***
 ///	MERGE AND SAVE EXACT MATCHES
-use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
+use data/cstat-fundamentals-annual-all-firms-2006-2017.dta, clear
 xtset, clear
-drop busdesc cusip_n
 
 gen year = fyear
 rename cusip cusip9
+
+drop if indfmt=="FS"
 
 bysort cusip9 year: gen N=_N
 tab N
 /*          N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |    113,985       99.82       99.82
-          2 |         58        0.05       99.87
-          3 |         99        0.09       99.96
-          4 |         44        0.04      100.00
-          5 |          5        0.00      100.00
+          1 |    124,099       99.68       99.68
+          2 |        126        0.10       99.78
+          3 |         84        0.07       99.85
+          4 |         48        0.04       99.89
+          5 |         10        0.01       99.89
+         10 |         10        0.01       99.90
+         15 |         15        0.01       99.91
+         17 |         34        0.03       99.94
+         18 |         72        0.06      100.00
 ------------+-----------------------------------
-      Total |    114,191      100.00
+      Total |    124,498      100.00
 */
 drop if N>1
 drop N
@@ -182,22 +187,23 @@ label var in_cstat "Indicator = 1 if in CSTAT data"
 
 ***	Merge with CSRHub on cusip9-year
 merge 1:1 cusip9 year using data/csrhub-all-year-level.dta, ///
-	update assert(1 2 3 4 5)
+	assert(1 2 3 4 5) ///
+	keep(match)
 /*    Result                           # of obs.
     -----------------------------------------
-    not matched                       141,134
-        from master                    88,159  (_merge==1)
-        from using                     52,975  (_merge==2)
+    not matched                       156,913
+        from master                   101,104  (_merge==1)
+        from using                     55,809  (_merge==2)
 
-    matched                            25,829
-        not updated                    25,829  (_merge==3)
+    matched                            22,995
+        not updated                        63  (_merge==3)
         missing updated                     0  (_merge==4)
-        nonmissing conflict                 0  (_merge==5)
+        nonmissing conflict            22,932  (_merge==5)
     -----------------------------------------
+
 */
 
 ***	Save matched sample
-keep if _merge==3
 drop _merge
 compress
 save data/csrhub-cstat-matched-on-cusip9-year.dta, replace
@@ -208,7 +214,7 @@ save data/csrhub-cstat-matched-on-cusip9-year.dta, replace
 
 
 ///	MERGE AND SAVE NON-MATCHED CSRHUB FIRMS
-use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
+use datata/cstat-fundamentals-annual-all-firms-2006-2017.dta, clear
 xtset, clear
 drop busdesc cusip_n
 
@@ -236,17 +242,14 @@ label var in_cstat "Indicator = 1 if in CSTAT data"
 
 ***	Merge with CSRHub on cusip9-year
 merge 1:1 cusip9 year using data/csrhub-all-year-level.dta, ///
-	update assert(1 2 3 4 5)
+	assert(1 2 3 4 5)
 /*    Result                           # of obs.
     -----------------------------------------
     not matched                       141,134
         from master                    88,159  (_merge==1)
         from using                     52,975  (_merge==2)
 
-    matched                            25,829
-        not updated                    25,829  (_merge==3)
-        missing updated                     0  (_merge==4)
-        nonmissing conflict                 0  (_merge==5)
+    matched                            25,829  (_merge==3)
     -----------------------------------------
 */
 
