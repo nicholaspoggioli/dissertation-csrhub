@@ -1,5 +1,6 @@
 clear all
 
+/*
 ***===============================***
 *	COLLAPSE CSRHUB TO YEAR LEVEL 	*
 ***===============================***
@@ -145,14 +146,14 @@ drop _merge
 /// SAVE CSRHUB WITH MANUALLY-MATCHED CSTAT IDENTIFIERS
 save data/csrhub-all-year-level.dta, replace
 
-
+*/
 
 
 
 ***=======================================***
 *	MERGE CSRHUB AND CSTAT ON CSTAT CUSIP9 	*
 ***=======================================***
-///	LOAD CSTAT DATA
+///	MERGE AND SAVE EXACT MATCHES
 use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
 xtset, clear
 drop busdesc cusip_n
@@ -175,11 +176,11 @@ tab N
 drop if N>1
 drop N
 
-///	GENERATE INDICATOR VARIABLE
+***	Generate indicator variable
 gen in_cstat = 1
 label var in_cstat "Indicator = 1 if in CSTAT data"
 
-///	MERGE WITH CSRHUB ON CUSIP9
+***	Merge with CSRHub on cusip9-year
 merge 1:1 cusip9 year using data/csrhub-all-year-level.dta, ///
 	update assert(1 2 3 4 5)
 /*    Result                           # of obs.
@@ -194,7 +195,118 @@ merge 1:1 cusip9 year using data/csrhub-all-year-level.dta, ///
         nonmissing conflict                 0  (_merge==5)
     -----------------------------------------
 */
+
+***	Save matched sample
+keep if _merge==3
 drop _merge
+compress
+save data/csrhub-cstat-matched-on-cusip9-year.dta, replace
+
+
+
+
+
+
+///	MERGE AND SAVE NON-MATCHED CSRHUB FIRMS
+use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018.dta, clear
+xtset, clear
+drop busdesc cusip_n
+
+gen year = fyear
+rename cusip cusip9
+
+bysort cusip9 year: gen N=_N
+tab N
+/*          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    113,985       99.82       99.82
+          2 |         58        0.05       99.87
+          3 |         99        0.09       99.96
+          4 |         44        0.04      100.00
+          5 |          5        0.00      100.00
+------------+-----------------------------------
+      Total |    114,191      100.00
+*/
+drop if N>1
+drop N
+
+***	Generate indicator variable
+gen in_cstat = 1
+label var in_cstat "Indicator = 1 if in CSTAT data"
+
+***	Merge with CSRHub on cusip9-year
+merge 1:1 cusip9 year using data/csrhub-all-year-level.dta, ///
+	update assert(1 2 3 4 5)
+/*    Result                           # of obs.
+    -----------------------------------------
+    not matched                       141,134
+        from master                    88,159  (_merge==1)
+        from using                     52,975  (_merge==2)
+
+    matched                            25,829
+        not updated                    25,829  (_merge==3)
+        missing updated                     0  (_merge==4)
+        nonmissing conflict                 0  (_merge==5)
+    -----------------------------------------
+*/
+
+***	Save non-matched CSRHub firm-years
+keep if _merge==2
+drop _merge
+
+*	Keep CSRHub variables for match to CSTAT
+keep firm_csrhub cusip9 cusip8 isin
+order firm_csrhub cusip8 cusip9 isin
+
+*	Keep unique firm names
+bysort firm_csrhub: gen N=_N
+tab N
+/*          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      1,402        2.65        2.65
+          2 |      3,270        6.17        8.82
+          3 |      2,928        5.53       14.35
+          4 |      3,332        6.29       20.64
+          5 |      4,015        7.58       28.22
+          6 |      4,488        8.47       36.69
+          7 |      4,333        8.18       44.87
+          8 |      6,120       11.55       56.42
+          9 |      6,957       13.13       69.55
+         10 |     16,130       30.45      100.00
+------------+-----------------------------------
+      Total |     52,975      100.00
+*/
+keep if N==1
+drop N
+
+*	Save
+compress
+save data/csrhub-unique-firm-names-not-matched-to-cstat-on-cusip9-year, replace
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -207,6 +319,14 @@ label var cusip8 "(CSTAT) CUSIP8 created from CUSIP9"
 ///	SAVE
 compress
 save data/mergefile-csrhub-cstat.dta, replace
+
+
+
+
+
+
+
+
 
 
 
@@ -244,18 +364,21 @@ save data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018-for-man
 
 
 ///	MERGE ON CUSIP9_ALT YEAR
-merge 1:m cusip9_cstat_man year using data/mergefile-csrhub-cstat.dta, ///
+use data/cstat-all-variables-for-all-cusip9-in-csrhub-and-kld-1990-2018-for-manual-match.dta, clear
+
+merge 1:m cusip9_cstat_man year using data/mergefile-csrhub-cstat.dta,
+	keepusing() ///
 	update assert(1 2 3 4 5)
 /*    Result                           # of obs.
     -----------------------------------------
-    not matched                       279,672
-        from master                   113,347  (_merge==1)
-        from using                    166,325  (_merge==2)
+    not matched                       278,984
+        from master                   113,006  (_merge==1)
+        from using                    165,978  (_merge==2)
 
-    matched                               638
+    matched                               985
         not updated                         0  (_merge==3)
         missing updated                     0  (_merge==4)
-        nonmissing conflict               638  (_merge==5)
+        nonmissing conflict               985  (_merge==5)
     -----------------------------------------
 */
 
@@ -471,6 +594,12 @@ rename firm	firm_kld /*	Avoids conflicts with the firm variable in csrhub-all-ye
 /// SAVE
 compress
 save data/kld-all.dta, replace
+
+
+
+
+
+
 
 
 
