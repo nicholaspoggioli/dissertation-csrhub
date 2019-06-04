@@ -131,11 +131,11 @@ tab year trt3_sdw_pos if mark1==1
 */
 
 ***	Estimation
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2008, ///
-	osample(ps2008)
+capt n drop ps2*
 
 capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2009, ///
 	osample(ps2009)
+	
 capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
 	if year == 2009 & ps2009==0
 estimates store ps2009
