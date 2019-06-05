@@ -375,8 +375,233 @@ compress
 save data/merged-matched-csrhub-cstat-global-and-northam.dta, replace
 
 
+***===============================================================***
+*	EXPORT MATCHED FIRM IDENTIFIERS TO USE IN WRDS CSTAT DOWNLOAD	*
+***===============================================================***
+///	CSTAT NORTH AMERICA
+use data/merged-matched-csrhub-cstat-global-and-northam.dta, clear
+
+***	Keep North America
+keep if in_cstatn==1
+compress
+
+***	Keep identifiers
+keep firm_csrhub conm year cusip8 cusip9 year isin gvkey cik 
+order firm_csrhub conm year cusip8 cusip9 year isin gvkey cik 
 
 
+***	Keep unique gvkey
+bysort gvkey: gen n=_n
+tab n
+/*
+          n |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      4,359       19.00       19.00
+          2 |      3,736       16.28       35.28
+          3 |      3,366       14.67       49.95
+          4 |      2,958       12.89       62.84
+          5 |      2,551       11.12       73.95
+          6 |      2,146        9.35       83.31
+          7 |      1,718        7.49       90.79
+          8 |      1,171        5.10       95.89
+          9 |        942        4.11      100.00
+------------+-----------------------------------
+      Total |     22,947      100.00
+*/
+keep if n==1
+drop n
+
+***	Export list of unique gvkey
+keep gvkey
+export delimited using ///
+	"data\unique-csrhub-gvkeys-matched-in-csrhub-and-cstat-northam.txt", ///
+	delimiter(tab) novarnames replace
+
+
+///	CSTAT GLOBAL
+use data/merged-matched-csrhub-cstat-global-and-northam.dta, clear
+
+***	Keep North America
+keep if in_cstatg==1
+compress
+
+***	Keep identifiers
+keep firm_csrhub conm year cusip8 cusip9 year isin gvkey
+order firm_csrhub conm year cusip8 cusip9 year isin gvkey
+
+
+***	Keep unique gvkey
+bysort gvkey: gen n=_n
+tab n
+/*
+          n |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      4,574       17.51       17.51
+          2 |      4,284       16.40       33.92
+          3 |      3,371       12.91       46.83
+          4 |      2,899       11.10       57.93
+          5 |      2,605        9.97       67.90
+          6 |      2,339        8.96       76.86
+          7 |      2,040        7.81       84.67
+          8 |      1,727        6.61       91.28
+          9 |      1,354        5.18       96.47
+         10 |        923        3.53      100.00
+------------+-----------------------------------
+      Total |     26,116      100.00
+*/
+keep if n==1
+drop n
+
+***	Export list of unique gvkey
+keep gvkey
+export delimited using ///
+	"data\unique-csrhub-gvkeys-matched-in-csrhub-and-cstat-global.txt", ///
+	delimiter(tab) novarnames replace
+
+
+
+	
+	
+***===================================================================***
+*	MERGE NORTHAM MATCHES WITH NORTHAM AND GLOBAL DATA ON GVKEY-YEAR	*
+***===================================================================***
+///	PREPARE CSTAT NORTH AM DATA FOR MERGE
+use data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-northam.dta, clear
+
+***	Generate year and drop duplicate 	
+gen year = fyear
+drop if year==.
+
+***	Save
+compress
+save data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-northam-for-merge.dta, replace
+	
+	
+///	PREPARE CSTAT GLOBAL DATA FOR MERGE
+use data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-global.dta, clear
+
+
+***	Generate year and drop duplicates
+gen year = fyear
+bysort gvkey year: gen N=_N
+tab N
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     55,788       99.59       99.59
+          2 |        232        0.41      100.00
+------------+-----------------------------------
+      Total |     56,020      100.00
+*/
+drop if N>1
+drop N
+
+***	Save
+compress
+save data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-global-for-merge.dta, replace
+
+
+
+
+///	MERGE CSRHUB-CSTAT WITH CSTAT NORTHAM DATA
+use data/merged-matched-csrhub-cstat-global-and-northam.dta, clear
+
+***	Merge on gvkey year
+merge 1:1 gvkey year using ///
+	data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-northam-for-merge.dta, ///
+	gen(_merge_northam)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        51,097
+        from master                    26,122  (_merge==1)
+        from using                     24,975  (_merge==2)
+
+    matched                            22,941  (_merge==3)
+    -----------------------------------------
+*/
+drop if _merge_northam==2
+
+
+///	MERGE CSRHUB-CSTAT WITH CSTAT GLOBAL DATA
+
+***	Merge on gvkey year and update missing values of compustat
+merge 1:1 gvkey year using ///
+	data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-global-for-merge.dta, ///
+	gen(_merge_global) ///
+	update assert(1 2 3 4 5)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        52,619
+        from master                    22,947  (_merge_global==1)
+        from using                     29,672  (_merge_global==2)
+
+    matched                            26,116
+        not updated                         0  (_merge_global==3)
+        missing updated                26,111  (_merge_global==4)
+        nonmissing conflict                 5  (_merge_global==5)
+    -----------------------------------------
+*/
+drop if _merge_global==2	
+
+///	EXAMINE
+***	Ensure all observations merged
+tab _merge*, miss
+/*
+                      |          _merge_global
+       _merge_northam | master on  missing u  nonmissin |     Total
+----------------------+---------------------------------+----------
+      master only (1) |        11     26,111          0 |    26,122 
+          matched (3) |    22,936          0          5 |    22,941 
+----------------------+---------------------------------+----------
+                Total |    22,947     26,111          5 |    49,063
+*/
+
+***	List firms that merged in neither
+list firm year if _merge_northam==1 & _merge_global==1
+/*
+       +-------------------------------------------------------+
+       |                                           firm   year |
+       |-------------------------------------------------------|
+ 7977. |                                TMX Group, Inc.   2011 |
+ 9660. | Science Applications International Corporation   2008 |
+10453. |                          ServiceMaster Company   2009 |
+10454. |                          ServiceMaster Company   2010 |
+10455. |                          ServiceMaster Company   2011 |
+       |-------------------------------------------------------|
+10456. |                          ServiceMaster Company   2012 |
+11450. |                                       Exterran   2012 |
+11455. |                   The Babcock & Wilcox Company   2010 |
+11456. |                   The Babcock & Wilcox Company   2011 |
+11457. |                   The Babcock & Wilcox Company   2012 |
+       |-------------------------------------------------------|
+16570. |         Bright Horizons Family Solutions, Inc.   2008 |
+       +-------------------------------------------------------+
+*/
+
+***	List firms that merged in both
+list firm year if _merge_northam==3 & _merge_global==5
+/*
+       +-------------------------+
+       |             firm   year |
+       |-------------------------|
+ 8434. | Signet Group PLC   2009 |
+ 8435. | Signet Group PLC   2010 |
+ 8436. | Signet Group PLC   2011 |
+ 8437. | Signet Group PLC   2012 |
+ 8438. | Signet Group PLC   2013 |
+       +-------------------------+
+*/
+
+
+///	SAVE
+compress
+save data/matched-csrhub-cstat-northam-and-global-all-variables-2008-2017, replace
+
+	
+	
+	
 
 
 ***===================================================***
@@ -430,7 +655,18 @@ export excel using ///
 
 
 
-
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 
 
