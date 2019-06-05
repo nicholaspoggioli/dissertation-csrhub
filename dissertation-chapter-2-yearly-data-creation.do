@@ -184,6 +184,10 @@ tab N
 keep if N==1
 drop N
 
+***	Generate indicator variable
+gen in_cstatg=1
+label var in_cstatg "(CSTAT Global) =1 if in CSTAT Global"
+
 ***	Save
 compress
 save data/mergefile-cstat-fundamentals-annual-global-2000-2018.dta, replace
@@ -228,7 +232,7 @@ merge 1:1 isin year using ///
 *	Save unmatched
 keep if _merge==1
 drop _merge gvkey indfmt datafmt consol popsrc fyear fyr datadate exchg sedol ///
-	conm costat fic cik conml loc naics sic
+	conm costat fic cik conml loc naics sic in_cstatg
 compress
 
 save data/unmatched-csrhub-cstat-global-isin-year.dta, replace
@@ -243,9 +247,8 @@ save data/unmatched-csrhub-cstat-global-isin-year.dta, replace
 ***===============================================================***
 *	MERGE UNMATCHED CSRHUB AND CSTAT NORTH AMERICA ON CUSIP9 YEAR	*
 ***===============================================================***
-///	MERGE AND SAVE EXACT MATCHES
-use data/cstat-fundamentals-annual-all-firms-2006-2017.dta, clear
-xtset, clear
+///	PREPARE COMPUSTAT NORTH AMERICA FOR MERGE
+use data/cstat-all-firms-fundamentals-annual-north-am-2006-2017.dta, clear
 
 gen year = fyear
 rename cusip cusip9
@@ -272,50 +275,149 @@ drop if N>1
 drop N
 
 ***	Generate indicator variable
-gen in_cstat = 1
-label var in_cstat "Indicator = 1 if in CSTAT data"
+gen in_cstatn = 1
+label var in_cstatn "(CSTAT North Am) =1 if in CSTAT North America"
 
-***	Merge with CSRHub on cusip9-year
-merge 1:1 cusip9 year using data/csrhub-all-year-level.dta, ///
-	assert(1 2 3 4 5)
-	
-***	Merge with CSTAT Global on ISIN
-replace fyear = year if fyear==.
-
-drop if _merge==1
-
-merge 1:m isin fyear using data/cstat-all-firms-fundamentals-annual-global-2000-2018.dta, ///
-	gen(_merge_global)
-	
-
-***	Save matched sample
+***	Save
+compress
+save data/mergefile-cstat-fundamentals-annual-northam-2005-2017.dta, replace
 
 
+///	MERGE NONMATCHED CSRHUB WITH CSTAT NORTH AM ON CUSIP9 YEAR
+***	Merge and keep matched	
+use data/unmatched-csrhub-cstat-global-isin-year.dta, clear
+
+*	Merge with CSRHub on cusip9-year
+merge 1:1 cusip9 year using ///
+	data/mergefile-cstat-fundamentals-annual-northam-2005-2017.dta, ///
+	keep(match)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                            22,947  (_merge==3)
+    -----------------------------------------
+*/
+
+*	Save matched
+drop _merge
+compress
+save data/matched-csrhub-cstat-northam-cusip9-year.dta, replace
+
+
+***	Merge and keep unmatched
+use data/unmatched-csrhub-cstat-global-isin-year.dta, clear
+
+*	Merge with CSRHub on cusip9-year
+merge 1:1 cusip9 year using ///
+	data/mergefile-cstat-fundamentals-annual-northam-2005-2017.dta
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       130,893
+        from master                    29,741  (_merge==1)
+        from using                    101,152  (_merge==2)
+
+    matched                            22,947  (_merge==3)
+    -----------------------------------------
+*/
+
+*	Save unmatched
+keep if _merge==1
+drop _merge tic cik gvkey datadate fyear fyr naics sic spcindcd spcseccd curcd ///
+	exchg costat gsubind fic loc city ipodate indfmt conm conml in_cstatn
+compress
+
+save data/unmatched-after-csrhub-cstat-global-and-northam-exact-merges.dta, replace
 
 
 
 
 
-///	MERGE AND SAVE NON-MATCHED CSRHUB FIRMS
-
-
-***	Generate indicator variable
-
-
-***	Merge with CSRHub on cusip9-year
-
-
-***	Save non-matched CSRHub firm-years
-
-*	Keep CSRHub variables for match to CSTAT
-
-*	Keep unique firm names
-
-*	Save
 
 
 
 
+
+
+
+***===========================***
+*	APPEND MATCHED DATASETS		*
+***===========================***
+///	APPEND
+use data/matched-csrhub-cstat-global-isin-year.dta, clear
+
+append using data/matched-csrhub-cstat-northam-cusip9-year.dta
+
+///	CLEAN
+***	Indictor variables
+foreach variable in in_cstatg in_cstatn {
+	replace `variable'=0 if `variable'==.
+}
+
+tab in_cstat*
+/*
+    (CSTAT |
+Global) =1 |  (CSTAT North Am) =1
+     if in |   if in CSTAT North
+     CSTAT |        America
+    Global |         0          1 |     Total
+-----------+----------------------+----------
+         0 |         0     22,947 |    22,947 
+         1 |    26,116          0 |    26,116 
+-----------+----------------------+----------
+     Total |    26,116     22,947 |    49,063
+*/
+
+
+///	SAVE
+compress
+save data/merged-matched-csrhub-cstat-global-and-northam.dta, replace
+
+
+
+
+
+
+***===================================================***
+*	EXPORT UNMATCHED FIRM NAMES FOR MANUAL MATCHING		*
+***===================================================***
+///	LOAD UNMATCHED CSRHUB DATA
+use data/unmatched-after-csrhub-cstat-global-and-northam-exact-merges.dta, clear
+
+///	KEEP UNIQUE FIRM YEARS
+codebook firm_csrhub
+/*
+unique values:  9,494                    missing "":  0/29,741
+*/
+bysort firm_csrhub: gen n=_n
+tab n
+/*
+          n |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      9,494       31.92       31.92
+          2 |      4,681       15.74       47.66
+          3 |      3,772       12.68       60.34
+          4 |      3,160       10.63       70.97
+          5 |      2,570        8.64       79.61
+          6 |      1,961        6.59       86.20
+          7 |      1,518        5.10       91.31
+          8 |      1,185        3.98       95.29
+          9 |        835        2.81       98.10
+         10 |        565        1.90      100.00
+------------+-----------------------------------
+      Total |     29,741      100.00
+*/
+keep if n==1
+
+///	KEEP NEEDED VARIABLES
+keep firm_csrhub cusip8 cusip9 isin
+order firm_csrhub cusip8 cusip9 isin
+
+///	EXPORT
+export excel using ///
+	"data\unique csrhub firm names not mached to cstat global or northam.xlsx", ///
+	firstrow(variables) replace
 
 
 
