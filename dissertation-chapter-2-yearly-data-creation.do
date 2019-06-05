@@ -150,9 +150,99 @@ save data/csrhub-all-year-level.dta, replace
 
 
 
+
+
 ***=======================================***
-*	MERGE CSRHUB AND CSTAT NORTH AM ON CSTAT CUSIP9 	*
+*	MERGE CSRHUB AND CSTAT GLOBAL ON ISIN	*
 ***=======================================***
+///	PREPARE COMPUSTAT GLOBAL FOR MERGE
+use data/cstat-all-firms-fundamentals-annual-global-2000-2018.dta, clear
+
+***	Keep industrial format
+keep if indfmt=="INDL"
+
+***	Keep unique isin-years
+gen year=fyear
+
+codebook isin
+/*
+unique values:  38,028                   missing "":  2,611/479,423
+*/
+drop if isin==""
+
+bysort isin year: gen N=_N
+tab N
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    473,302       99.26       99.26
+          2 |      3,468        0.73       99.99
+          3 |         42        0.01      100.00
+------------+-----------------------------------
+      Total |    476,812      100.00
+*/
+keep if N==1
+drop N
+
+***	Save
+compress
+save data/mergefile-cstat-fundamentals-annual-global-2000-2018.dta, replace
+
+
+///	MERGE CSRHUB WITH CSTAT GLOBAL ON ISIN
+***	Merge and keep matched
+use data/csrhub-all-year-level.dta, clear
+
+merge 1:1 isin year using ///
+	data/mergefile-cstat-fundamentals-annual-global-2000-2018.dta, ///
+	keep(match)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                            26,116  (_merge==3)
+    -----------------------------------------
+*/
+
+*	Save matched
+drop _merge
+compress
+save data/matched-csrhub-cstat-global-isin-year.dta, replace
+
+***	Merge and keep unmatched
+use data/csrhub-all-year-level.dta, clear
+
+merge 1:1 isin year using ///
+	data/mergefile-cstat-fundamentals-annual-global-2000-2018.dta
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       499,874
+        from master                    52,688  (_merge==1)
+        from using                    447,186  (_merge==2)
+
+    matched                            26,116  (_merge==3)
+    -----------------------------------------
+*/
+
+*	Save unmatched
+keep if _merge==1
+drop _merge gvkey indfmt datafmt consol popsrc fyear fyr datadate exchg sedol ///
+	conm costat fic cik conml loc naics sic
+compress
+
+save data/unmatched-csrhub-cstat-global-isin-year.dta, replace
+
+
+
+
+
+
+
+
+***===============================================================***
+*	MERGE UNMATCHED CSRHUB AND CSTAT NORTH AMERICA ON CUSIP9 YEAR	*
+***===============================================================***
 ///	MERGE AND SAVE EXACT MATCHES
 use data/cstat-fundamentals-annual-all-firms-2006-2017.dta, clear
 xtset, clear
