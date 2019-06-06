@@ -358,9 +358,11 @@ save data/unmatched-after-csrhub-cstat-global-and-northam-exact-merges.dta, repl
 
 
 
-***===========================***
-*	APPEND MATCHED DATASETS		*
-***===========================***
+
+
+***===================================================================***
+*	APPEND CSRHUB/CSTAT GLOBAL AND CSRHUB/CSTAT NORTHAM DATASETS		*
+***===================================================================***
 ///	APPEND
 use data/matched-csrhub-cstat-global-isin-year.dta, clear
 
@@ -489,9 +491,48 @@ export delimited using ///
 ///	PREPARE CSTAT NORTH AM DATA FOR MERGE
 use data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-northam.dta, clear
 
-***	Generate year and drop duplicate 	
+***	Generate year and drop missing
 gen year = fyear
 drop if year==.
+
+***	Drop business description
+drop busdesc
+
+***	Drop duplicate gvkey year
+bysort gvkey year: gen N=_N
+tab N
+/*          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     46,161       67.54       67.54
+          2 |     22,182       32.46      100.00
+------------+-----------------------------------
+      Total |     68,343      100.00
+*/
+
+bysort gvkey year indfmt: gen N2=_N
+tab N2
+/*
+         N2 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     68,343      100.00      100.00
+------------+-----------------------------------
+      Total |     68,343      100.00
+*/
+
+*	Drop indfmt FS if duplicate INDL in gvkey year
+drop if indfmt=="FS" & N==2
+
+bysort gvkey year: gen N3=_N
+tab N3
+/*
+         N3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     57,252      100.00      100.00
+------------+-----------------------------------
+      Total |     57,252      100.00
+*/
+
+drop N N2 N3
 
 ***	Save
 compress
@@ -509,10 +550,10 @@ tab N
 /*
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |     55,788       99.59       99.59
-          2 |        232        0.41      100.00
+          1 |     83,749       99.56       99.56
+          2 |        370        0.44      100.00
 ------------+-----------------------------------
-      Total |     56,020      100.00
+      Total |     84,119      100.00
 */
 drop if N>1
 drop N
@@ -534,11 +575,11 @@ merge 1:1 gvkey year using ///
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                        51,097
-        from master                    26,122  (_merge==1)
-        from using                     24,975  (_merge==2)
+    not matched                        67,081
+        from master                    32,751  (_merge_northam==1)
+        from using                     34,330  (_merge_northam==2)
 
-    matched                            22,941  (_merge==3)
+    matched                            22,922  (_merge_northam==3)
     -----------------------------------------
 */
 drop if _merge_northam==2
@@ -553,14 +594,14 @@ merge 1:1 gvkey year using ///
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                        52,619
-        from master                    22,947  (_merge_global==1)
-        from using                     29,672  (_merge_global==2)
+    not matched                        73,932
+        from master                    22,928  (_merge_global==1)
+        from using                     51,004  (_merge_global==2)
 
-    matched                            26,116
+    matched                            32,745
         not updated                         0  (_merge_global==3)
-        missing updated                26,111  (_merge_global==4)
-        nonmissing conflict                 5  (_merge_global==5)
+        missing updated                32,700  (_merge_global==4)
+        nonmissing conflict                45  (_merge_global==5)
     -----------------------------------------
 */
 drop if _merge_global==2	
@@ -572,10 +613,10 @@ tab _merge*, miss
                       |          _merge_global
        _merge_northam | master on  missing u  nonmissin |     Total
 ----------------------+---------------------------------+----------
-      master only (1) |        11     26,111          0 |    26,122 
-          matched (3) |    22,936          0          5 |    22,941 
+      master only (1) |        11     32,700         40 |    32,751 
+          matched (3) |    22,917          0          5 |    22,922 
 ----------------------+---------------------------------+----------
-                Total |    22,947     26,111          5 |    49,063
+                Total |    22,928     32,700         45 |    55,673
 */
 
 ***	List firms that merged in neither
@@ -625,7 +666,6 @@ save data/matched-csrhub-cstat-northam-and-global-2008-2017, replace
 						*  	   CREATE CSTAT VARIABLES		*
 						*									*
 						***===============================***
-
 ///	FIRM AGE (YEARS SINCE APPEARING IN COMPUSTAT)
 ***	Create age variable in CSTAT North Am data for all years
 use data/cstat-north-am-for-age-calculation.dta, clear
@@ -653,8 +693,18 @@ use data/matched-csrhub-cstat-northam-and-global-2008-2017, clear
 
 merge 1:1 gvkey fyear using ///
 	data/cstat-north-am-for-age-calculation-with-age-variable.dta, ///
-	keepusing(age) keep(match)
-drop _merge
+	keepusing(age)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       117,320
+        from master                    29,999  (_merge==1)
+        from using                     87,321  (_merge==2)
+
+    matched                            25,674  (_merge==3)
+    -----------------------------------------
+*/
+drop if _merge==2
 
 ***	NOTE: CSTAT GLOBAL is unreliable for creating firm age from first
 *			appearance in the data
@@ -860,13 +910,6 @@ foreach variable of varlist *sdw* {
 	display "`variable'"
 	replace `variable'=. if year < 2009
 }
-
-
-///	FIX MARKER VARIABLES
-foreach variable of varlist in_csrhub in_kld in_cstat {
-	replace `variable'=0 if `variable'==.
-}
-
 
 ///	SALES GROWTH VARIABLES
 ***	Current year minus previous year
