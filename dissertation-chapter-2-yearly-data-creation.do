@@ -152,9 +152,9 @@ save data/csrhub-all-year-level.dta, replace
 
 
 
-***=======================================***
-*	MERGE CSRHUB AND CSTAT GLOBAL ON ISIN	*
-***=======================================***
+***===========================================***
+*	MERGE CSRHUB AND CSTAT GLOBAL ON ISIN YEAR	*
+***===========================================***
 ///	PREPARE COMPUSTAT GLOBAL FOR MERGE
 use data/cstat-all-firms-fundamentals-annual-global-2000-2018.dta, clear
 
@@ -333,14 +333,6 @@ save data/unmatched-after-csrhub-cstat-global-and-northam-exact-merges.dta, repl
 
 
 
-
-
-
-
-
-
-
-
 ***===========================***
 *	APPEND MATCHED DATASETS		*
 ***===========================***
@@ -373,6 +365,10 @@ Global) =1 |  (CSTAT North Am) =1
 ///	SAVE
 compress
 save data/merged-matched-csrhub-cstat-global-and-northam.dta, replace
+
+
+
+
 
 
 ***===============================================================***
@@ -524,7 +520,6 @@ drop if _merge_northam==2
 
 
 ///	MERGE CSRHUB-CSTAT WITH CSTAT GLOBAL DATA
-
 ***	Merge on gvkey year and update missing values of compustat
 merge 1:1 gvkey year using ///
 	data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-global-for-merge.dta, ///
@@ -597,16 +592,182 @@ list firm year if _merge_northam==3 & _merge_global==5
 
 ///	SAVE
 compress
-save data/matched-csrhub-cstat-northam-and-global-all-variables-2008-2017, replace
+save data/matched-csrhub-cstat-northam-and-global-2008-2017, replace
 
+
+						***===============================***
+						*									*
+						*  	   CREATE CSTAT VARIABLES		*
+						*									*
+						***===============================***
+///	FIRM AGE (YEARS SINCE APPEARING IN COMPUSTAT)
+***	Create age variable in CSTAT North Am data for all years
+use data/cstat-north-am-for-age-calculation.dta, clear
+
+*	Create age variable
+bysort gvkey: gen n=_n
+
+gen start = fyear if n==1
+bysort gvkey: replace start=start[_n-1] if start==.
+
+gen age = (fyear - start) + 1
+
+drop n start
+
+*	Keep CSRHub years
+keep if fyear > 2007
+keep if fyear < 2018
+
+*	Save
+compress
+save data/cstat-north-am-for-age-calculation-with-age-variable.dta, replace
+
+***	Merge matched data with age variable
+use data/matched-csrhub-cstat-northam-and-global-2008-2017, clear
+
+merge 1:1 gvkey fyear using ///
+	data/cstat-north-am-for-age-calculation-with-age-variable.dta, ///
+	keepusing(age) keep(match)
+	
+drop _merge
+	
+*	Save
+compress
+save data/matched-csrhub-cstat-northam-and-global-2008-2017-with-north-am-age.dta, replace
+
+/*	USING YEARS SINCE APPEARING IN CSTAT GLOBAL TO CALCULATE FIRM AGE IS INACCURATE
+***	Create age variable in CSTAT Global for all years
+use data/cstat-global-for-age-calculation.dta, clear
+
+*	Create age variable
+bysort gvkey fyear: gen N=_N
+drop if N>1
+drop N
+
+bysort gvkey: gen n=_n
+
+gen start = fyear if n==1
+bysort gvkey: replace start=start[_n-1] if start==.
+
+gen age = (fyear - start) + 1
+
+drop n start
+
+gen age_cstatg=age
+
+*	Keep CSRHub years
+keep if fyear > 2007
+keep if fyear < 2018
+
+*	Save
+compress
+save data/cstat-global-for-age-calculation-with-age-variable.dta, replace
+
+***	Merge matched data with age variable
+use data/matched-csrhub-cstat-northam-and-global-2008-2017-with-north-am-age.dta, clear
+
+merge 1:1 gvkey fyear using ///
+	data/cstat-global-for-age-calculation-with-age-variable.dta, ///
+	keepusing(age age_cstatg) ///
+	update assert(1 2 3 4 5)
+	
+*	Save
+compress
+save data/matched-csrhub-cstat-northam-and-global-2008-2017-with-north-am-age.dta, replace
+*/
+
+
+///	Tobin's Q
+gen tobinq = (at + (csho * prcc_f) - ceq) / at
+
+/*
+gen mkt2book = mkvalt / bkvlps
+
+*	ROA
+gen roa = ni / at
+
+xtset
+gen lroa = L.roa
+
+*	Net income
+xtset
+gen lni = L.ni
+
+*	Net income growth
+gen ni_growth = ni - L.ni
+
+*	Net income percent growth
+gen nipct = ((ni - L.ni) / L.ni) * 100
+	
+*	Debt ratio
+gen debt = dltt / at
+
+*	R&D
+gen rd = xrd / sale
+
+*	Advertising
+gen ad = xad / sale
+
+*	Revenue growth
+gen revg = revt - L.revt
+
+*	Revenue percent growth
+gen revpct = ((revt - L.revt) / L.revt) * 100
+*/
+
+
+					***=======================================***
+					*											*
+					*  SAVE FINAL MATCHED CSRHUB-CSTAT DATASET 	*
+					*											*
+					***=======================================***
+compress
+save data/matched-csrhub-cstat-2008-2017, replace
 	
 	
 	
 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
-***===================================================***
-*	EXPORT UNMATCHED FIRM NAMES FOR MANUAL MATCHING		*
-***===================================================***
+***===========================================================***
+*	EXPORT UNMATCHED CSRHUB FIRM NAMES FOR MANUAL MATCHING		*
+***===========================================================***
 ///	LOAD UNMATCHED CSRHUB DATA
 use data/unmatched-after-csrhub-cstat-global-and-northam-exact-merges.dta, clear
 
@@ -1120,11 +1281,11 @@ save data/mergefile-nonmatched-cstat-kld-csrhub-cusip8-year.dta, replace
 ***======================================================***
 ///	LOAD DATA
 clear all
-use data/analysis-file-cstat-kld-csrhub-cusip8-year-all.dta, clear
+use data/matched-csrhub-cstat-2008-2017, clear
 
 ***	Set panel
-encode cusip8, gen(cusip_n)
-xtset cusip_n year, y
+encode gvkey, gen(gvkey_num)
+xtset gvkey_num year, y
 
 ///	Generate year-on-year change in over_rtg
 rename over_rtg_lym over_rtg
@@ -1138,8 +1299,8 @@ label var over_rtg_yoy "Year-on-year change in CSRHub overall rating"
 ***	Firm-specific within-firm standard deviation
 
 *	Generate firm-specific within-firm over_rtg standard deviation
-by cusip_n: egen sdw = sd(over_rtg)
-label var sdw "Within-firm standard deviation of over_rtg for each cusip_n"
+by gvkey_num: egen sdw = sd(over_rtg)
+label var sdw "Within-firm standard deviation of over_rtg for each gvkey_num"
 replace sdw=. if over_rtg==.
 
 *	Generate treatment variables
@@ -1156,33 +1317,33 @@ foreach threshold in 3 2 1 {
 	replace trt`threshold'_sdw_neg=. if over_rtg==.
 	
 	*	Treatment year
-	by cusip_n: gen trt_yr_sdw_pos = year if trt`threshold'_sdw_pos==1
-	sort cusip_n trt_yr_sdw_pos
-	by cusip_n: replace trt_yr_sdw_pos = trt_yr_sdw_pos[_n-1] if _n!=1
+	by gvkey_num: gen trt_yr_sdw_pos = year if trt`threshold'_sdw_pos==1
+	sort gvkey_num trt_yr_sdw_pos
+	by gvkey_num: replace trt_yr_sdw_pos = trt_yr_sdw_pos[_n-1] if _n!=1
 	replace trt_yr_sdw_pos = . if over_rtg==.
 
-	by cusip_n: gen trt_yr_sdw_neg = year if trt`threshold'_sdw_neg==1
-	sort cusip_n trt_yr_sdw_neg
-	by cusip_n: replace trt_yr_sdw_neg = trt_yr_sdw_neg[_n-1] if _n!=1
+	by gvkey_num: gen trt_yr_sdw_neg = year if trt`threshold'_sdw_neg==1
+	sort gvkey_num trt_yr_sdw_neg
+	by gvkey_num: replace trt_yr_sdw_neg = trt_yr_sdw_neg[_n-1] if _n!=1
 	replace trt_yr_sdw_neg = . if over_rtg==.
 
 	*	Post-treatment years
-	by cusip_n: gen post`threshold'_sdw_pos=(year>trt_yr_sdw_pos)
+	by gvkey_num: gen post`threshold'_sdw_pos=(year>trt_yr_sdw_pos)
 	label var post`threshold'_sdw_pos ///
 		"Indicator =1 if post-treatment year for `threshold' std dev of sdw"
 	replace post`threshold'_sdw_pos=. if over_rtg==.
 
-	by cusip_n: gen post`threshold'_sdw_neg=(year>trt_yr_sdw_neg)
+	by gvkey_num: gen post`threshold'_sdw_neg=(year>trt_yr_sdw_neg)
 	label var post`threshold'_sdw_neg ///
 		"Indicator =1 if post-treatment year for `threshold' std dev of sdw"
 	replace post`threshold'_sdw_neg=. if over_rtg==.
 
 	*	Treated firms
-	by cusip_n: egen trt`threshold'_sdw_pos_grp= max(post`threshold'_sdw_pos)
+	by gvkey_num: egen trt`threshold'_sdw_pos_grp= max(post`threshold'_sdw_pos)
 	label var trt`threshold'_sdw_pos_grp ///
 		"Indicator = 1 if treatment group for `threshold' std dev of sdw"
 
-	by cusip_n: egen trt`threshold'_sdw_neg_grp= max(post`threshold'_sdw_neg)
+	by gvkey_num: egen trt`threshold'_sdw_neg_grp= max(post`threshold'_sdw_neg)
 	label var trt`threshold'_sdw_neg_grp ///
 		"Indicator = 1 if treatment group for `threshold' std dev of sdw"
 
