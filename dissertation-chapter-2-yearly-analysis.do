@@ -18,32 +18,11 @@ clear all
 set scheme plotplain
 
 ///	LOAD DATA
-use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
+use data/matched-csrhub-cstat-2008-2017, clear
 
-xtset
-tab year
-/* (KLD) Year |      Freq.     Percent        Cum.
-------------+-----------------------------------
-       2008 |      7,286        7.12        7.12
-       2009 |      8,444        8.25       15.37
-       2010 |      9,192        8.98       24.35
-       2011 |      9,778        9.55       33.90
-       2012 |      9,991        9.76       43.66
-       2013 |     11,992       11.71       55.37
-       2014 |     10,226        9.99       65.36
-       2015 |     10,318       10.08       75.44
-       2016 |     11,678       11.41       86.85
-       2017 |     13,460       13.15      100.00
-------------+-----------------------------------
-      Total |    102,365      100.00
-*/
-
-codebook cusip_n
-/*unique values:  16,860                   missing .:  3/102,365	*/
-drop if cusip_n==.
-*3 obs deleted
-drop if cusip=="#N/A"
-*2 obs deleted
+***	Set panel
+encode gvkey, gen(gvkey_num)
+xtset gvkey_num year, y
 
 
 						***===============================***
@@ -51,13 +30,23 @@ drop if cusip=="#N/A"
 						*  			 ASSUMPTIONS			*
 						*									*
 						***===============================***
-///	MISSING ADVERTISING AND R&D ARE 0
+///	ADVERTISING (CSTAT GLOBAL DOES NOT CONTAIN AN ADVERTISING VARIABLE)
 gen xad_original=xad
 label var xad_original "(CSTAT) xad before assuming missing=0"
+replace xad=0 if xad==. & in_cstatn==1
+
+///	R&D
 gen xrd_original=xrd
 label var xad_original "(CSTAT) xrd before assuming missing=0"
-replace xad=0 if xad==.
 replace xrd=0 if xrd==.
+
+
+
+
+
+
+
+
 
 						***===============================***
 						*									*
@@ -104,7 +93,6 @@ foreach var of varlist trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 */
 
 ///	3 SDW
-
 ***	Descriptives
 capt n drop ps2*
 capt n drop mark
@@ -133,50 +121,50 @@ tab year trt3_sdw_pos if mark1==1
 ***	Estimation
 capt n drop ps2*
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2009, ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2009, ///
 	osample(ps2009)
 	
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
 	if year == 2009 & ps2009==0
 estimates store ps2009
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2010, ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2010, ///
 	osample(ps2010)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
 	if year == 2010 & ps2010==0
 estimates store ps2010	
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2011, ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2011, ///
 	osample(ps2011)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
 	if year == 2011 & ps2011==0
 estimates store ps2011
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2012, ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2012, ///
 	osample(ps2012)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
 	if year == 2012 & ps2012==0
 estimates store ps2012
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2013, ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2013, ///
 	osample(ps2013)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
 	if year == 2013 & ps2013==0
 estimates store ps2013
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2014, ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2014, ///
 	osample(ps2014)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
 	if year == 2014 & ps2014==0
 estimates store ps2014
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2015, ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2015, ///
 	osample(ps2015)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
 	if year == 2015 & ps2015==0
 estimates store ps2015
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq) if year == 2016, ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2016, ///
 	osample(ps2016)
 estimates store ps2016
 
