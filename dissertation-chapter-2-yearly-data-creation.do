@@ -158,28 +158,26 @@ save data/csrhub-all-year-level.dta, replace
 ///	PREPARE COMPUSTAT GLOBAL FOR MERGE
 use data/cstat-all-firms-fundamentals-annual-global-2000-2018.dta, clear
 
-***	Keep industrial format
-keep if indfmt=="INDL"
-
 ***	Keep unique isin-years
 gen year=fyear
-
 codebook isin
 /*
 unique values:  38,028                   missing "":  2,611/479,423
 */
 drop if isin==""
 
-bysort isin year: gen N=_N
+bysort isin year indfmt: gen N=_N
 tab N
 /*
           N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |    473,302       99.26       99.26
-          2 |      3,468        0.73       99.99
+          1 |    578,800       99.28       99.28
+          2 |      4,128        0.71       99.99
           3 |         42        0.01      100.00
+          4 |          4        0.00      100.00
+         14 |         14        0.00      100.00
 ------------+-----------------------------------
-      Total |    476,812      100.00
+      Total |    582,988      100.00
 */
 keep if N==1
 drop N
@@ -204,7 +202,7 @@ merge 1:1 isin year using ///
     Result                           # of obs.
     -----------------------------------------
     not matched                             0
-    matched                            26,116  (_merge==3)
+    matched                            32,745  (_merge==3)
     -----------------------------------------
 */
 
@@ -221,11 +219,11 @@ merge 1:1 isin year using ///
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                       499,874
-        from master                    52,688  (_merge==1)
-        from using                    447,186  (_merge==2)
+    not matched                       592,114
+        from master                    46,059  (_merge==1)
+        from using                    546,055  (_merge==2)
 
-    matched                            26,116  (_merge==3)
+    matched                            32,745  (_merge==3)
     -----------------------------------------
 */
 
@@ -241,9 +239,6 @@ save data/unmatched-csrhub-cstat-global-isin-year.dta, replace
 
 
 
-
-
-
 ***===============================================================***
 *	MERGE UNMATCHED CSRHUB AND CSTAT NORTH AMERICA ON CUSIP9 YEAR	*
 ***===============================================================***
@@ -253,9 +248,7 @@ use data/cstat-all-firms-fundamentals-annual-north-am-2006-2017.dta, clear
 gen year = fyear
 rename cusip cusip9
 
-drop if indfmt=="FS"
-
-bysort cusip9 year: gen N=_N
+bysort cusip9 year indfmt: gen N=_N
 tab N
 /*          N |      Freq.     Percent        Cum.
 ------------+-----------------------------------
@@ -278,6 +271,38 @@ drop N
 gen in_cstatn = 1
 label var in_cstatn "(CSTAT North Am) =1 if in CSTAT North America"
 
+***	Keep industrial format when duplicate cusip9 year observations
+bysort cusip9 year: gen N=_N
+tab N
+/*          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    110,820       80.66       80.66
+          2 |     26,580       19.34      100.00
+------------+-----------------------------------
+      Total |    137,400      100.00
+*/
+bysort cusip9 year: gen n=_n
+tab n
+/*          n |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    124,110       90.33       90.33
+          2 |     13,290        9.67      100.00
+------------+-----------------------------------
+      Total |    137,400      100.00
+*/
+drop if indfmt=="FS" & N==2
+
+bysort cusip9 year: gen N2=_N
+tab N2
+/*         N2 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |    124,110      100.00      100.00
+------------+-----------------------------------
+      Total |    124,110      100.00
+*/
+
+drop N N2 n
+
 ***	Save
 compress
 save data/mergefile-cstat-fundamentals-annual-northam-2005-2017.dta, replace
@@ -295,7 +320,7 @@ merge 1:1 cusip9 year using ///
     Result                           # of obs.
     -----------------------------------------
     not matched                             0
-    matched                            22,947  (_merge==3)
+    matched                            22,928  (_merge==3)
     -----------------------------------------
 */
 
@@ -314,11 +339,11 @@ merge 1:1 cusip9 year using ///
 /*
     Result                           # of obs.
     -----------------------------------------
-    not matched                       130,893
-        from master                    29,741  (_merge==1)
-        from using                    101,152  (_merge==2)
+    not matched                       124,313
+        from master                    23,131  (_merge==1)
+        from using                    101,182  (_merge==2)
 
-    matched                            22,947  (_merge==3)
+    matched                            22,928  (_merge==3)
     -----------------------------------------
 */
 
@@ -355,10 +380,10 @@ Global) =1 |  (CSTAT North Am) =1
      CSTAT |        America
     Global |         0          1 |     Total
 -----------+----------------------+----------
-         0 |         0     22,947 |    22,947 
-         1 |    26,116          0 |    26,116 
+         0 |         0     22,928 |    22,928 
+         1 |    32,745          0 |    32,745 
 -----------+----------------------+----------
-     Total |    26,116     22,947 |    49,063
+     Total |    32,745     22,928 |    55,673
 */
 
 
@@ -392,17 +417,17 @@ tab n
 /*
           n |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |      4,359       19.00       19.00
-          2 |      3,736       16.28       35.28
-          3 |      3,366       14.67       49.95
-          4 |      2,958       12.89       62.84
-          5 |      2,551       11.12       73.95
-          6 |      2,146        9.35       83.31
-          7 |      1,718        7.49       90.79
-          8 |      1,171        5.10       95.89
+          1 |      4,356       19.00       19.00
+          2 |      3,733       16.28       35.28
+          3 |      3,363       14.67       49.95
+          4 |      2,955       12.89       62.84
+          5 |      2,549       11.12       73.95
+          6 |      2,144        9.35       83.30
+          7 |      1,716        7.48       90.79
+          8 |      1,170        5.10       95.89
           9 |        942        4.11      100.00
 ------------+-----------------------------------
-      Total |     22,947      100.00
+      Total |     22,928      100.00
 */
 keep if n==1
 drop n
@@ -432,18 +457,18 @@ tab n
 /*
           n |      Freq.     Percent        Cum.
 ------------+-----------------------------------
-          1 |      4,574       17.51       17.51
-          2 |      4,284       16.40       33.92
-          3 |      3,371       12.91       46.83
-          4 |      2,899       11.10       57.93
-          5 |      2,605        9.97       67.90
-          6 |      2,339        8.96       76.86
-          7 |      2,040        7.81       84.67
-          8 |      1,727        6.61       91.28
-          9 |      1,354        5.18       96.47
-         10 |        923        3.53      100.00
+          1 |      5,736       17.52       17.52
+          2 |      5,358       16.36       33.88
+          3 |      4,219       12.88       46.76
+          4 |      3,633       11.09       57.86
+          5 |      3,263        9.96       67.82
+          6 |      2,926        8.94       76.76
+          7 |      2,561        7.82       84.58
+          8 |      2,184        6.67       91.25
+          9 |      1,699        5.19       96.44
+         10 |      1,166        3.56      100.00
 ------------+-----------------------------------
-      Total |     26,116      100.00
+      Total |     32,745      100.00
 */
 keep if n==1
 drop n
@@ -600,6 +625,7 @@ save data/matched-csrhub-cstat-northam-and-global-2008-2017, replace
 						*  	   CREATE CSTAT VARIABLES		*
 						*									*
 						***===============================***
+
 ///	FIRM AGE (YEARS SINCE APPEARING IN COMPUSTAT)
 ***	Create age variable in CSTAT North Am data for all years
 use data/cstat-north-am-for-age-calculation.dta, clear
@@ -628,14 +654,10 @@ use data/matched-csrhub-cstat-northam-and-global-2008-2017, clear
 merge 1:1 gvkey fyear using ///
 	data/cstat-north-am-for-age-calculation-with-age-variable.dta, ///
 	keepusing(age) keep(match)
-	
 drop _merge
-	
-*	Save
-compress
-save data/matched-csrhub-cstat-northam-and-global-2008-2017-with-age.dta, replace
 
-
+***	NOTE: CSTAT GLOBAL is unreliable for creating firm age from first
+*			appearance in the data
 
 
 ///	Tobin's Q
@@ -676,21 +698,27 @@ gen revg = revt - L.revt
 gen revpct = ((revt - L.revt) / L.revt) * 100
 */
 
+***	Save
+compress
+save data/matched-csrhub-cstat-northam-and-global-2008-2017-with-age.dta, replace
 
 
-***======================================================***
-*	CREATE TREATMENT VARIABLES
-*		- Binary +/- deviation from standard deviation
-*		- Continuous measure number of standard deviations
-*		- Categorical measure standard deviations rounded to integer
-***======================================================***
+
+			***======================================================***
+			*	CREATE TREATMENT VARIABLES
+			*		- Binary +/- deviation from standard deviation
+			*		- Continuous measure number of standard deviations
+			*		- Categorical measure standard deviations rounded to integer
+			***======================================================***
 ///	LOAD DATA
 clear all
-use data/matched-csrhub-cstat-2008-2017, clear
+use data/matched-csrhub-cstat-northam-and-global-2008-2017-with-age.dta, clear
 
-***	Set panel
+
+///	SET PANEL
 encode gvkey, gen(gvkey_num)
 xtset gvkey_num year, y
+
 
 ///	Generate year-on-year change in over_rtg
 rename over_rtg_lym over_rtg
@@ -698,9 +726,8 @@ rename over_rtg_lym over_rtg
 gen over_rtg_yoy = over_rtg - l.over_rtg
 label var over_rtg_yoy "Year-on-year change in CSRHub overall rating"
 
+
 ///	Binary +/- deviation from standard deviation
-
-
 ***	Firm-specific within-firm standard deviation
 
 *	Generate firm-specific within-firm over_rtg standard deviation
@@ -798,7 +825,6 @@ label var trt_cat_sdw_neg "Categorical treatment = integer of over_rtg_yoy negat
 ***		over_rtg change is zero
 tab trt_cat_sdw_pos trt_cat_sdw_neg
 /*
-
 Categorica |
          l |
  treatment |
@@ -810,17 +836,16 @@ over_rtg_y | Categorical treatment
    std dev |   std dev from sdw
   from sdw |        -7          0 |     Total
 -----------+----------------------+----------
-         0 |         0        393 |       393
-         7 |       121          0 |       121
+         0 |         0         42 |        42 
+         7 |         5          0 |         5 
 -----------+----------------------+----------
-     Total |       121        393 |       514
-
+     Total |         5         42 |        47 
 */
 sum over_rtg_yoy if trt_cat_sdw_pos==7 & trt_cat_sdw_neg==-7
 /*
     Variable |        Obs        Mean    Std. Dev.       Min        Max
 -------------+---------------------------------------------------------
-         sdw |        121           0           0          0          0
+over_rtg_yoy |          5           0           0          0          0
 */
 
 *	No values of the trt_cat_sdw variables are greater than 3 or less than -3
@@ -829,7 +854,8 @@ replace trt_cat_sdw_neg = . if trt_cat_sdw_neg < -3
 
 
 
-///	REPLACE trt_sdw variables with missing for years without CSRHub data
+///	REPLACE trt_sdw variables with missing for years without CSRHub data to
+*	calculate change in overall rating
 foreach variable of varlist *sdw* {
 	display "`variable'"
 	replace `variable'=. if year < 2009
@@ -840,13 +866,6 @@ foreach variable of varlist *sdw* {
 foreach variable of varlist in_csrhub in_kld in_cstat {
 	replace `variable'=0 if `variable'==.
 }
-
-/// SET PANEL
-drop cusip_n
-label drop _all
-encode cusip8, gen(cusip_n)
-xtset cusip_n year, y
-
 
 
 ///	SALES GROWTH VARIABLES
@@ -865,19 +884,15 @@ label var revt_pct "Percent change in revenue, current to previous year"
 
 
 
-
-
-
-
-*************************************************************
-*															*
-*	Assess treatment variables distribution and zscores		*
-*															*
-*************************************************************
-bysort cusip_n: egen yoy_mean = mean(over_rtg_yoy)
+		*************************************************************
+		*															*
+		*	Assess treatment variables distribution and zscores		*
+		*															*
+		*************************************************************
+bysort gvkey_num: egen yoy_mean = mean(over_rtg_yoy)
 replace yoy_mean=. if over_rtg_yoy==.
 
-bysort cusip_n: egen yoy_std_dev = sd(over_rtg_yoy)
+bysort gvkey_num: egen yoy_std_dev = sd(over_rtg_yoy)
 replace yoy_std_dev=. if over_rtg_yoy==.
 
 gen yoy_zscore = (over_rtg_yoy - yoy_mean) / yoy_std_dev
@@ -888,7 +903,7 @@ histogram yoy_zscore, bin(100) percent normal ///
 
 ***	Remove firms with only two observations on year-on-year change
 gen ch1 = (over_rtg_yoy!=.)
-bysort cusip_n: egen ch2=total(ch1)
+bysort gvkey_num: egen ch2=total(ch1)
 replace yoy_zscore=. if ch2==2
 
 drop ch1 ch2
@@ -913,110 +928,6 @@ gen trt2pos = (yoy_zscore>2 & yoy_zscore!=.)
 gen trt2neg = (yoy_zscore<-2 & yoy_zscore!=.)
 gen trt3pos = (yoy_zscore>3 & yoy_zscore!=.)
 gen trt3neg = (yoy_zscore<-3 & yoy_zscore!=.)
-
-
-
-
-/*	THESE ARE NOT CORRECT ZSCORE CALCULATIONS
-
-gen zscore = over_rtg_yoy/sdw	/*	This is not how to calculate a zscore	*/
-bysort zscore: gen N=_N
-tab N, sort
-/*
-          N |      Freq.     Percent        Cum.
-------------+-----------------------------------
-     135667 |    135,667       76.26       76.26
-          1 |     40,799       22.93       99.19
-        457 |        457        0.26       99.45
-        393 |        393        0.22       99.67
-        317 |        317        0.18       99.85
-        100 |        100        0.06       99.91
-         71 |         71        0.04       99.95
-          2 |         28        0.02       99.96
-         21 |         21        0.01       99.97
-         18 |         18        0.01       99.98
-         14 |         14        0.01       99.99
-          7 |          7        0.00       99.99
-          5 |          5        0.00      100.00
-          4 |          4        0.00      100.00
-------------+-----------------------------------
-      Total |    177,901      100.00
-
-N = 457 and N = 317 are the problem.
-	  */
-gen ch1=(N==457)
-replace ch1=1 if N==317
-bysort cusip: egen ch2=max(ch1)
-
-*For some reason, the problem clusters in 2017
-tab year if ch1==1
-/*
- (KLD) Year |      Freq.     Percent        Cum.
-------------+-----------------------------------
-       2009 |          5        0.65        0.65
-       2010 |         34        4.39        5.04
-       2011 |         21        2.71        7.75
-       2012 |          7        0.90        8.66
-       2013 |         14        1.81       10.47
-       2014 |          9        1.16       11.63
-       2015 |          4        0.52       12.14
-       2016 |          8        1.03       13.18
-       2017 |        672       86.82      100.00
-------------+-----------------------------------
-      Total |        774      100.00
-*/
-
-*	Z-score for deviation of over_rtg compared to within-firm standard deviation
-histogram zscore, bin(100) percent normal ///
-	scheme(plotplain) ///
-	xti("") ///
-	ti("Number of standard deviations from the within-firm mean" "for each year-on-year change in overall rating") ///
-	xline(-4 -3 -2 -1 0 1 2 3 4) ///
-	xlab(-4(1)4)
-
-*	 Table of descriptive statistics for treatment variables
-tab trt1_sdw_pos
-tab trt1_sdw_neg
-tab trt2_sdw_pos
-tab trt2_sdw_neg
-tab trt3_sdw_pos
-tab trt3_sdw_neg
-
-
-
-*	Drop firms with problematic zscores resulting from only 2 observations in the data
-foreach variable of varlist trt1_sdw_pos trt1_sdw_neg trt2_sdw_pos ///
-	trt2_sdw_neg trt3_sdw_pos trt3_sdw_neg {
-	replace `variable'=. if N==457
-	replace `variable'=. if N==317
-	replace zscore=. if N==457
-	replace zscore=. if N==317
-}
-
-histogram zscore, bin(100) percent normal ///
-	scheme(plotplain) ///
-	xti("") ///
-	xline(-4 -3 -2 -1 0 1 2 3 4) ///
-	xlab(-4(1)4)
-
-*	Table of descriptive statistics for treatment variables
-tab trt1_sdw_pos
-tab trt1_sdw_neg
-tab trt2_sdw_pos
-tab trt2_sdw_neg
-tab trt3_sdw_pos
-tab trt3_sdw_neg	
-
-*/
-	
-***	Keep only years with CSRHub data
-drop if year>2017
-drop if year<2008
-
-compress
-
-
-
 
 
 					***=======================================***
