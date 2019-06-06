@@ -633,48 +633,9 @@ drop _merge
 	
 *	Save
 compress
-save data/matched-csrhub-cstat-northam-and-global-2008-2017-with-north-am-age.dta, replace
+save data/matched-csrhub-cstat-northam-and-global-2008-2017-with-age.dta, replace
 
-/*	USING YEARS SINCE APPEARING IN CSTAT GLOBAL TO CALCULATE FIRM AGE IS INACCURATE
-***	Create age variable in CSTAT Global for all years
-use data/cstat-global-for-age-calculation.dta, clear
 
-*	Create age variable
-bysort gvkey fyear: gen N=_N
-drop if N>1
-drop N
-
-bysort gvkey: gen n=_n
-
-gen start = fyear if n==1
-bysort gvkey: replace start=start[_n-1] if start==.
-
-gen age = (fyear - start) + 1
-
-drop n start
-
-gen age_cstatg=age
-
-*	Keep CSRHub years
-keep if fyear > 2007
-keep if fyear < 2018
-
-*	Save
-compress
-save data/cstat-global-for-age-calculation-with-age-variable.dta, replace
-
-***	Merge matched data with age variable
-use data/matched-csrhub-cstat-northam-and-global-2008-2017-with-north-am-age.dta, clear
-
-merge 1:1 gvkey fyear using ///
-	data/cstat-global-for-age-calculation-with-age-variable.dta, ///
-	keepusing(age age_cstatg) ///
-	update assert(1 2 3 4 5)
-	
-*	Save
-compress
-save data/matched-csrhub-cstat-northam-and-global-2008-2017-with-north-am-age.dta, replace
-*/
 
 
 ///	Tobin's Q
@@ -714,6 +675,348 @@ gen revg = revt - L.revt
 *	Revenue percent growth
 gen revpct = ((revt - L.revt) / L.revt) * 100
 */
+
+
+
+***======================================================***
+*	CREATE TREATMENT VARIABLES
+*		- Binary +/- deviation from standard deviation
+*		- Continuous measure number of standard deviations
+*		- Categorical measure standard deviations rounded to integer
+***======================================================***
+///	LOAD DATA
+clear all
+use data/matched-csrhub-cstat-2008-2017, clear
+
+***	Set panel
+encode gvkey, gen(gvkey_num)
+xtset gvkey_num year, y
+
+///	Generate year-on-year change in over_rtg
+rename over_rtg_lym over_rtg
+
+gen over_rtg_yoy = over_rtg - l.over_rtg
+label var over_rtg_yoy "Year-on-year change in CSRHub overall rating"
+
+///	Binary +/- deviation from standard deviation
+
+
+***	Firm-specific within-firm standard deviation
+
+*	Generate firm-specific within-firm over_rtg standard deviation
+by gvkey_num: egen sdw = sd(over_rtg)
+label var sdw "Within-firm standard deviation of over_rtg for each gvkey_num"
+replace sdw=. if over_rtg==.
+
+*	Generate treatment variables
+foreach threshold in 3 2 1 {
+	*	Treatment event
+	gen trt`threshold'_sdw_pos = over_rtg_yoy > (`threshold' * sdw) & ///
+		over_rtg_yoy!=.
+	label var trt`threshold'_sdw_pos ///
+		"Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdw and positive"
+	replace trt`threshold'_sdw_pos=. if over_rtg==.
+	
+	gen trt`threshold'_sdw_neg = over_rtg_yoy < (-`threshold' * sdw) & over_rtg_yoy!=.
+	label var trt`threshold'_sdw_neg "Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdw and negative"
+	replace trt`threshold'_sdw_neg=. if over_rtg==.
+	
+	*	Treatment year
+	by gvkey_num: gen trt_yr_sdw_pos = year if trt`threshold'_sdw_pos==1
+	sort gvkey_num trt_yr_sdw_pos
+	by gvkey_num: replace trt_yr_sdw_pos = trt_yr_sdw_pos[_n-1] if _n!=1
+	replace trt_yr_sdw_pos = . if over_rtg==.
+
+	by gvkey_num: gen trt_yr_sdw_neg = year if trt`threshold'_sdw_neg==1
+	sort gvkey_num trt_yr_sdw_neg
+	by gvkey_num: replace trt_yr_sdw_neg = trt_yr_sdw_neg[_n-1] if _n!=1
+	replace trt_yr_sdw_neg = . if over_rtg==.
+
+	*	Post-treatment years
+	by gvkey_num: gen post`threshold'_sdw_pos=(year>trt_yr_sdw_pos)
+	label var post`threshold'_sdw_pos ///
+		"Indicator =1 if post-treatment year for `threshold' std dev of sdw"
+	replace post`threshold'_sdw_pos=. if over_rtg==.
+
+	by gvkey_num: gen post`threshold'_sdw_neg=(year>trt_yr_sdw_neg)
+	label var post`threshold'_sdw_neg ///
+		"Indicator =1 if post-treatment year for `threshold' std dev of sdw"
+	replace post`threshold'_sdw_neg=. if over_rtg==.
+
+	*	Treated firms
+	by gvkey_num: egen trt`threshold'_sdw_pos_grp= max(post`threshold'_sdw_pos)
+	label var trt`threshold'_sdw_pos_grp ///
+		"Indicator = 1 if treatment group for `threshold' std dev of sdw"
+
+	by gvkey_num: egen trt`threshold'_sdw_neg_grp= max(post`threshold'_sdw_neg)
+	label var trt`threshold'_sdw_neg_grp ///
+		"Indicator = 1 if treatment group for `threshold' std dev of sdw"
+
+	qui xtset
+	drop trt_yr_sdw_*
+}
+
+
+
+///	Continuous measure number of standard deviations
+
+***	Combined
+xtset
+
+gen trt_cont_sdw = over_rtg_yoy / sdw
+label var trt_cont_sdw "Continuous treatment = over_rtg_yoy / sdw"
+
+***	Positive and negative
+
+*	sdw
+gen trt_cont_sdw_pos = trt_cont_sdw
+replace trt_cont_sdw_pos = . if trt_cont_sdw_pos < 0
+label var trt_cont_sdw_pos "Continuous value of trt_cont_sdw if trt_cont_sdw >= 0"
+
+gen trt_cont_sdw_neg = trt_cont_sdw
+replace trt_cont_sdw_neg = . if trt_cont_sdw_neg > 0
+label var trt_cont_sdw_neg "Continuous value of trt_cont_sdw if trt_cont_sdw <= 0"
+
+
+///	Categorical measure standard deviations rounded to integer
+
+***	Firm-specific standard deviation
+xtset
+gen trt_cat_sdw_pos = .
+gen trt_cat_sdw_neg = .
+
+foreach threshold in 0 1 2 3 4 5 6 7 {
+	replace trt_cat_sdw_pos = `threshold' if over_rtg_yoy >= `threshold'*sdw
+	replace trt_cat_sdw_pos = . if over_rtg_yoy == .
+	replace trt_cat_sdw_neg = (-1*`threshold') if over_rtg_yoy <= `threshold'*(-1*sdw)
+	replace trt_cat_sdw_neg = . if over_rtg_yoy == .
+}
+label var trt_cat_sdw_pos "Categorical treatment = integer of over_rtg_yoy positive std dev from sdw"
+label var trt_cat_sdw_neg "Categorical treatment = integer of over_rtg_yoy negative std dev from sdw"
+
+***	These variables should be mutually exclusive except where year-on-year
+***		over_rtg change is zero
+tab trt_cat_sdw_pos trt_cat_sdw_neg
+/*
+
+Categorica |
+         l |
+ treatment |
+ = integer |
+        of |
+over_rtg_y | Categorical treatment
+        oy |     = integer of
+  positive | over_rtg_yoy negative
+   std dev |   std dev from sdw
+  from sdw |        -7          0 |     Total
+-----------+----------------------+----------
+         0 |         0        393 |       393
+         7 |       121          0 |       121
+-----------+----------------------+----------
+     Total |       121        393 |       514
+
+*/
+sum over_rtg_yoy if trt_cat_sdw_pos==7 & trt_cat_sdw_neg==-7
+/*
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+         sdw |        121           0           0          0          0
+*/
+
+*	No values of the trt_cat_sdw variables are greater than 3 or less than -3
+replace trt_cat_sdw_pos = . if trt_cat_sdw_pos > 3
+replace trt_cat_sdw_neg = . if trt_cat_sdw_neg < -3
+
+
+
+///	REPLACE trt_sdw variables with missing for years without CSRHub data
+foreach variable of varlist *sdw* {
+	display "`variable'"
+	replace `variable'=. if year < 2009
+}
+
+
+///	FIX MARKER VARIABLES
+foreach variable of varlist in_csrhub in_kld in_cstat {
+	replace `variable'=0 if `variable'==.
+}
+
+/// SET PANEL
+drop cusip_n
+label drop _all
+encode cusip8, gen(cusip_n)
+xtset cusip_n year, y
+
+
+
+///	SALES GROWTH VARIABLES
+***	Current year minus previous year
+gen revt_yoy = revt - l.revt
+label var revt_yoy "Year-on-year change in revenue (revt - previous year revt)"
+
+***	Next year minus current year
+gen Frevt_yoy = F.revt-revt
+label var Frevt_yoy "Next year revt - current year revt"
+
+***	Percent change in sales, current to next year
+gen revt_pct = (revt_yoy/L.revt)*100
+label var revt_pct "Percent change in revenue, current to previous year"
+
+
+
+
+
+
+
+
+*************************************************************
+*															*
+*	Assess treatment variables distribution and zscores		*
+*															*
+*************************************************************
+bysort cusip_n: egen yoy_mean = mean(over_rtg_yoy)
+replace yoy_mean=. if over_rtg_yoy==.
+
+bysort cusip_n: egen yoy_std_dev = sd(over_rtg_yoy)
+replace yoy_std_dev=. if over_rtg_yoy==.
+
+gen yoy_zscore = (over_rtg_yoy - yoy_mean) / yoy_std_dev
+
+*	Histogram
+histogram yoy_zscore, bin(100) percent normal ///
+	xti("Z-score") xlab(-4(1)4) scheme(plotplain)
+
+***	Remove firms with only two observations on year-on-year change
+gen ch1 = (over_rtg_yoy!=.)
+bysort cusip_n: egen ch2=total(ch1)
+replace yoy_zscore=. if ch2==2
+
+drop ch1 ch2
+
+*	Histogram
+histogram yoy_zscore, bin(100) percent normal ///
+	xti("Z-score") xlab(-4(1)4) scheme(plotplain)
+	
+
+*	Example
+scatter over_rtg_yoy year if cusip8=="00103079", ///
+	xti("Year") ///
+	yline(1.974611, lstyle(solid)) ///
+	ti("Jyske Bank A/S year-on-year change in overall rating.") ///
+	subti("Solid line is average year-on-year change for the firm." ///
+	"Treatment at -2 z-score occurs in 2014.")
+	
+*	Treatment indicators
+gen trt1pos = (yoy_zscore>1 & yoy_zscore!=.)
+gen trt1neg = (yoy_zscore<-1 & yoy_zscore!=.)	
+gen trt2pos = (yoy_zscore>2 & yoy_zscore!=.)
+gen trt2neg = (yoy_zscore<-2 & yoy_zscore!=.)
+gen trt3pos = (yoy_zscore>3 & yoy_zscore!=.)
+gen trt3neg = (yoy_zscore<-3 & yoy_zscore!=.)
+
+
+
+
+/*	THESE ARE NOT CORRECT ZSCORE CALCULATIONS
+
+gen zscore = over_rtg_yoy/sdw	/*	This is not how to calculate a zscore	*/
+bysort zscore: gen N=_N
+tab N, sort
+/*
+          N |      Freq.     Percent        Cum.
+------------+-----------------------------------
+     135667 |    135,667       76.26       76.26
+          1 |     40,799       22.93       99.19
+        457 |        457        0.26       99.45
+        393 |        393        0.22       99.67
+        317 |        317        0.18       99.85
+        100 |        100        0.06       99.91
+         71 |         71        0.04       99.95
+          2 |         28        0.02       99.96
+         21 |         21        0.01       99.97
+         18 |         18        0.01       99.98
+         14 |         14        0.01       99.99
+          7 |          7        0.00       99.99
+          5 |          5        0.00      100.00
+          4 |          4        0.00      100.00
+------------+-----------------------------------
+      Total |    177,901      100.00
+
+N = 457 and N = 317 are the problem.
+	  */
+gen ch1=(N==457)
+replace ch1=1 if N==317
+bysort cusip: egen ch2=max(ch1)
+
+*For some reason, the problem clusters in 2017
+tab year if ch1==1
+/*
+ (KLD) Year |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       2009 |          5        0.65        0.65
+       2010 |         34        4.39        5.04
+       2011 |         21        2.71        7.75
+       2012 |          7        0.90        8.66
+       2013 |         14        1.81       10.47
+       2014 |          9        1.16       11.63
+       2015 |          4        0.52       12.14
+       2016 |          8        1.03       13.18
+       2017 |        672       86.82      100.00
+------------+-----------------------------------
+      Total |        774      100.00
+*/
+
+*	Z-score for deviation of over_rtg compared to within-firm standard deviation
+histogram zscore, bin(100) percent normal ///
+	scheme(plotplain) ///
+	xti("") ///
+	ti("Number of standard deviations from the within-firm mean" "for each year-on-year change in overall rating") ///
+	xline(-4 -3 -2 -1 0 1 2 3 4) ///
+	xlab(-4(1)4)
+
+*	 Table of descriptive statistics for treatment variables
+tab trt1_sdw_pos
+tab trt1_sdw_neg
+tab trt2_sdw_pos
+tab trt2_sdw_neg
+tab trt3_sdw_pos
+tab trt3_sdw_neg
+
+
+
+*	Drop firms with problematic zscores resulting from only 2 observations in the data
+foreach variable of varlist trt1_sdw_pos trt1_sdw_neg trt2_sdw_pos ///
+	trt2_sdw_neg trt3_sdw_pos trt3_sdw_neg {
+	replace `variable'=. if N==457
+	replace `variable'=. if N==317
+	replace zscore=. if N==457
+	replace zscore=. if N==317
+}
+
+histogram zscore, bin(100) percent normal ///
+	scheme(plotplain) ///
+	xti("") ///
+	xline(-4 -3 -2 -1 0 1 2 3 4) ///
+	xlab(-4(1)4)
+
+*	Table of descriptive statistics for treatment variables
+tab trt1_sdw_pos
+tab trt1_sdw_neg
+tab trt2_sdw_pos
+tab trt2_sdw_neg
+tab trt3_sdw_pos
+tab trt3_sdw_neg	
+
+*/
+	
+***	Keep only years with CSRHub data
+drop if year>2017
+drop if year<2008
+
+compress
+
+
+
 
 
 					***=======================================***
@@ -1273,342 +1576,7 @@ save data/mergefile-nonmatched-cstat-kld-csrhub-cusip8-year.dta, replace
 
 
 
-***======================================================***
-*	CREATE TREATMENT VARIABLES
-*		- Binary +/- deviation from standard deviation
-*		- Continuous measure number of standard deviations
-*		- Categorical measure standard deviations rounded to integer
-***======================================================***
-///	LOAD DATA
-clear all
-use data/matched-csrhub-cstat-2008-2017, clear
 
-***	Set panel
-encode gvkey, gen(gvkey_num)
-xtset gvkey_num year, y
-
-///	Generate year-on-year change in over_rtg
-rename over_rtg_lym over_rtg
-
-gen over_rtg_yoy = over_rtg - l.over_rtg
-label var over_rtg_yoy "Year-on-year change in CSRHub overall rating"
-
-///	Binary +/- deviation from standard deviation
-
-
-***	Firm-specific within-firm standard deviation
-
-*	Generate firm-specific within-firm over_rtg standard deviation
-by gvkey_num: egen sdw = sd(over_rtg)
-label var sdw "Within-firm standard deviation of over_rtg for each gvkey_num"
-replace sdw=. if over_rtg==.
-
-*	Generate treatment variables
-foreach threshold in 3 2 1 {
-	*	Treatment event
-	gen trt`threshold'_sdw_pos = over_rtg_yoy > (`threshold' * sdw) & ///
-		over_rtg_yoy!=.
-	label var trt`threshold'_sdw_pos ///
-		"Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdw and positive"
-	replace trt`threshold'_sdw_pos=. if over_rtg==.
-	
-	gen trt`threshold'_sdw_neg = over_rtg_yoy < (-`threshold' * sdw) & over_rtg_yoy!=.
-	label var trt`threshold'_sdw_neg "Treatment = 1 if year-on-year over_rtg > `threshold' std dev of sdw and negative"
-	replace trt`threshold'_sdw_neg=. if over_rtg==.
-	
-	*	Treatment year
-	by gvkey_num: gen trt_yr_sdw_pos = year if trt`threshold'_sdw_pos==1
-	sort gvkey_num trt_yr_sdw_pos
-	by gvkey_num: replace trt_yr_sdw_pos = trt_yr_sdw_pos[_n-1] if _n!=1
-	replace trt_yr_sdw_pos = . if over_rtg==.
-
-	by gvkey_num: gen trt_yr_sdw_neg = year if trt`threshold'_sdw_neg==1
-	sort gvkey_num trt_yr_sdw_neg
-	by gvkey_num: replace trt_yr_sdw_neg = trt_yr_sdw_neg[_n-1] if _n!=1
-	replace trt_yr_sdw_neg = . if over_rtg==.
-
-	*	Post-treatment years
-	by gvkey_num: gen post`threshold'_sdw_pos=(year>trt_yr_sdw_pos)
-	label var post`threshold'_sdw_pos ///
-		"Indicator =1 if post-treatment year for `threshold' std dev of sdw"
-	replace post`threshold'_sdw_pos=. if over_rtg==.
-
-	by gvkey_num: gen post`threshold'_sdw_neg=(year>trt_yr_sdw_neg)
-	label var post`threshold'_sdw_neg ///
-		"Indicator =1 if post-treatment year for `threshold' std dev of sdw"
-	replace post`threshold'_sdw_neg=. if over_rtg==.
-
-	*	Treated firms
-	by gvkey_num: egen trt`threshold'_sdw_pos_grp= max(post`threshold'_sdw_pos)
-	label var trt`threshold'_sdw_pos_grp ///
-		"Indicator = 1 if treatment group for `threshold' std dev of sdw"
-
-	by gvkey_num: egen trt`threshold'_sdw_neg_grp= max(post`threshold'_sdw_neg)
-	label var trt`threshold'_sdw_neg_grp ///
-		"Indicator = 1 if treatment group for `threshold' std dev of sdw"
-
-	qui xtset
-	drop trt_yr_sdw_*
-}
-
-
-
-///	Continuous measure number of standard deviations
-
-***	Combined
-xtset
-
-gen trt_cont_sdw = over_rtg_yoy / sdw
-label var trt_cont_sdw "Continuous treatment = over_rtg_yoy / sdw"
-
-***	Positive and negative
-
-*	sdw
-gen trt_cont_sdw_pos = trt_cont_sdw
-replace trt_cont_sdw_pos = . if trt_cont_sdw_pos < 0
-label var trt_cont_sdw_pos "Continuous value of trt_cont_sdw if trt_cont_sdw >= 0"
-
-gen trt_cont_sdw_neg = trt_cont_sdw
-replace trt_cont_sdw_neg = . if trt_cont_sdw_neg > 0
-label var trt_cont_sdw_neg "Continuous value of trt_cont_sdw if trt_cont_sdw <= 0"
-
-
-///	Categorical measure standard deviations rounded to integer
-
-***	Firm-specific standard deviation
-xtset
-gen trt_cat_sdw_pos = .
-gen trt_cat_sdw_neg = .
-
-foreach threshold in 0 1 2 3 4 5 6 7 {
-	replace trt_cat_sdw_pos = `threshold' if over_rtg_yoy >= `threshold'*sdw
-	replace trt_cat_sdw_pos = . if over_rtg_yoy == .
-	replace trt_cat_sdw_neg = (-1*`threshold') if over_rtg_yoy <= `threshold'*(-1*sdw)
-	replace trt_cat_sdw_neg = . if over_rtg_yoy == .
-}
-label var trt_cat_sdw_pos "Categorical treatment = integer of over_rtg_yoy positive std dev from sdw"
-label var trt_cat_sdw_neg "Categorical treatment = integer of over_rtg_yoy negative std dev from sdw"
-
-***	These variables should be mutually exclusive except where year-on-year
-***		over_rtg change is zero
-tab trt_cat_sdw_pos trt_cat_sdw_neg
-/*
-
-Categorica |
-         l |
- treatment |
- = integer |
-        of |
-over_rtg_y | Categorical treatment
-        oy |     = integer of
-  positive | over_rtg_yoy negative
-   std dev |   std dev from sdw
-  from sdw |        -7          0 |     Total
------------+----------------------+----------
-         0 |         0        393 |       393
-         7 |       121          0 |       121
------------+----------------------+----------
-     Total |       121        393 |       514
-
-*/
-sum over_rtg_yoy if trt_cat_sdw_pos==7 & trt_cat_sdw_neg==-7
-/*
-    Variable |        Obs        Mean    Std. Dev.       Min        Max
--------------+---------------------------------------------------------
-         sdw |        121           0           0          0          0
-*/
-
-*	No values of the trt_cat_sdw variables are greater than 3 or less than -3
-replace trt_cat_sdw_pos = . if trt_cat_sdw_pos > 3
-replace trt_cat_sdw_neg = . if trt_cat_sdw_neg < -3
-
-
-
-///	REPLACE trt_sdw variables with missing for years without CSRHub data
-foreach variable of varlist *sdw* {
-	display "`variable'"
-	replace `variable'=. if year < 2009
-}
-
-
-///	FIX MARKER VARIABLES
-foreach variable of varlist in_csrhub in_kld in_cstat {
-	replace `variable'=0 if `variable'==.
-}
-
-/// SET PANEL
-drop cusip_n
-label drop _all
-encode cusip8, gen(cusip_n)
-xtset cusip_n year, y
-
-
-
-///	SALES GROWTH VARIABLES
-***	Current year minus previous year
-gen revt_yoy = revt - l.revt
-label var revt_yoy "Year-on-year change in revenue (revt - previous year revt)"
-
-***	Next year minus current year
-gen Frevt_yoy = F.revt-revt
-label var Frevt_yoy "Next year revt - current year revt"
-
-***	Percent change in sales, current to next year
-gen revt_pct = (revt_yoy/L.revt)*100
-label var revt_pct "Percent change in revenue, current to previous year"
-
-
-
-
-
-
-
-
-*************************************************************
-*															*
-*	Assess treatment variables distribution and zscores		*
-*															*
-*************************************************************
-bysort cusip_n: egen yoy_mean = mean(over_rtg_yoy)
-replace yoy_mean=. if over_rtg_yoy==.
-
-bysort cusip_n: egen yoy_std_dev = sd(over_rtg_yoy)
-replace yoy_std_dev=. if over_rtg_yoy==.
-
-gen yoy_zscore = (over_rtg_yoy - yoy_mean) / yoy_std_dev
-
-*	Histogram
-histogram yoy_zscore, bin(100) percent normal ///
-	xti("Z-score") xlab(-4(1)4) scheme(plotplain)
-
-***	Remove firms with only two observations on year-on-year change
-gen ch1 = (over_rtg_yoy!=.)
-bysort cusip_n: egen ch2=total(ch1)
-replace yoy_zscore=. if ch2==2
-
-drop ch1 ch2
-
-*	Histogram
-histogram yoy_zscore, bin(100) percent normal ///
-	xti("Z-score") xlab(-4(1)4) scheme(plotplain)
-	
-
-*	Example
-scatter over_rtg_yoy year if cusip8=="00103079", ///
-	xti("Year") ///
-	yline(1.974611, lstyle(solid)) ///
-	ti("Jyske Bank A/S year-on-year change in overall rating.") ///
-	subti("Solid line is average year-on-year change for the firm." ///
-	"Treatment at -2 z-score occurs in 2014.")
-	
-*	Treatment indicators
-gen trt1pos = (yoy_zscore>1 & yoy_zscore!=.)
-gen trt1neg = (yoy_zscore<-1 & yoy_zscore!=.)	
-gen trt2pos = (yoy_zscore>2 & yoy_zscore!=.)
-gen trt2neg = (yoy_zscore<-2 & yoy_zscore!=.)
-gen trt3pos = (yoy_zscore>3 & yoy_zscore!=.)
-gen trt3neg = (yoy_zscore<-3 & yoy_zscore!=.)
-
-
-
-
-/*	THESE ARE NOT CORRECT ZSCORE CALCULATIONS
-
-gen zscore = over_rtg_yoy/sdw	/*	This is not how to calculate a zscore	*/
-bysort zscore: gen N=_N
-tab N, sort
-/*
-          N |      Freq.     Percent        Cum.
-------------+-----------------------------------
-     135667 |    135,667       76.26       76.26
-          1 |     40,799       22.93       99.19
-        457 |        457        0.26       99.45
-        393 |        393        0.22       99.67
-        317 |        317        0.18       99.85
-        100 |        100        0.06       99.91
-         71 |         71        0.04       99.95
-          2 |         28        0.02       99.96
-         21 |         21        0.01       99.97
-         18 |         18        0.01       99.98
-         14 |         14        0.01       99.99
-          7 |          7        0.00       99.99
-          5 |          5        0.00      100.00
-          4 |          4        0.00      100.00
-------------+-----------------------------------
-      Total |    177,901      100.00
-
-N = 457 and N = 317 are the problem.
-	  */
-gen ch1=(N==457)
-replace ch1=1 if N==317
-bysort cusip: egen ch2=max(ch1)
-
-*For some reason, the problem clusters in 2017
-tab year if ch1==1
-/*
- (KLD) Year |      Freq.     Percent        Cum.
-------------+-----------------------------------
-       2009 |          5        0.65        0.65
-       2010 |         34        4.39        5.04
-       2011 |         21        2.71        7.75
-       2012 |          7        0.90        8.66
-       2013 |         14        1.81       10.47
-       2014 |          9        1.16       11.63
-       2015 |          4        0.52       12.14
-       2016 |          8        1.03       13.18
-       2017 |        672       86.82      100.00
-------------+-----------------------------------
-      Total |        774      100.00
-*/
-
-*	Z-score for deviation of over_rtg compared to within-firm standard deviation
-histogram zscore, bin(100) percent normal ///
-	scheme(plotplain) ///
-	xti("") ///
-	ti("Number of standard deviations from the within-firm mean" "for each year-on-year change in overall rating") ///
-	xline(-4 -3 -2 -1 0 1 2 3 4) ///
-	xlab(-4(1)4)
-
-*	 Table of descriptive statistics for treatment variables
-tab trt1_sdw_pos
-tab trt1_sdw_neg
-tab trt2_sdw_pos
-tab trt2_sdw_neg
-tab trt3_sdw_pos
-tab trt3_sdw_neg
-
-
-
-*	Drop firms with problematic zscores resulting from only 2 observations in the data
-foreach variable of varlist trt1_sdw_pos trt1_sdw_neg trt2_sdw_pos ///
-	trt2_sdw_neg trt3_sdw_pos trt3_sdw_neg {
-	replace `variable'=. if N==457
-	replace `variable'=. if N==317
-	replace zscore=. if N==457
-	replace zscore=. if N==317
-}
-
-histogram zscore, bin(100) percent normal ///
-	scheme(plotplain) ///
-	xti("") ///
-	xline(-4 -3 -2 -1 0 1 2 3 4) ///
-	xlab(-4(1)4)
-
-*	Table of descriptive statistics for treatment variables
-tab trt1_sdw_pos
-tab trt1_sdw_neg
-tab trt2_sdw_pos
-tab trt2_sdw_neg
-tab trt3_sdw_pos
-tab trt3_sdw_neg	
-
-*/
-	
-***	Keep only years with CSRHub data
-drop if year>2017
-drop if year<2008
-
-compress
 
 
 
