@@ -581,83 +581,58 @@ label var Frevt_yoy "Next year revt - current year revt"
 
 ///	3 STANDARD DEVIATION
 ***	Positive
-capt n drop ps
-teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq), ///
-	osample(ps)
-teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if ps==0
+forvalues neighbors = 1/10 {
+	capt n drop ps*
+	capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq), ///
+		osample(ps) nneighbor(`neighbors')
+	capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
+		if ps==0, nneighbor(`neighbors')
+}
 
 ***	Negative
+forvalues neighbors = 1/10 {
+	capt n drop ps
+	capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq), ///
+		osample(ps) nneighbor(`neighbors')
+	capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq) ///
+		if ps==0, nneighbor(`neighbors')
+}
 
-
+///	2 STANDARD DEVIATIONS
 ***	Positive
+forvalues neighbors = 1/10 {
+	capt n drop ps*
+	capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq), ///
+		osample(ps) nneighbor(`neighbors')
+	capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) ///
+		if ps==0, nneighbor(`neighbors')
+}
 
-*	trt1_sdw_pos
-capt n drop prop*
-capt n teffects psmatch (Frevt_yoy) (trt1_sdw_pos dltt at age emp tobinq sic2division), ///
-	osample(prop1)
-
-*	trt2_sdw_pos
-drop prop*
-capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq sic2division), ///
-	osample(prop1)
-capt n teffects psmatch (Frevt_yoy) (trt2_sdw_pos dltt at age emp tobinq sic2division) ///
-	if prop1 == 0
-
-*	trt3_sdw_pos
-drop prop*
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_pos dltt at age emp tobinq sic2division), ///
-	osample(prop1)
-
-	
 ***	Negative
-*	trt1_sdw_neg
-capt n drop prop*
-capt n teffects psmatch (Frevt_yoy) (trt1_sdw_neg dltt at age emp tobinq sic2division), ///
-	osample(prop1)
-	
-*	trt2_sdw_neg 
-drop prop*
-capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq sic2division), ///
-	osample(prop1)
-capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq sic2division) ///
-	if prop1 == 0
+forvalues neighbors = 1/10 {
+	capt n drop ps
+	capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq), ///
+		osample(ps) nneighbor(`neighbors')
+	capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) ///
+		if ps==0, nneighbor(`neighbors')
+}
 
-***	trt2_sdw_neg 
-capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq sic2division), ///
-	osample(prop1)
-capt n teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq sic2division) ///
-	if prop1 == 0
+///	1 STANDARD DEVIATION
+***	Positive
+forvalues neighbors = 1/10 {
+	capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq), ///
+		nneighbor(`neighbors')
+}
 
-***	trt3_sdw_neg 
-drop prop*
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq sic2division), ///
-	osample(prop1)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq sic2division) ///
-	if prop1 == 0
+***	Negative
+forvalues neighbors = 1/10 {
+	capt n drop ps
+	capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq), ///
+		osample(ps) nneighbor(`neighbors')
+	capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) ///
+		if ps==0, nneighbor(`neighbors')
+}
 
-
-
-	
-	
-						***===============================***
-						*	NEAREST NEIGHBORS MATCHING		*
-						***===============================***		
-///	 NEAREST NEIGHBORS MATCHING WITH EXACT YEAR MATCH TO AVOID MATCHING FIRMS TOGETHER
-teffects nnmatch (revtyoy2 dltt age emp tobinq) (trt2_sdw_pos), ///
-	biasadj(dltt age emp tobinq) ematch(year) osample(ch1)
-
-teffects nnmatch (revtyoy2 dltt age emp tobinq) (trt2_sdw_pos), ///
-	biasadj(dltt age emp tobinq) ematch(year) osample(ch2)
-
-teffects nnmatch (revtyoy2 dltt age emp tobinq) (trt2_sdw_pos) if ch1==0 & ch2==0, ///
-	biasadj(dltt age emp tobinq) ematch(year) osample(ch3)
-
-teffects nnmatch (revtyoy2 dltt age emp tobinq) (trt2_sdw_pos) if ch1==0 & ch2==0 & ch3==0, ///
-	biasadj(dltt age emp tobinq) ematch(year)
-						
-						
-						
 						
 						
 
