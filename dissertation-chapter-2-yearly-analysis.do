@@ -47,6 +47,17 @@ label var assume_xrd "(CSTAT) =1 if missing xrd assumed 0"
 
 						***===============================***
 						*									*
+						*  		  GENERATE VARIABLES		*
+						*									*
+						***===============================***	
+///	GENERATE YEAR-ON-YEAR REVENUE CHANGE
+capt n gen Frevt_yoy = F.revt-revt
+label var Frevt_yoy "Next year revt - current year revt"
+
+
+
+						***===============================***
+						*									*
 						*  TREATMENT VARIABLE DESCRIPTIVES	*
 						*									*
 						***===============================***	
@@ -88,175 +99,256 @@ tab year trt3_sdw_neg if mark1==1
 -----------+----------------------+----------
      Total |    12,743         39 |    12,782 
 */
-
-
 drop mark1
-						
+
+
+
+						***===========================***
+						*								*
+						*	PROPENSITY SCORE MATCHING 	*
+						*		ALL YEARS COMBINED		*
+						*								*
+						***===========================***
+/*		Propensity model: treatment = f(dltt at age emp tobinq)	*/
+///	3 STANDARD DEVIATION
+***	Positive
+forvalues neighbors = 1/10 {
+	capt n drop ps*
+	capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq), ///
+		osample(ps) nneighbor(`neighbors')
+	capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
+		if ps==0, nneighbor(`neighbors')
+}
+
+***	Negative
+forvalues neighbors = 1/10 {
+	capt n drop ps
+	capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq), ///
+		osample(ps) nneighbor(`neighbors')
+	capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq) ///
+		if ps==0, nneighbor(`neighbors')
+}
+
+///	2 STANDARD DEVIATIONS
+***	Positive
+forvalues neighbors = 1/10 {
+	capt n drop ps*
+	capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq), ///
+		osample(ps) nneighbor(`neighbors')
+	capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) ///
+		if ps==0, nneighbor(`neighbors')
+}
+
+***	Negative
+forvalues neighbors = 1/10 {
+	capt n drop ps
+	capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq), ///
+		osample(ps) nneighbor(`neighbors')
+	capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) ///
+		if ps==0, nneighbor(`neighbors')
+}
+
+///	1 STANDARD DEVIATION
+***	Positive
+forvalues neighbors = 1/10 {
+	capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq), ///
+		nneighbor(`neighbors')
+}
+
+***	Negative
+forvalues neighbors = 1/10 {
+	capt n drop ps
+	capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq), ///
+		osample(ps) nneighbor(`neighbors')
+	capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) ///
+		if ps==0, nneighbor(`neighbors')
+}
+
+
+
 						***===========================***
 						*								*
 						*	PROPENSITY SCORE MATCHING 	*
 						*		INDIVIDUAL YEARS		*
+						*			DV:	Revenue			*
 						*								*
 						***===========================***	
-/*		Propensity model: treatment = f(dltt at age emp tobinq)	*/
-
-///	GENERATE YEAR-ON-YEAR REVENUE CHANGE
-capt n gen Frevt_yoy = F.revt-revt
-label var Frevt_yoy "Next year revt - current year revt"
-
-/*	NOT DONE
-
 ///	3 STANDARD DEVIATIONS
+***	3 Standard Deviation Positive
+*	Insufficient number of treatment events for several years
 capt n drop ps2*
 capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
-	if year == 2009
-	osample(ps2009)
-	
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2009 & ps2009==0
+	if year == 2009, osample(ps2009)
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
+	if year == 2009 & ps2009==0, osample(ps2009_2)
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
+	if year == 2009 & ps2009==0 & ps2009_2==0
 estimates store ps2009
 
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2010, ///
-	osample(ps2010)
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2010 & ps2010==0
-estimates store ps2010	
-
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2011, ///
-	osample(ps2011)
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2011 & ps2011==0
-estimates store ps2011
-
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2012, ///
-	osample(ps2012)
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2012 & ps2012==0
-estimates store ps2012
-
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2013, ///
-	osample(ps2013)
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2013 & ps2013==0
-estimates store ps2013
-
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2014, ///
-	osample(ps2014)
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2014 & ps2014==0
-estimates store ps2014
-
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2015, ///
-	osample(ps2015)
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
-	if year == 2015 & ps2015==0
-estimates store ps2015
-
-capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) if year == 2016, ///
-	osample(ps2016)
-estimates store ps2016
-
-estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
-	b se p ///
-	stats(N)
-	
-
-
-
-***	3 sd negative
 capt n drop ps2*
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2009, ///
-	osample(ps2009)
-estimates store ps2009
-
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2010, ///
-	osample(ps2010)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
+	if year == 2010, osample(ps2010)
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
 	if year == 2010 & ps2010==0
-estimates store ps2010		
+estimates store ps2010
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2011, ///
-	osample(ps2011)
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
+	if year == 2011, osample(ps2011)
 estimates store ps2011
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2012, ///
-	osample(ps2012)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
-	if year == 2012 & ps2012==0
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
+	if year == 2012, osample(ps2012)
 estimates store ps2012
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2013, ///
-	osample(ps2013)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
-	if year == 2013 & ps2013==0
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
+	if year == 2013, osample(ps2013)
 estimates store ps2013
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2014, ///
-	osample(ps2014)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
-	if year == 2014 & ps2014==0
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
+	if year == 2014, osample(ps2014)
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
+	if year == 2014 & ps2014==0, osample(ps2014_2)
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
+	if year == 2014 & ps2014==0 & ps2014_2==0
 estimates store ps2014
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2015, ///
-	osample(ps2015)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
-	if year == 2015 & ps2015==0
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
+	if year == 2015, osample(ps2015)
 estimates store ps2015
 
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) if year == 2016, ///
-	osample(ps2016)
-capt n teffects psmatch (Frevt_yoy) (trt3_sdw_neg dltt at age emp tobinq) ///
-	if year == 2016 & ps2016 == 0
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
+	if year == 2016, osample(ps2016)
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
+	if year == 2016 & ps2016==0, osample(ps2016_2)
+capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq ap) ///
+	if year == 2016 & ps2016==0 & ps2016_2==0
+estimates store ps2016
+
+estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
+	b se p ///
+	stats(N)
+	
+***	3 Standard Deviation Negative
+*	Insufficient number of treatment events for several years
+est sto clear
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2009, osample(ps2009)
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2009 & ps2009==0, osample(ps2009_2)
+estimates store ps2009
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2010, osample(ps2010)
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2010 & ps2010==0
+estimates store ps2010
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2011, osample(ps2011)
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2011 & ps2011==0, osample(ps2011_2)
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2011 & ps2011==0 & ps2011_2==0
+estimates store ps2011
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2012, osample(ps2012)
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2012 & ps2012==0, osample(ps2012_2)
+estimates store ps2012
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2013, osample(ps2013)
+estimates store ps2013
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2014, osample(ps2014)
+estimates store ps2014
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2015, osample(ps2015)
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2015 & ps2015==0, osample(ps2015_2)
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2015 & ps2015==0 & ps2015_2==0
+estimates store ps2015
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq ap) ///
+	if year == 2016, osample(ps2016)
 estimates store ps2016
 
 estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
 	b se p ///
 	stats(N)
 
-*/
 
+
+	
 ///	2 STANDARD DEVIATIONS
-***	Positive
+***	2 Standard Deviation Positive
+est sto clear
+
 capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) ///
 	if year == 2009
-	
 estimates store ps2009
 
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) if year == 2010, ///
 	osample(ps2010)
 estimates store ps2010	
 
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) if year == 2011, ///
 	osample(ps2011)
 capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) ///
 	if year == 2011 & ps2011==0
 estimates store ps2011
 
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) if year == 2012, ///
 	osample(ps2012)
 capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) ///
 	if year == 2012 & ps2012==0
 estimates store ps2012
 
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) if year == 2013, ///
 	osample(ps2013)
 capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) ///
 	if year == 2013 & ps2013==0
 estimates store ps2013
 
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) if year == 2014, ///
 	osample(ps2014)
 capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) ///
 	if year == 2014 & ps2014==0
 estimates store ps2014
 
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) if year == 2015, ///
 	osample(ps2015)
 capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) ///
 	if year == 2015 & ps2015==0
 estimates store ps2015
 
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) if year == 2016, ///
 	osample(ps2016)
 estimates store ps2016
@@ -266,50 +358,57 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
 	stats(N)
 	
 
-***	Negative
+***	2 Standard Deviation Negative
+est sto clear
+
 capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) if year == 2009, ///
 	osample(ps2009)
 estimates store ps2009
 
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) if year == 2010, ///
 	osample(ps2010)
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) ///
 	if year == 2010 & ps2010==0
 estimates store ps2010		
 
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) if year == 2011, ///
 	osample(ps2011)
 estimates store ps2011
 
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) if year == 2012, ///
 	osample(ps2012)
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) ///
 	if year == 2012 & ps2012==0
 estimates store ps2012
 
-***	Not enough treatment events for the 2013 estimation
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) if year == 2013, ///
 	osample(ps2013)
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) ///
-	if year == 2013 & ps2013==0, ///
-	osample(ps2013_2)
+	if year == 2013 & ps2013==0, osample(ps2013_2)
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) ///
 	if year == 2013 & ps2013==0 & ps2013_2==0
 estimates store ps2013
 
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) if year == 2014, ///
 	osample(ps2014)
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) ///
 	if year == 2014 & ps2014==0
 estimates store ps2014
 
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) if year == 2015, ///
 	osample(ps2015)
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) ///
 	if year == 2015 & ps2015==0
 estimates store ps2015
 
+capt n drop ps2*
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) if year == 2016, ///
 	osample(ps2016)
 capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) ///
@@ -323,57 +422,127 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
 
 
 
-///	1 SDW
+///	1 STANDARD DEVIATION
+***	1 Standard Deviation Positive
+est sto clear
+
 capt n drop ps2*
-capt n drop mark
-mark mark1
-markout mark1 revt trt1_sdw_pos dltt at age emp tobinq xad xrd
-tab year trt1_sdw_pos if mark1==1
-/*
-           |   Treatment = 1 if
-           | year-on-year over_rtg
-           |  > 1 std dev of sdw
-           |     and positive
-(KLD) Year |         0          1 |     Total
------------+----------------------+----------
-      2009 |       675         73 |       748 
-      2010 |     1,010        194 |     1,204 
-      2011 |     1,359        197 |     1,556 
-      2012 |     1,928        151 |     2,079 
-      2013 |     1,224      1,126 |     2,350 
-      2014 |     1,998        628 |     2,626 
-      2015 |     2,680         45 |     2,725 
-      2016 |     2,727        203 |     2,930 
-      2017 |     2,701        151 |     2,852 
------------+----------------------+----------
-     Total |    16,302      2,768 |    19,070
-*/
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) ///
+	if year == 2009
+estimates store ps2009
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) if year == 2010, ///
+	osample(ps2010)
+estimates store ps2010	
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) if year == 2011, ///
+	osample(ps2011)
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) ///
+	if year == 2011 & ps2011==0
+estimates store ps2011
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) if year == 2012, ///
+	osample(ps2012)
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) ///
+	if year == 2012 & ps2012==0
+estimates store ps2012
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) if year == 2013, ///
+	osample(ps2013)
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) ///
+	if year == 2013 & ps2013==0
+estimates store ps2013
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) if year == 2014, ///
+	osample(ps2014)
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) ///
+	if year == 2014 & ps2014==0
+estimates store ps2014
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) if year == 2015, ///
+	osample(ps2015)
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) ///
+	if year == 2015 & ps2015==0
+estimates store ps2015
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) if year == 2016, ///
+	osample(ps2016)
+capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq) ///
+	if year == 2016 & ps2016==0
+estimates store ps2016
+
+estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
+	b se p ///
+	stats(N)
+	
+
+***	1 Standard Deviation Negative
+est sto clear
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) if year == 2009, ///
+	osample(ps2009)
+estimates store ps2009
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) if year == 2010, ///
+	osample(ps2010)
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) ///
+	if year == 2010 & ps2010==0
+estimates store ps2010		
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) if year == 2011, ///
+	osample(ps2011)
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) ///
+	if year == 2011 & ps2011==0
+estimates store ps2011
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) if year == 2012, ///
+	osample(ps2012)
+estimates store ps2012
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) if year == 2013, ///
+	osample(ps2013)
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) ///
+	if year == 2013 & ps2013==0, osample(ps2013_2)
+estimates store ps2013
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) if year == 2014, ///
+	osample(ps2014)
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) ///
+	if year == 2014 & ps2014==0
+estimates store ps2014
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) if year == 2015, ///
+	osample(ps2015)
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) ///
+	if year == 2015 & ps2015==0
+estimates store ps2015
+
+capt n drop ps2*
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) if year == 2016, ///
+	osample(ps2016)
+capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) ///
+	if year == 2016 & ps2016 == 0
+estimates store ps2016
+
+estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
+	b se p ///
+	stats(N)
 
 
-///	DV: Same year revenue
-
-/*	LOOP STRUCTURES FOR LATER USE
-forvalues neighbors = 1(1)10 {
-teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq xad xrd) ///
-	if year == 2009, ///
-	nneighbor(`neighbors')
-}
-*/ 
-
-capt n drop ps2* 
-capt n drop obs
-capt n drop ps0 ps1
-
-teffects psmatch (Frevt_yoy) (trt2_sdw_neg dltt at age emp tobinq xad xrd) ///
-	if year == 2009, nneighbor(5)
-
-logistic trt1_sdw_pos dltt at age emp tobinq xad xrd if year==2009
-
-* Calculate propensity score (see https://www.ssc.wisc.edu/sscc/pubs/stata_psmatch.htm)
-* Propensity scores dependent on the sort order of the data
-gen obs=_n
-sort obs
-predict ps0 ps1, ps
 
 
 
@@ -384,18 +553,13 @@ predict ps0 ps1, ps
 
 
 
-*	DV: Next year revenue
-/*	LOOP STRUCTURES FOR LATER USE
-forvalues year = 2009(1)2017 {
-	forvalues neighbors = 1(1)10 {
-		display "Year = `year' and Neighbors = `neighbors'"
-		teffects psmatch (Frevt) (trt1_sdw_pos dltt at age emp tobinq xad xrd) ///
-			if year == `year', ///
-			nneighbor(`neighbors')
-		}
-}
-*/
-
+						***===========================***
+						*								*
+						*	PROPENSITY SCORE MATCHING 	*
+						*		INDIVIDUAL YEARS		*
+						*	  DV: Next Year Revenue		*
+						*								*
+						***===========================***
 capt n teffects psmatch (Frevt_yoy) (trt1_sdw_pos dltt at age emp tobinq) if year == 2009, ///
 	osample(ps2009)
 
@@ -568,70 +732,7 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
 	
 	
 	
-						***===========================***
-						*								*
-						*	PROPENSITY SCORE MATCHING 	*
-						*		ALL YEARS COMBINED		*
-						*								*
-						***===========================***
-///	GENERATE YEAR-ON-YEAR REVENUE CHANGE
-capt n gen Frevt_yoy = F.revt-revt
-label var Frevt_yoy "Next year revt - current year revt"
 
-
-///	3 STANDARD DEVIATION
-***	Positive
-forvalues neighbors = 1/10 {
-	capt n drop ps*
-	capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq), ///
-		osample(ps) nneighbor(`neighbors')
-	capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
-		if ps==0, nneighbor(`neighbors')
-}
-
-***	Negative
-forvalues neighbors = 1/10 {
-	capt n drop ps
-	capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq), ///
-		osample(ps) nneighbor(`neighbors')
-	capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq) ///
-		if ps==0, nneighbor(`neighbors')
-}
-
-///	2 STANDARD DEVIATIONS
-***	Positive
-forvalues neighbors = 1/10 {
-	capt n drop ps*
-	capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq), ///
-		osample(ps) nneighbor(`neighbors')
-	capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) ///
-		if ps==0, nneighbor(`neighbors')
-}
-
-***	Negative
-forvalues neighbors = 1/10 {
-	capt n drop ps
-	capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq), ///
-		osample(ps) nneighbor(`neighbors')
-	capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) ///
-		if ps==0, nneighbor(`neighbors')
-}
-
-///	1 STANDARD DEVIATION
-***	Positive
-forvalues neighbors = 1/10 {
-	capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq), ///
-		nneighbor(`neighbors')
-}
-
-***	Negative
-forvalues neighbors = 1/10 {
-	capt n drop ps
-	capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq), ///
-		osample(ps) nneighbor(`neighbors')
-	capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) ///
-		if ps==0, nneighbor(`neighbors')
-}
 
 						
 						
