@@ -902,36 +902,20 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 						
 						
 						
-/*						***===========================***
+						***===========================***
 						*								*
 						*		DIF-IN-DIFS 			*
-						*								*
-						***===========================***	
-***===============================***
-*  CENTERING TREATED FIRMS IN TIME	*	
-***===============================***
-///	LOAD DATA						
-use data/csrhub-kld-cstat-year-level-with-treatment-variables.dta, clear
-est clear
+						*		DV: Same year revenue	*
+						***===========================***
+///	LOAD DATA
+use data/matched-csrhub-cstat-2008-2017, clear
 
-///	KEEP IN YEARS WITH CSRHUB AND CSTAT DATA
-keep if revt!=.
-keep if over_rtg!=.
-
-/// SET PANEL
-encode cusip, gen(cusip_n)
-xtset cusip_n year, y
-
-///	GENERATE YEAR-ON-YEAR REVENUE CHANGE
-gen revt_yoy = revt - l.revt
-label var revt_yoy "Year-on-year change in revenue (revt - previous year revt)" 
-
-///	CENTER ON TREATMENT YEAR
+///	CENTER FIRMS IN TIME RELATIVE TO TREATMENT EVENTS
 ***	Generate period variable
 gen period = 0 if trt2_sdw_neg==1
 label var period "Years since treatment"
-bysort cusip_n: gen yeartreat = year if period == 0
-bysort cusip_n: egen yeartreatmax = max(yeartreat)
+bysort gvkey_num: gen yeartreat = year if period == 0
+bysort gvkey_num: egen yeartreatmax = max(yeartreat)
 replace period = year - yeartreatmax
 drop yeartreat yeartreatmax
 
