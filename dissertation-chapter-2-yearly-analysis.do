@@ -888,8 +888,61 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 	stats(N)
 
 	
-	
+						***===========================***
+						*		DIF-IN-DIFS 			*
+						*		DV: Same year revenue	*
+						*		Each year				*
+						***===========================***
+/*	WORKFLOW (See https://dss.princeton.edu/training/)
+*/
+						
+/// LOAD DATA
+use data/matched-csrhub-cstat-2008-2017, clear
 
+///	LOOP THROUGH EACH TREATMENT AND YEAR
+
+foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
+	trt1_sdw_pos trt1_sdw_neg {
+	forvalues year = 2009/2017 {
+		display "`variable' for `year'"
+		
+		capt n drop time treatyear treated
+		
+		*	Create dummy to indicate year of treatment
+		gen time = (year>=`year') & !missing(year)
+		
+		*	Create dummy identifying treatment and control groups
+			/*	Assumes all firms not treated in this year are valid controls	*/
+		gen treatyear = (year==`year') & (`variable'==1)
+		bysort gvkey_num: egen treated = max(treatyear) if `variable'!=.
+
+		*	Estimate
+		reg revt i.time##i.treated, r
+		
+		*	Store estimates
+		estimates store est_`variable'_`year'
+	}
+}
+
+///	Visualize
+***	Coefficient plots
+coefplot est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 est_trt3_sdw_pos_2013 est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 est_trt3_sdw_pos_2016 est_trt3_sdw_pos_2017, ///
+	xline(0)
+	
+coefplot est_trt3_sdw_neg_2009 est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 est_trt3_sdw_neg_2012 est_trt3_sdw_neg_2013 est_trt3_sdw_neg_2014 est_trt3_sdw_neg_2015 est_trt3_sdw_neg_2016 est_trt3_sdw_neg_2017, ///
+	xline(0)
+	
+coefplot est_trt2_sdw_pos_2009 est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 est_trt2_sdw_pos_2012 est_trt2_sdw_pos_2013 est_trt2_sdw_pos_2014 est_trt2_sdw_pos_2015 est_trt2_sdw_pos_2016 est_trt2_sdw_pos_2017, ///
+	xline(0)
+	
+coefplot est_trt2_sdw_neg_2009 est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 est_trt2_sdw_neg_2012 est_trt2_sdw_neg_2013 est_trt2_sdw_neg_2014 est_trt2_sdw_neg_2015 est_trt2_sdw_neg_2016 est_trt2_sdw_neg_2017, ///
+	xline(0)
+	
+coefplot est_trt1_sdw_pos_2009 est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 est_trt1_sdw_pos_2012 est_trt1_sdw_pos_2013 est_trt1_sdw_pos_2014 est_trt1_sdw_pos_2015 est_trt1_sdw_pos_2016 est_trt1_sdw_pos_2017, ///
+	xline(0)
+	
+coefplot est_trt1_sdw_neg_2009 est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 est_trt1_sdw_neg_2012 est_trt1_sdw_neg_2013 est_trt1_sdw_neg_2014 est_trt1_sdw_neg_2015 est_trt1_sdw_neg_2016 est_trt1_sdw_neg_2017, ///
+	xline(0)
 	
 	
 	
@@ -898,8 +951,43 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 						*		DV: Same year revenue	*
 						*		Centered on treatment	*
 						***===========================***
+/*	METHODOLOGICAL CONSIDERATIONS
+	
+	Treatment does not occur in the same year for all treated firms. 
+*/
+
 ///	LOAD DATA
 use data/matched-csrhub-cstat-2008-2017, clear
+
+***	Generate treatment period variables
+br firm year
+
+*	Identify treatment yearas
+gen trtper = 0 if trt2_sdw_neg==1
+label var trtper "Years since treatment"
+
+bysort gvkey_num: gen yeartreat = year if trtper == 0
+bysort gvkey_num: egen yeartreatmax = min(yeartreat)
+
+*	Create difference from treatment year
+replace trtper = year - yeartreatmax
+replace trtper=. if trt2_sdw_neg==.
+
+*	Drop unneeded variables
+drop yeartreat yeartreatmax
+
+
+graph box revt, over(trtper)
+gen logrev=log(revt)
+graph box logrev, over(trtper)
+
+
+
+
+
+
+
+
 
 ///	CENTER FIRMS IN TIME RELATIVE TO TREATMENT EVENTS
 ***	Generate treatment period variable
@@ -913,20 +1001,30 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	drop yeartreat yeartreatmax
 	replace `variable'_trtper=. if trt2_sdw_neg==.
 }
-	
 
 
 
+
+
+
+
+
+
+
+
+
+
+///	VISUALIZATION
 ***	Visualize
 *	Line
-bysort period: egen meanrevt = mean(revt)
-twoway (line meanrevt period, sort xline(0))
+bysort trt2_sdw_pos_trtper: egen meanrevt = mean(revt)
+twoway (line meanrevt trt2_sdw_pos_trtper, sort xline(0))
 
-bysort period: egen medrevt = median(revt)
-twoway (line medrevt period, sort xline(0))
+bysort trt2_sdw_pos_trtper: egen medrevt = median(revt)
+twoway (line medrevt trt2_sdw_pos_trtper, sort xline(0))
 
 *	Boxplot
-graph box revt, over(period)
+graph box revt, over(trt2_sdw_pos_trtper)
 
 
 ///	ESTIMATION
