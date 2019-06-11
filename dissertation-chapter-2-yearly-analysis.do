@@ -893,31 +893,28 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 	
 	
 	
-	
-
-
-						
-						
-
-						
-						
-						
 						***===========================***
-						*								*
 						*		DIF-IN-DIFS 			*
 						*		DV: Same year revenue	*
+						*		Centered on treatment	*
 						***===========================***
 ///	LOAD DATA
 use data/matched-csrhub-cstat-2008-2017, clear
 
 ///	CENTER FIRMS IN TIME RELATIVE TO TREATMENT EVENTS
-***	Generate period variable
-gen period = 0 if trt2_sdw_neg==1
-label var period "Years since treatment"
-bysort gvkey_num: gen yeartreat = year if period == 0
-bysort gvkey_num: egen yeartreatmax = max(yeartreat)
-replace period = year - yeartreatmax
-drop yeartreat yeartreatmax
+***	Generate treatment period variable
+foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
+	trt1_sdw_pos trt1_sdw_neg {
+	gen `variable'_trtper = 0 if `variable'==1
+	label var `variable'_trtper "Years since treatment"
+	bysort gvkey_num: gen yeartreat = year if `variable'_trtper == 0
+	bysort gvkey_num: egen yeartreatmax = max(yeartreat)
+	replace `variable'_trtper = year - yeartreatmax
+	drop yeartreat yeartreatmax
+	replace `variable'_trtper=. if trt2_sdw_neg==.
+}
+	
+
 
 
 ***	Visualize
@@ -931,7 +928,12 @@ twoway (line medrevt period, sort xline(0))
 *	Boxplot
 graph box revt, over(period)
 
-	
+
+///	ESTIMATION
+
+reg revt period
+
+
 
 	
 	
