@@ -889,9 +889,10 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 
 	
 						***===========================***
+						*								*
 						*		DIF-IN-DIFS 			*
 						*		DV: Same year revenue	*
-						*		Each year				*
+						*								*
 						***===========================***
 /*	WORKFLOW (See https://dss.princeton.edu/training/)
 */
@@ -899,7 +900,57 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 /// LOAD DATA
 use data/matched-csrhub-cstat-2008-2017, clear
 
-///	LOOP THROUGH EACH TREATMENT AND YEAR
+///	REVENUE IN SAME YEAR AS TREATMENT
+foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
+	trt1_sdw_pos trt1_sdw_neg {
+	forvalues year = 2009/2017 {
+		display "`variable' for `year'"
+		
+		capt n drop time treatyear treated
+		
+		*	Create dummy to indicate year of treatment
+		gen time = (year>=`year') & !missing(year)
+		label var time "Post-treatment"
+		
+		*	Create dummy identifying treatment and control groups
+			/*	Assumes all firms not treated in this year are valid controls	*/
+		gen treatyear = (year==`year') & (`variable'==1)
+		bysort gvkey_num: egen treated = max(treatyear) if `variable'!=.
+		label var treated "Treated"
+
+		*	Estimate
+		reg revt i.time##i.treated, r
+		
+		*	Store estimates
+		estimates store est_`variable'_`year'
+	}
+}
+
+***	Visualize
+*	Coefficient plots
+coefplot est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 est_trt3_sdw_pos_2013 est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 est_trt3_sdw_pos_2016 est_trt3_sdw_pos_2017, ///
+	xline(0) ///
+	name(g1a, replace) ///
+	title("TRT3 POS")
+	
+coefplot est_trt3_sdw_neg_2009 est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 est_trt3_sdw_neg_2012 est_trt3_sdw_neg_2013 est_trt3_sdw_neg_2014 est_trt3_sdw_neg_2015 est_trt3_sdw_neg_2016 est_trt3_sdw_neg_2017, ///
+	xline(0)
+	
+coefplot est_trt2_sdw_pos_2009 est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 est_trt2_sdw_pos_2012 est_trt2_sdw_pos_2013 est_trt2_sdw_pos_2014 est_trt2_sdw_pos_2015 est_trt2_sdw_pos_2016 est_trt2_sdw_pos_2017, ///
+	xline(0)
+	
+coefplot est_trt2_sdw_neg_2009 est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 est_trt2_sdw_neg_2012 est_trt2_sdw_neg_2013 est_trt2_sdw_neg_2014 est_trt2_sdw_neg_2015 est_trt2_sdw_neg_2016 est_trt2_sdw_neg_2017, ///
+	xline(0)
+	
+coefplot est_trt1_sdw_pos_2009 est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 est_trt1_sdw_pos_2012 est_trt1_sdw_pos_2013 est_trt1_sdw_pos_2014 est_trt1_sdw_pos_2015 est_trt1_sdw_pos_2016 est_trt1_sdw_pos_2017, ///
+	xline(0)
+	
+coefplot est_trt1_sdw_neg_2009 est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 est_trt1_sdw_neg_2012 est_trt1_sdw_neg_2013 est_trt1_sdw_neg_2014 est_trt1_sdw_neg_2015 est_trt1_sdw_neg_2016 est_trt1_sdw_neg_2017, ///
+	xline(0)
+
+///	REVENUE IN YEAR AFTER TREATMENT
+xtset
+gen frevt=f.revt
 
 foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
@@ -917,35 +968,36 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		bysort gvkey_num: egen treated = max(treatyear) if `variable'!=.
 
 		*	Estimate
-		reg revt i.time##i.treated, r
+		reg frevt i.time##i.treated, r
 		
 		*	Store estimates
-		estimates store est_`variable'_`year'
+		estimates store est_f_`variable'_`year'
 	}
 }
 
-///	Visualize
-***	Coefficient plots
-coefplot est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 est_trt3_sdw_pos_2013 est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 est_trt3_sdw_pos_2016 est_trt3_sdw_pos_2017, ///
+***	Visualize
+*	Coefficient plots
+coefplot est_f_trt3_sdw_pos_2009 est_f_trt3_sdw_pos_2010 est_f_trt3_sdw_pos_2011 est_f_trt3_sdw_pos_2012 est_f_trt3_sdw_pos_2013 est_f_trt3_sdw_pos_2014 est_f_trt3_sdw_pos_2015 est_f_trt3_sdw_pos_2016 est_f_trt3_sdw_pos_2017, ///
+	xline(0) ///
+	name(g1b, replace) ///
+	title("TRT3 POS, Forward")
+	
+coefplot est_f_trt3_sdw_neg_2009 est_f_trt3_sdw_neg_2010 est_f_trt3_sdw_neg_2011 est_f_trt3_sdw_neg_2012 est_f_trt3_sdw_neg_2013 est_f_trt3_sdw_neg_2014 est_f_trt3_sdw_neg_2015 est_f_trt3_sdw_neg_2016 est_f_trt3_sdw_neg_2017, ///
 	xline(0)
 	
-coefplot est_trt3_sdw_neg_2009 est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 est_trt3_sdw_neg_2012 est_trt3_sdw_neg_2013 est_trt3_sdw_neg_2014 est_trt3_sdw_neg_2015 est_trt3_sdw_neg_2016 est_trt3_sdw_neg_2017, ///
+coefplot est_f_trt2_sdw_pos_2009 est_f_trt2_sdw_pos_2010 est_f_trt2_sdw_pos_2011 est_f_trt2_sdw_pos_2012 est_f_trt2_sdw_pos_2013 est_f_trt2_sdw_pos_2014 est_f_trt2_sdw_pos_2015 est_f_trt2_sdw_pos_2016 est_f_trt2_sdw_pos_2017, ///
 	xline(0)
 	
-coefplot est_trt2_sdw_pos_2009 est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 est_trt2_sdw_pos_2012 est_trt2_sdw_pos_2013 est_trt2_sdw_pos_2014 est_trt2_sdw_pos_2015 est_trt2_sdw_pos_2016 est_trt2_sdw_pos_2017, ///
+coefplot est_f_trt2_sdw_neg_2009 est_f_trt2_sdw_neg_2010 est_f_trt2_sdw_neg_2011 est_f_trt2_sdw_neg_2012 est_f_trt2_sdw_neg_2013 est_f_trt2_sdw_neg_2014 est_f_trt2_sdw_neg_2015 est_f_trt2_sdw_neg_2016 est_f_trt2_sdw_neg_2017, ///
 	xline(0)
 	
-coefplot est_trt2_sdw_neg_2009 est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 est_trt2_sdw_neg_2012 est_trt2_sdw_neg_2013 est_trt2_sdw_neg_2014 est_trt2_sdw_neg_2015 est_trt2_sdw_neg_2016 est_trt2_sdw_neg_2017, ///
+coefplot est_f_trt1_sdw_pos_2009 est_f_trt1_sdw_pos_2010 est_f_trt1_sdw_pos_2011 est_f_trt1_sdw_pos_2012 est_f_trt1_sdw_pos_2013 est_f_trt1_sdw_pos_2014 est_f_trt1_sdw_pos_2015 est_f_trt1_sdw_pos_2016 est_f_trt1_sdw_pos_2017, ///
 	xline(0)
 	
-coefplot est_trt1_sdw_pos_2009 est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 est_trt1_sdw_pos_2012 est_trt1_sdw_pos_2013 est_trt1_sdw_pos_2014 est_trt1_sdw_pos_2015 est_trt1_sdw_pos_2016 est_trt1_sdw_pos_2017, ///
+coefplot est_f_trt1_sdw_neg_2009 est_f_trt1_sdw_neg_2010 est_f_trt1_sdw_neg_2011 est_f_trt1_sdw_neg_2012 est_f_trt1_sdw_neg_2013 est_f_trt1_sdw_neg_2014 est_f_trt1_sdw_neg_2015 est_f_trt1_sdw_neg_2016 est_f_trt1_sdw_neg_2017, ///
 	xline(0)
-	
-coefplot est_trt1_sdw_neg_2009 est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 est_trt1_sdw_neg_2012 est_trt1_sdw_neg_2013 est_trt1_sdw_neg_2014 est_trt1_sdw_neg_2015 est_trt1_sdw_neg_2016 est_trt1_sdw_neg_2017, ///
-	xline(0)
-	
-	
-	
+
+
 						***===========================***
 						*		DIF-IN-DIFS 			*
 						*		DV: Same year revenue	*
@@ -953,54 +1005,83 @@ coefplot est_trt1_sdw_neg_2009 est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 est_t
 						***===========================***
 /*	METHODOLOGICAL CONSIDERATIONS
 	
-	Treatment does not occur in the same year for all treated firms. 
+	HOW TO HANDLE FIRMS THAT ARE NEVER TREATED? 
+	HOW CAN THEY BE USED IN ESTIMATION?
 */
 
 ///	LOAD DATA
 use data/matched-csrhub-cstat-2008-2017, clear
+xtset
 
-***	Generate treatment period variables
-br firm year
+///	GENERATE TREATMENT PERIOD VARIABLES TO CENTER FIRMS IN TIME
 
-*	Identify treatment yearas
-gen trtper = 0 if trt2_sdw_neg==1
-label var trtper "Years since treatment"
-
-bysort gvkey_num: gen yeartreat = year if trtper == 0
-bysort gvkey_num: egen yeartreatmax = min(yeartreat)
-
-*	Create difference from treatment year
-replace trtper = year - yeartreatmax
-replace trtper=. if trt2_sdw_neg==.
-
-*	Drop unneeded variables
-drop yeartreat yeartreatmax
-
-
-graph box revt, over(trtper)
-gen logrev=log(revt)
-graph box logrev, over(trtper)
-
-
-
-
-
-
-
-
-
-///	CENTER FIRMS IN TIME RELATIVE TO TREATMENT EVENTS
-***	Generate treatment period variable
 foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
-	gen `variable'_trtper = 0 if `variable'==1
-	label var `variable'_trtper "Years since treatment"
-	bysort gvkey_num: gen yeartreat = year if `variable'_trtper == 0
-	bysort gvkey_num: egen yeartreatmax = max(yeartreat)
-	replace `variable'_trtper = year - yeartreatmax
-	drop yeartreat yeartreatmax
-	replace `variable'_trtper=. if trt2_sdw_neg==.
+	
+	*	Generate years from treatment variable
+	gen `variable'_trtper = `variable'==1
+	label var `variable'_trtper "Years from treatment"
+	
+	*	Calculate years relative to first treatment event for firm
+	bysort gvkey_num: gen yeartreat = year if `variable'_trtper == 1
+	bysort gvkey_num: egen yeartreatmin = min(yeartreat)
+	replace `variable'_trtper = year - yeartreatmin
+	replace `variable'_trtper=. if `variable'==.
+	
+	*	Drop unneeded
+	drop yeartreat yeartreatmin
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///	VISUALIZATION
+***	Nominal DV
+
+*	Box plot
+graph box revt, over(trtper)
+
+*	Line graph
+bysort trtper: egen revt_mean=mean(revt) if trtper!=.
+bysort trtper: egen revt_med=median(revt) if trtper!=.
+tw (line revt_mean trtper, sort) (line revt_med trtper, sort), ///
+	ylabel() xline(0)
+
+	
+***	Inverse hyperbolic sine transformed DV
+*	See https://worthwhile.typepad.com/worthwhile_canadian_initi/2011/07/a-rant-on-inverse-hyperbolic-sine-transformations.html
+gen arcsinrevt=asinh(revt)
+label var arcsinrevt "Inverse hyperbolic sine transformation of revt"
+
+*	Box plot
+graph box arcsinrevt, over(trtper)
+	
+*	Line graph
+bysort trtper: egen arcsinrevt_mean=mean(arcsinrevt) if trtper!=.
+bysort trtper: egen arcsinrevt_med=median(arcsinrevt) if trtper!=.
+tw (line arcsinrevt_mean trtper, sort) (line arcsinrevt_med trtper, sort), ///
+	ylabel(8(1)12) xline(0)
+
+
+
+
+
+
+
+
+
 
 
 
