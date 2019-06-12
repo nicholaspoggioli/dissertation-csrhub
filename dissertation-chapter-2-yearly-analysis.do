@@ -901,6 +901,7 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 use data/matched-csrhub-cstat-2008-2017, clear
 
 ///	REVENUE IN SAME YEAR AS TREATMENT
+***	Nominal revenue
 foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
 	forvalues year = 2009/2017 {
@@ -919,35 +920,114 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		label var treated "Treated"
 
 		*	Estimate
-		reg revt i.time##i.treated, r
+		reg revt i.time##i.treated i.year, r
 		
 		*	Store estimates
 		estimates store est_`variable'_`year'
 	}
 }
 
-***	Visualize
 *	Coefficient plots
 coefplot est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 est_trt3_sdw_pos_2013 est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 est_trt3_sdw_pos_2016 est_trt3_sdw_pos_2017, ///
 	xline(0) ///
+	drop(*year) ///
 	name(g1a, replace) ///
 	title("TRT3 POS")
 	
 coefplot est_trt3_sdw_neg_2009 est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 est_trt3_sdw_neg_2012 est_trt3_sdw_neg_2013 est_trt3_sdw_neg_2014 est_trt3_sdw_neg_2015 est_trt3_sdw_neg_2016 est_trt3_sdw_neg_2017, ///
-	xline(0)
+	xline(0) ///
+	drop(*year)
 	
 coefplot est_trt2_sdw_pos_2009 est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 est_trt2_sdw_pos_2012 est_trt2_sdw_pos_2013 est_trt2_sdw_pos_2014 est_trt2_sdw_pos_2015 est_trt2_sdw_pos_2016 est_trt2_sdw_pos_2017, ///
-	xline(0)
+	xline(0) ///
+	drop(*year)
 	
 coefplot est_trt2_sdw_neg_2009 est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 est_trt2_sdw_neg_2012 est_trt2_sdw_neg_2013 est_trt2_sdw_neg_2014 est_trt2_sdw_neg_2015 est_trt2_sdw_neg_2016 est_trt2_sdw_neg_2017, ///
-	xline(0)
+	xline(0) ///
+	drop(*year)
 	
 coefplot est_trt1_sdw_pos_2009 est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 est_trt1_sdw_pos_2012 est_trt1_sdw_pos_2013 est_trt1_sdw_pos_2014 est_trt1_sdw_pos_2015 est_trt1_sdw_pos_2016 est_trt1_sdw_pos_2017, ///
-	xline(0)
+	xline(0) ///
+	drop(*year)
 	
 coefplot est_trt1_sdw_neg_2009 est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 est_trt1_sdw_neg_2012 est_trt1_sdw_neg_2013 est_trt1_sdw_neg_2014 est_trt1_sdw_neg_2015 est_trt1_sdw_neg_2016 est_trt1_sdw_neg_2017, ///
-	xline(0)
+	xline(0) ///
+	drop(*year)
 
+	
+***	Inverse hyperbolic sine transformation DV
+capt n gen ihasrevt = asinh(revt)
+label var ihasrevt "Inverse hyperbolic sine transformation of revt"
+
+foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
+	trt1_sdw_pos trt1_sdw_neg {
+	forvalues year = 2009/2017 {
+		display "`variable' for `year'"
+		
+		capt n drop time treatyear treated
+		
+		*	Create dummy to indicate year of treatment
+		gen time = (year>=`year') & !missing(year)
+		label var time "Post-treatment"
+		
+		*	Create dummy identifying treatment and control groups
+			/*	Assumes all firms not treated in this year are valid controls	*/
+		gen treatyear = (year==`year') & (`variable'==1)
+		bysort gvkey_num: egen treated = max(treatyear) if `variable'!=.
+		label var treated "Treated"
+
+		*	Estimate
+		reg ihasrevt i.time##i.treated i.year, r
+		
+		*	Store estimates
+		estimates store est_ihas_`variable'_`year'
+	}
+}
+
+*	Coefficient plots
+coefplot est_ihas_trt3_sdw_pos_2009 est_ihas_trt3_sdw_pos_2010 est_ihas_trt3_sdw_pos_2011 est_ihas_trt3_sdw_pos_2012 est_ihas_trt3_sdw_pos_2013 est_ihas_trt3_sdw_pos_2014 est_ihas_trt3_sdw_pos_2015 est_ihas_trt3_sdw_pos_2016 est_ihas_trt3_sdw_pos_2017, ///
+	xline(0) ///
+	xlab(-10(5)10) ///
+	drop(*year) ///
+	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
+		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
+		label(18 "2017"))
+	
+coefplot est_ihas_trt3_sdw_neg_2009 est_ihas_trt3_sdw_neg_2010 est_ihas_trt3_sdw_neg_2011 est_ihas_trt3_sdw_neg_2012 est_ihas_trt3_sdw_neg_2013 est_ihas_trt3_sdw_neg_2014 est_ihas_trt3_sdw_neg_2015 est_ihas_trt3_sdw_neg_2016 est_ihas_trt3_sdw_neg_2017, ///
+	xline(0) ///
+	drop(*year) ///
+	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
+		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
+		label(18 "2017"))
+	
+coefplot est_ihas_trt2_sdw_pos_2009 est_ihas_trt2_sdw_pos_2010 est_ihas_trt2_sdw_pos_2011 est_ihas_trt2_sdw_pos_2012 est_ihas_trt2_sdw_pos_2013 est_ihas_trt2_sdw_pos_2014 est_ihas_trt2_sdw_pos_2015 est_ihas_trt2_sdw_pos_2016 est_ihas_trt2_sdw_pos_2017, ///
+	xline(0) ///
+	drop(*year) ///
+	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
+		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
+		label(18 "2017"))
+	
+coefplot est_ihas_trt2_sdw_neg_2009 est_ihas_trt2_sdw_neg_2010 est_ihas_trt2_sdw_neg_2011 est_ihas_trt2_sdw_neg_2012 est_ihas_trt2_sdw_neg_2013 est_ihas_trt2_sdw_neg_2014 est_ihas_trt2_sdw_neg_2015 est_ihas_trt2_sdw_neg_2016 est_ihas_trt2_sdw_neg_2017, ///
+	xline(0) ///
+	drop(*year) ///
+	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
+		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
+		label(18 "2017"))
+	
+coefplot est_ihas_trt1_sdw_pos_2009 est_ihas_trt1_sdw_pos_2010 est_ihas_trt1_sdw_pos_2011 est_ihas_trt1_sdw_pos_2012 est_ihas_trt1_sdw_pos_2013 est_ihas_trt1_sdw_pos_2014 est_ihas_trt1_sdw_pos_2015 est_ihas_trt1_sdw_pos_2016 est_ihas_trt1_sdw_pos_2017, ///
+	xline(0) ///
+	drop(*year) ///
+	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
+		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
+		label(18 "2017"))
+	
+coefplot est_ihas_trt1_sdw_neg_2009 est_ihas_trt1_sdw_neg_2010 est_ihas_trt1_sdw_neg_2011 est_ihas_trt1_sdw_neg_2012 est_ihas_trt1_sdw_neg_2013 est_ihas_trt1_sdw_neg_2014 est_ihas_trt1_sdw_neg_2015 est_ihas_trt1_sdw_neg_2016 est_ihas_trt1_sdw_neg_2017, ///
+	xline(0) ///
+	drop(*year) ///
+	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
+		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
+		label(18 "2017"))
+	
 ///	REVENUE IN YEAR AFTER TREATMENT
 xtset
 gen frevt=f.revt
@@ -961,14 +1041,16 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		
 		*	Create dummy to indicate year of treatment
 		gen time = (year>=`year') & !missing(year)
+		label var time "Post-treatment"
 		
 		*	Create dummy identifying treatment and control groups
 			/*	Assumes all firms not treated in this year are valid controls	*/
 		gen treatyear = (year==`year') & (`variable'==1)
 		bysort gvkey_num: egen treated = max(treatyear) if `variable'!=.
+		label var treated "Treated"
 
 		*	Estimate
-		reg frevt i.time##i.treated, r
+		reg frevt i.time##i.treated i.year, r
 		
 		*	Store estimates
 		estimates store est_f_`variable'_`year'
@@ -979,23 +1061,29 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 *	Coefficient plots
 coefplot est_f_trt3_sdw_pos_2009 est_f_trt3_sdw_pos_2010 est_f_trt3_sdw_pos_2011 est_f_trt3_sdw_pos_2012 est_f_trt3_sdw_pos_2013 est_f_trt3_sdw_pos_2014 est_f_trt3_sdw_pos_2015 est_f_trt3_sdw_pos_2016 est_f_trt3_sdw_pos_2017, ///
 	xline(0) ///
+	drop(*year) ///
 	name(g1b, replace) ///
 	title("TRT3 POS, Forward")
 	
 coefplot est_f_trt3_sdw_neg_2009 est_f_trt3_sdw_neg_2010 est_f_trt3_sdw_neg_2011 est_f_trt3_sdw_neg_2012 est_f_trt3_sdw_neg_2013 est_f_trt3_sdw_neg_2014 est_f_trt3_sdw_neg_2015 est_f_trt3_sdw_neg_2016 est_f_trt3_sdw_neg_2017, ///
-	xline(0)
+	xline(0) ///
+	drop(*year)
 	
 coefplot est_f_trt2_sdw_pos_2009 est_f_trt2_sdw_pos_2010 est_f_trt2_sdw_pos_2011 est_f_trt2_sdw_pos_2012 est_f_trt2_sdw_pos_2013 est_f_trt2_sdw_pos_2014 est_f_trt2_sdw_pos_2015 est_f_trt2_sdw_pos_2016 est_f_trt2_sdw_pos_2017, ///
-	xline(0)
+	xline(0) ///
+	drop(*year)
 	
 coefplot est_f_trt2_sdw_neg_2009 est_f_trt2_sdw_neg_2010 est_f_trt2_sdw_neg_2011 est_f_trt2_sdw_neg_2012 est_f_trt2_sdw_neg_2013 est_f_trt2_sdw_neg_2014 est_f_trt2_sdw_neg_2015 est_f_trt2_sdw_neg_2016 est_f_trt2_sdw_neg_2017, ///
-	xline(0)
+	xline(0) ///
+	drop(*year)
 	
 coefplot est_f_trt1_sdw_pos_2009 est_f_trt1_sdw_pos_2010 est_f_trt1_sdw_pos_2011 est_f_trt1_sdw_pos_2012 est_f_trt1_sdw_pos_2013 est_f_trt1_sdw_pos_2014 est_f_trt1_sdw_pos_2015 est_f_trt1_sdw_pos_2016 est_f_trt1_sdw_pos_2017, ///
-	xline(0)
+	xline(0) ///
+	drop(*year)
 	
 coefplot est_f_trt1_sdw_neg_2009 est_f_trt1_sdw_neg_2010 est_f_trt1_sdw_neg_2011 est_f_trt1_sdw_neg_2012 est_f_trt1_sdw_neg_2013 est_f_trt1_sdw_neg_2014 est_f_trt1_sdw_neg_2015 est_f_trt1_sdw_neg_2016 est_f_trt1_sdw_neg_2017, ///
-	xline(0)
+	xline(0) ///
+	drop(*year)
 
 
 						***===========================***
@@ -1032,21 +1120,6 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	drop yeartreat yeartreatmin
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ///	VISUALIZATION
 ***	Nominal DV
 
@@ -1075,42 +1148,49 @@ tw (line arcsinrevt_mean trtper, sort) (line arcsinrevt_med trtper, sort), ///
 	ylabel(8(1)12) xline(0)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///	VISUALIZATION
-***	Visualize
-*	Line
-bysort trt2_sdw_pos_trtper: egen meanrevt = mean(revt)
-twoway (line meanrevt trt2_sdw_pos_trtper, sort xline(0))
-
-bysort trt2_sdw_pos_trtper: egen medrevt = median(revt)
-twoway (line medrevt trt2_sdw_pos_trtper, sort xline(0))
-
-*	Boxplot
-graph box revt, over(trt2_sdw_pos_trtper)
-
-
 ///	ESTIMATION
+foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
+	trt1_sdw_pos trt1_sdw_neg {
+	forvalues year = 2009/2017 {
+		display "`variable' for `year'"
+		
+		capt n drop time treatyear treated
+		
+		*	Create dummy to indicate year of treatment
+		gen time = (year>=`year') & !missing(year)
+		label var time "Post-treatment"
+		
+		*	Create dummy identifying treatment and control groups
+			/*	Assumes all firms not treated in this year are valid controls	*/
+		gen treatyear = (year==`year') & (`variable'==1)
+		bysort gvkey_num: egen treated = max(treatyear) if `variable'!=.
+		label var treated "Treated"
 
-reg revt period
+		*	Estimate
+		reg revt i.time##i.treated, r
+		
+		*	Store estimates
+		estimates store est_`variable'_`year'
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
