@@ -115,9 +115,9 @@ drop mark1
 forvalues neighbors = 1/10 {
 	capt n drop ps*
 	capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq), ///
-		osample(ps) nneighbor(`neighbors')
+		osample(ps) nneighbor(`neighbors') first
 	capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
-		if ps==0, nneighbor(`neighbors')
+		if ps==0, nneighbor(`neighbors') first
 }
 
 ***	Negative
@@ -1148,6 +1148,54 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	}
 }
 
+***	Tables
+*	estout
+estout est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 ///
+	est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 est_trt3_sdw_pos_2013 ///
+	est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 est_trt3_sdw_pos_2016 ///
+	est_trt3_sdw_pos_2017, ///
+	cells(b se p) nobase
+	
+estout est_trt3_sdw_neg_2009 est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 ///
+	est_trt3_sdw_neg_2012 est_trt3_sdw_neg_2013 est_trt3_sdw_neg_2014 ///
+	est_trt3_sdw_neg_2015 est_trt3_sdw_neg_2016 est_trt3_sdw_neg_2017, ///
+	cells(b se p)	
+	
+estout est_trt2_sdw_pos_2009 est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 ///
+	est_trt2_sdw_pos_2012 est_trt2_sdw_pos_2013 est_trt2_sdw_pos_2014 ///
+	est_trt2_sdw_pos_2015 est_trt2_sdw_pos_2016 est_trt2_sdw_pos_2017, ///
+	cells(b se p)
+	
+estout est_trt2_sdw_neg_2009 est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 ///
+	est_trt2_sdw_neg_2012 est_trt2_sdw_neg_2013 est_trt2_sdw_neg_2014 ///
+	est_trt2_sdw_neg_2015 est_trt2_sdw_neg_2016 est_trt2_sdw_neg_2017, ///
+	cells(b se p)
+	
+estout est_trt1_sdw_pos_2009 est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 ///
+	est_trt1_sdw_pos_2012 est_trt1_sdw_pos_2013 est_trt1_sdw_pos_2014 ///
+	est_trt1_sdw_pos_2015 est_trt1_sdw_pos_2016 est_trt1_sdw_pos_2017, ///
+	cells(b se p)
+	
+estout est_trt1_sdw_neg_2009 est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 ///
+	est_trt1_sdw_neg_2012 est_trt1_sdw_neg_2013 est_trt1_sdw_neg_2014 ///
+	est_trt1_sdw_neg_2015 est_trt1_sdw_neg_2016 est_trt1_sdw_neg_2017, ///
+	cells(b se p)
+	
+*	outreg2
+outreg2 est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 ///
+	est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 est_trt3_sdw_pos_2013 ///
+	est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 est_trt3_sdw_pos_2016 ///
+	est_trt3_sdw_pos_2017 using regression_results, ///
+	replace excel dec(3)
+
+outreg2 est_trt3_sdw* ///
+	using regression_results, ///
+	replace excel dec(3)
+	
+	
+	
+
+
 ***	Visualize
 *	Coefficient plots
 coefplot est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 est_trt3_sdw_pos_2013 est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 est_trt3_sdw_pos_2016 est_trt3_sdw_pos_2017, ///
@@ -1217,6 +1265,24 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		estimates store est_ihs_`variable'_`year'
 	}
 }
+
+***	Tables
+estout est_ihs_trt3_sdw_pos_2009 est_ihs_trt3_sdw_pos_2010 ///
+	est_ihs_trt3_sdw_pos_2011 est_ihs_trt3_sdw_pos_2012 est_ihs_trt3_sdw_pos_2013 ///
+	est_ihs_trt3_sdw_pos_2014 est_ihs_trt3_sdw_pos_2015 est_ihs_trt3_sdw_pos_2016 ///
+	est_ihs_trt3_sdw_pos_2017
+	
+estout est_ihs_trt3_sdw_neg_2009 est_ihs_trt3_sdw_neg_2010 est_ihs_trt3_sdw_neg_2011 est_ihs_trt3_sdw_neg_2012 est_ihs_trt3_sdw_neg_2013 est_ihs_trt3_sdw_neg_2014 est_ihs_trt3_sdw_neg_2015 est_ihs_trt3_sdw_neg_2016 est_ihs_trt3_sdw_neg_2017
+	
+estout est_ihs_trt2_sdw_pos_2009 est_ihs_trt2_sdw_pos_2010 est_ihs_trt2_sdw_pos_2011 est_ihs_trt2_sdw_pos_2012 est_ihs_trt2_sdw_pos_2013 est_ihs_trt2_sdw_pos_2014 est_ihs_trt2_sdw_pos_2015 est_ihs_trt2_sdw_pos_2016 est_ihs_trt2_sdw_pos_2017
+	
+estout est_ihs_trt2_sdw_neg_2009 est_ihs_trt2_sdw_neg_2010 est_ihs_trt2_sdw_neg_2011 est_ihs_trt2_sdw_neg_2012 est_ihs_trt2_sdw_neg_2013 est_ihs_trt2_sdw_neg_2014 est_ihs_trt2_sdw_neg_2015 est_ihs_trt2_sdw_neg_2016 est_ihs_trt2_sdw_neg_2017
+	
+estout est_ihs_trt1_sdw_pos_2009 est_ihs_trt1_sdw_pos_2010 est_ihs_trt1_sdw_pos_2011 est_ihs_trt1_sdw_pos_2012 est_ihs_trt1_sdw_pos_2013 est_ihs_trt1_sdw_pos_2014 est_ihs_trt1_sdw_pos_2015 est_ihs_trt1_sdw_pos_2016 est_ihs_trt1_sdw_pos_2017
+	
+estout est_ihs_trt1_sdw_neg_2009 est_ihs_trt1_sdw_neg_2010 est_ihs_trt1_sdw_neg_2011 est_ihs_trt1_sdw_neg_2012 est_ihs_trt1_sdw_neg_2013 est_ihs_trt1_sdw_neg_2014 est_ihs_trt1_sdw_neg_2015 est_ihs_trt1_sdw_neg_2016 est_ihs_trt1_sdw_neg_2017
+
+
 
 ***	Visualize
 *	Coefficient plots
