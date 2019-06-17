@@ -170,7 +170,7 @@ forvalues neighbors = 1/10 {
 						*								*
 						*	PROPENSITY SCORE MATCHING 	*
 						*		INDIVIDUAL YEARS		*
-						*			DV:	Revenue			*
+						*		DV:	Revenue	Level		*
 						*								*
 						***===========================***	
 ///	3 STANDARD DEVIATIONS
@@ -557,7 +557,7 @@ estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
 						*								*
 						*	PROPENSITY SCORE MATCHING 	*
 						*		INDIVIDUAL YEARS		*
-						*	  DV: Next Year Revenue		*
+						*	DV: Next Year Revenue Level	*
 						*								*
 						***===========================***
 ///	3 STANDARD DEVIATIONS
@@ -1120,18 +1120,72 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	drop yeartreat yeartreatmin
 }
 
-///	VISUALIZATION
-***	Nominal DV
+///	VISUALIZATION: INVERSE HYPERBOLIC SINE DV
+capt n gen arevt = asinh(revt)
+label var arevt "Inverse hyperbolic sine of revt"
 
-*	Box plot
-graph box revt, over(trtper)
+***	Box plot
+graph box arevt, over(trt2_sdw_pos_trtper) ///
+	name(g1, replace) ///
+	title("arevt by 2 sdw pos treatment period")
+graph box arevt, over(trt2_sdw_neg_trtper) ///
+	name(g2, replace) nodraw ///
+	title("arevt by 2 sdw neg treatment period")
+graph combine g1 g2
 
-*	Line graph
-bysort trtper: egen revt_mean=mean(revt) if trtper!=.
-bysort trtper: egen revt_med=median(revt) if trtper!=.
-tw (line revt_mean trtper, sort) (line revt_med trtper, sort), ///
+
+***	Line graph
+*	3 sdw
+bysort trt3_sdw_neg_trtper: egen trt3_sdw_neg_arevt_mean=mean(arevt) ///
+	if trt3_sdw_neg_trtper!=.
+bysort trt3_sdw_neg_trtper: egen trt3_sdw_neg_arevt_med=median(arevt) ///
+	if trt3_sdw_neg_trtper!=.
+tw (line trt3_sdw_neg_arevt_mean trt3_sdw_neg_trtper, sort) ///
+	(line trt3_sdw_neg_arevt_med trt3_sdw_neg_trtper, sort), ///
+	ylabel() xline(0)
+	
+bysort trt3_sdw_pos_trtper: egen trt3_sdw_pos_arevt_mean=mean(arevt) ///
+	if trt3_sdw_pos_trtper!=.
+bysort trt3_sdw_pos_trtper: egen trt3_sdw_pos_arevt_med=median(arevt) ///
+	if trt3_sdw_pos_trtper!=.
+tw 	(line trt3_sdw_pos_arevt_mean trt3_sdw_pos_trtper, sort) ///
+	(line trt3_sdw_pos_arevt_med trt3_sdw_pos_trtper, sort), ///
+	ylabel() xline(0)
+	
+*	2 sdw
+bysort trt2_sdw_neg_trtper: egen trt2_sdw_neg_arevt_mean=mean(arevt) ///
+	if trt2_sdw_neg_trtper!=.
+bysort trt2_sdw_neg_trtper: egen trt2_sdw_neg_arevt_med=median(arevt) ///
+	if trt2_sdw_neg_trtper!=.
+tw (line trt2_sdw_neg_arevt_mean trt2_sdw_neg_trtper, sort) ///
+	(line trt2_sdw_neg_arevt_med trt2_sdw_neg_trtper, sort), ///
 	ylabel() xline(0)
 
+bysort trt2_sdw_pos_trtper: egen trt2_sdw_pos_arevt_mean=mean(arevt) ///
+	if trt2_sdw_pos_trtper!=.
+bysort trt2_sdw_pos_trtper: egen trt2_sdw_pos_arevt_med=median(arevt) ///
+	if trt2_sdw_pos_trtper!=.
+tw 	(line trt2_sdw_pos_arevt_mean trt2_sdw_pos_trtper, sort) ///
+	(line trt2_sdw_pos_arevt_med trt2_sdw_pos_trtper, sort), ///
+	ylabel() xline(0)
+
+*	1 sdw
+bysort trt1_sdw_neg_trtper: egen trt1_sdw_neg_arevt_mean=mean(arevt) ///
+	if trt1_sdw_neg_trtper!=.
+bysort trt1_sdw_neg_trtper: egen trt1_sdw_neg_arevt_med=median(arevt) ///
+	if trt1_sdw_neg_trtper!=.
+tw (line trt1_sdw_neg_arevt_mean trt1_sdw_neg_trtper, sort) ///
+	(line trt1_sdw_neg_arevt_med trt1_sdw_neg_trtper, sort), ///
+	ylabel() xline(0)
+
+bysort trt1_sdw_pos_trtper: egen trt1_sdw_pos_arevt_mean=mean(arevt) ///
+	if trt1_sdw_pos_trtper!=.
+bysort trt1_sdw_pos_trtper: egen trt1_sdw_pos_arevt_med=median(arevt) ///
+	if trt1_sdw_pos_trtper!=.
+tw 	(line trt1_sdw_pos_arevt_mean trt1_sdw_pos_trtper, sort) ///
+	(line trt1_sdw_pos_arevt_med trt1_sdw_pos_trtper, sort), ///
+	ylabel() xline(0)
+	
 	
 ***	Inverse hyperbolic sine transformed DV
 *	See https://worthwhile.typepad.com/worthwhile_canadian_initi/2011/07/a-rant-on-inverse-hyperbolic-sine-transformations.html
@@ -1167,14 +1221,38 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		label var treated "Treated"
 
 		*	Estimate
-		reg revt i.time##i.treated, r
+		reg revt i.time##i.treated i.year, r
 		
 		*	Store estimates
 		estimates store est_`variable'_`year'
 	}
 }
 
-
+***	Visualize
+*	Coefficient plots
+coefplot est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 est_trt3_sdw_pos_2013 est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 est_trt3_sdw_pos_2016 est_trt3_sdw_pos_2017, ///
+	xline(0) ///
+	drop(*year)
+	
+coefplot est_trt3_sdw_neg_2009 est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 est_trt3_sdw_neg_2012 est_trt3_sdw_neg_2013 est_trt3_sdw_neg_2014 est_trt3_sdw_neg_2015 est_trt3_sdw_neg_2016 est_trt3_sdw_neg_2017, ///
+	xline(0) ///
+	drop(*year)
+	
+coefplot est_trt2_sdw_pos_2009 est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 est_trt2_sdw_pos_2012 est_trt2_sdw_pos_2013 est_trt2_sdw_pos_2014 est_trt2_sdw_pos_2015 est_trt2_sdw_pos_2016 est_trt2_sdw_pos_2017, ///
+	xline(0) ///
+	drop(*year)
+	
+coefplot est_trt2_sdw_neg_2009 est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 est_trt2_sdw_neg_2012 est_trt2_sdw_neg_2013 est_trt2_sdw_neg_2014 est_trt2_sdw_neg_2015 est_trt2_sdw_neg_2016 est_trt2_sdw_neg_2017, ///
+	xline(0) ///
+	drop(*year)
+	
+coefplot est_trt1_sdw_pos_2009 est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 est_trt1_sdw_pos_2012 est_trt1_sdw_pos_2013 est_trt1_sdw_pos_2014 est_trt1_sdw_pos_2015 est_trt1_sdw_pos_2016 est_trt1_sdw_pos_2017, ///
+	xline(0) ///
+	drop(*year)
+	
+coefplot est_trt1_sdw_neg_2009 est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 est_trt1_sdw_neg_2012 est_trt1_sdw_neg_2013 est_trt1_sdw_neg_2014 est_trt1_sdw_neg_2015 est_trt1_sdw_neg_2016 est_trt1_sdw_neg_2017, ///
+	xline(0) ///
+	drop(*year)
 
 
 
