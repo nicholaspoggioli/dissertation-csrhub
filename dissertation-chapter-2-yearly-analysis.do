@@ -15,7 +15,7 @@
 
 ///	SET ENVIRONMENT
 clear all
-set scheme plotplain
+set scheme plotplainblind
 
 ///	LOAD DATA
 use data/matched-csrhub-cstat-2008-2017, clear
@@ -1102,7 +1102,6 @@ use data/matched-csrhub-cstat-2008-2017, clear
 xtset
 
 ///	GENERATE TREATMENT PERIOD VARIABLES TO CENTER FIRMS IN TIME
-
 foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
 	
@@ -1122,7 +1121,7 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 
 
 
-///	ESTIMATION
+///	ESTIMATION: LEVEL OF REVT
 foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
 	forvalues year = 2009/2017 {
@@ -1141,7 +1140,7 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		label var treated "Treated"
 
 		*	Estimate
-		reg revt i.time##i.treated i.year, r
+		qui reg revt i.time##i.treated i.year, r
 		
 		*	Store estimates
 		estimates store est_`variable'_`year'
@@ -1154,32 +1153,46 @@ estout est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 ///
 	est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 est_trt3_sdw_pos_2013 ///
 	est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 est_trt3_sdw_pos_2016 ///
 	est_trt3_sdw_pos_2017, ///
+	drop(*.year 0.treated 1.time#0.treated) ///
 	cells(b se p) nobase
+	
+outreg2 [est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 ///
+	est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 est_trt3_sdw_pos_2013 ///
+	est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 est_trt3_sdw_pos_2016 ///
+	est_trt3_sdw_pos_2017] ///
+	using tables-and-figures/dif-in-difs/trt3_sdw_pos_level, ///
+	replace ///
+	alpha(0.001, 0.01, 0.05)
 	
 estout est_trt3_sdw_neg_2009 est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 ///
 	est_trt3_sdw_neg_2012 est_trt3_sdw_neg_2013 est_trt3_sdw_neg_2014 ///
 	est_trt3_sdw_neg_2015 est_trt3_sdw_neg_2016 est_trt3_sdw_neg_2017, ///
-	cells(b se p)	
-	
+	drop(*.year 0.treated 1.time#0.treated) ///
+	cells(b se p) nobase
+
 estout est_trt2_sdw_pos_2009 est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 ///
 	est_trt2_sdw_pos_2012 est_trt2_sdw_pos_2013 est_trt2_sdw_pos_2014 ///
 	est_trt2_sdw_pos_2015 est_trt2_sdw_pos_2016 est_trt2_sdw_pos_2017, ///
-	cells(b se p)
-	
+	drop(*.year 0.treated 1.time#0.treated) ///
+	cells(b se p) nobase
+
 estout est_trt2_sdw_neg_2009 est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 ///
 	est_trt2_sdw_neg_2012 est_trt2_sdw_neg_2013 est_trt2_sdw_neg_2014 ///
 	est_trt2_sdw_neg_2015 est_trt2_sdw_neg_2016 est_trt2_sdw_neg_2017, ///
-	cells(b se p)
+	drop(*.year 0.treated 1.time#0.treated) ///
+	cells(b se p) nobase
 	
 estout est_trt1_sdw_pos_2009 est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 ///
 	est_trt1_sdw_pos_2012 est_trt1_sdw_pos_2013 est_trt1_sdw_pos_2014 ///
 	est_trt1_sdw_pos_2015 est_trt1_sdw_pos_2016 est_trt1_sdw_pos_2017, ///
-	cells(b se p)
+	drop(*.year 0.treated 1.time#0.treated) ///
+	cells(b se p) nobase
 	
 estout est_trt1_sdw_neg_2009 est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 ///
 	est_trt1_sdw_neg_2012 est_trt1_sdw_neg_2013 est_trt1_sdw_neg_2014 ///
 	est_trt1_sdw_neg_2015 est_trt1_sdw_neg_2016 est_trt1_sdw_neg_2017, ///
-	cells(b se p)
+	drop(*.year 0.treated 1.time#0.treated) ///
+	cells(b se p) nobase
 	
 *	outreg2
 outreg2 est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 ///
@@ -1233,6 +1246,8 @@ coefplot est_trt1_sdw_neg_2009 est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 est_t
 						*		DV: Inv Hyperbolic Sine DV	*
 						*		Centered on treatment		*
 						***===============================***
+est clear
+
 ///	TRANSFORM DV
 ***	Inverse hyperbolic sine transformed DV
 *	See https://worthwhile.typepad.com/worthwhile_canadian_initi/2011/07/a-rant-on-inverse-hyperbolic-sine-transformations.html
@@ -1259,7 +1274,7 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		label var treated "Treated"
 
 		*	Estimate
-		reg revt_ihs i.time##i.treated i.year, r
+		qui reg revt_ihs i.time##i.treated i.year, r
 		
 		*	Store estimates
 		estimates store est_ihs_`variable'_`year'
@@ -1271,6 +1286,15 @@ estout est_ihs_trt3_sdw_pos_2009 est_ihs_trt3_sdw_pos_2010 ///
 	est_ihs_trt3_sdw_pos_2011 est_ihs_trt3_sdw_pos_2012 est_ihs_trt3_sdw_pos_2013 ///
 	est_ihs_trt3_sdw_pos_2014 est_ihs_trt3_sdw_pos_2015 est_ihs_trt3_sdw_pos_2016 ///
 	est_ihs_trt3_sdw_pos_2017
+	
+outreg2 [est_ihs_trt3_sdw_pos_2009 est_ihs_trt3_sdw_pos_2010 ///
+	est_ihs_trt3_sdw_pos_2011 est_ihs_trt3_sdw_pos_2012 est_ihs_trt3_sdw_pos_2013 ///
+	est_ihs_trt3_sdw_pos_2014 est_ihs_trt3_sdw_pos_2015 est_ihs_trt3_sdw_pos_2016 ///
+	est_ihs_trt3_sdw_pos_2017] ///
+	using tables-and-figures/dif-in-difs/trt3_sdw_pos_ihs, ///
+	replace ///
+	alpha(0.001, 0.01, 0.05)
+
 	
 estout est_ihs_trt3_sdw_neg_2009 est_ihs_trt3_sdw_neg_2010 est_ihs_trt3_sdw_neg_2011 est_ihs_trt3_sdw_neg_2012 est_ihs_trt3_sdw_neg_2013 est_ihs_trt3_sdw_neg_2014 est_ihs_trt3_sdw_neg_2015 est_ihs_trt3_sdw_neg_2016 est_ihs_trt3_sdw_neg_2017
 	
@@ -1394,36 +1418,11 @@ tw 	(line trt1_sdw_pos_revt_ihs_mean trt1_sdw_pos_trtper, sort) ///
 
 
 
-
-
-
-
-
-
-
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
 						***===========================***
 						*								*
 						*		FIXED EFFECTS 			*
-						*								*
+						*		DV: LEVEL OF REVT		*
 						***===========================***	
-***===========================***
-*	REVENUE = F (CSRHUB) 		*
-***===========================***
-///	CONTROL VARIABLE MODELS
-
-***	DV: Revenue (Level)
-*mark mark3
-*markout mark3 revt over_rtg dltt at xad xrd emp year
 qui xtreg revt_yoy over_rtg, fe cluster(cusip_n)
 est store revt_yoymod1
 estadd local yearFE "No", replace
@@ -1467,7 +1466,15 @@ esttab revt_yoymod*, ///
 	b se s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC")) ///
 	keep(over_rtg dltt at xad xrd tobinq emp age)
 
+
 	
+	
+	
+						***===================================***
+						*										*
+						*		FIXED EFFECTS 					*
+						*		DV: 1-YEAR CHANGE IN REVT		*
+						***===================================***
 /// DV: Revenue (1-year change)
 local dv revt_yoy
 local iv over_rtg 
