@@ -1408,7 +1408,7 @@ tw 	(line trt1_sdw_pos_revt_ihs_mean trt1_sdw_pos_trtper, sort) ///
 
 						***===========================***
 						*	FIXED EFFECTS REGRESSION	*
-						*			DV: SALES 			*
+						*		DV: LEVEL OF REVT 		*
 						***===========================***	
 ///	LOAD DATA
 use data/matched-csrhub-cstat-2008-2017, clear
@@ -1424,31 +1424,31 @@ xtset
 ///	ESTIMATION
 *mark mark3
 *markout mark3 revt over_rtg dltt at xad xrd emp year
-qui xtreg revt over_rtg, fe cluster(cusip_n)										
+qui xtreg revt over_rtg, fe cluster(gvkey_num)										
 est store revtmod1
 estadd local yearFE "No", replace
-qui xtreg revt over_rtg i.year, fe cluster(cusip_n)									
+qui xtreg revt over_rtg i.year, fe cluster(gvkey_num)									
 est store revtmod2
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt i.year, fe cluster(cusip_n)							
+qui xtreg revt over_rtg dltt i.year, fe cluster(gvkey_num)							
 est store revtmod3
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt at i.year, fe cluster(cusip_n)							
+qui xtreg revt over_rtg dltt at i.year, fe cluster(gvkey_num)							
 est store revtmod4
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt at emp i.year, fe cluster(cusip_n)						
+qui xtreg revt over_rtg dltt at emp i.year, fe cluster(gvkey_num)						
 est store revtmod5
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt at emp tobinq i.year, fe cluster(cusip_n)					
+qui xtreg revt over_rtg dltt at emp tobinq i.year, fe cluster(gvkey_num)					
 est store revtmod6
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt at emp tobinq age i.year, fe cluster(cusip_n)				
+qui xtreg revt over_rtg dltt at emp tobinq age i.year, fe cluster(gvkey_num)				
 est store revtmod7
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt at emp tobinq age xad i.year, fe cluster(cusip_n)				
+qui xtreg revt over_rtg dltt at emp tobinq age xad i.year, fe cluster(gvkey_num)				
 est store revtmod8
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(cusip_n)				
+qui xtreg revt over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(gvkey_num)				
 est store revtmod9
 estadd local yearFE "Yes", replace
 
@@ -1458,7 +1458,7 @@ preserve
 replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
-qui xtreg revt over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(cusip_n)				
+qui xtreg revt over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(gvkey_num)				
 est store revtmod10
 estadd local yearFE "Yes", replace
 restore
@@ -1473,11 +1473,11 @@ local dv revt
 local iv over_rtg 
 local controls "dltt at age emp tobinq xad xrd"
 
-qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+qui xtreg F.`dv' `iv', fe cluster(gvkey_num)
 est store over_rtgmod0
 estadd local yearFE "No", replace
 
-qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+qui xtreg F.`dv' `iv' i.year, fe cluster(gvkey_num)
 est store over_rtgmod1
 estadd local yearFE "Yes", replace
 
@@ -1485,7 +1485,7 @@ local vars ""
 local counter 2
 foreach control of local controls {
 	*	Regression
-	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(gvkey_num)
 		
 	*	Store results
 	est store over_rtgmod`counter'
@@ -1501,7 +1501,7 @@ preserve
 replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
-qui xtreg F.revt over_rtg dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)	
+qui xtreg F.revt over_rtg dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)	
 est store over_rtgas1
 estadd local yearFE "Yes", replace
 restore 
@@ -1512,7 +1512,7 @@ preserve
 replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
 replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 
-qui xtreg F.revt c.over_rtg##c.revt dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+qui xtreg F.revt c.over_rtg##c.revt dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)
 est store over_rtgint1
 estadd local yearFE "Yes", replace
 restore
@@ -1526,7 +1526,7 @@ replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
 egen Sover_rtg = std(over_rtg)
 egen Srevt = std(revt)
 
-qui xtreg F.revt c.Sover_rtg##c.Srevt dltt at emp tobinq xad xrd age i.year, fe cluster(cusip_n)
+qui xtreg F.revt c.Sover_rtg##c.Srevt dltt at emp tobinq xad xrd age i.year, fe cluster(gvkey_num)
 est store over_rtgint2
 estadd local yearFE "Yes", replace
 restore
@@ -1576,11 +1576,11 @@ local dv revt
 local iv cmty_rtg_lym
 local controls "dltt at age emp tobinq xad xrd"
 
-qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+qui xtreg F.`dv' `iv', fe cluster(gvkey_num)
 est store cmtymod0
 estadd local yearFE "No", replace
 
-qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+qui xtreg F.`dv' `iv' i.year, fe cluster(gvkey_num)
 est store cmtymod1
 estadd local yearFE "Yes", replace
 
@@ -1588,7 +1588,7 @@ local vars ""
 local counter 2
 foreach control of local controls {
 	*	Regression
-	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(gvkey_num)
 		
 	*	Store results
 	est store cmtymod`counter'
@@ -1604,7 +1604,7 @@ preserve
 replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
 replace xrd=0 if xrd==. & `iv'!=.												/*	assumption	*/
 
-qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(gvkey_num)
 est store cmtyas1
 estadd local yearFE "Yes", replace
 restore 
@@ -1625,11 +1625,11 @@ local dv revt
 local iv emp_rtg_lym
 local controls "dltt at age emp tobinq xad xrd"
 
-qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+qui xtreg F.`dv' `iv', fe cluster(gvkey_num)
 est store empmod0
 estadd local yearFE "No", replace
 
-qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+qui xtreg F.`dv' `iv' i.year, fe cluster(gvkey_num)
 est store empmod1
 estadd local yearFE "Yes", replace
 
@@ -1637,7 +1637,7 @@ local vars ""
 local counter 2
 foreach control of local controls {
 	*	Regression
-	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(gvkey_num)
 		
 	*	Store results
 	est store empmod`counter'
@@ -1653,7 +1653,7 @@ preserve
 replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
 replace xrd=0 if xrd==. & `iv'!=.												/*	assumption	*/
 
-qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(gvkey_num)
 est store empas1
 estadd local yearFE "Yes", replace
 restore 
@@ -1671,12 +1671,12 @@ local dv revt
 local iv enviro_rtg_lym
 local controls "dltt at age emp tobinq xad xrd"
 
-qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+qui xtreg F.`dv' `iv', fe cluster(gvkey_num)
 est store enviromod0
 estadd local yearFE "No", replace
 estadd local firmFE "Yes", replace
 
-qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+qui xtreg F.`dv' `iv' i.year, fe cluster(gvkey_num)
 est store enviromod1
 estadd local yearFE "Yes", replace
 
@@ -1684,7 +1684,7 @@ local vars ""
 local counter 2
 foreach control of local controls {
 	*	Regression
-	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(gvkey_num)
 		
 	*	Store results
 	est store enviromod`counter'
@@ -1701,7 +1701,7 @@ preserve
 replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
 replace xrd=0 if xrd==. & `iv'!=.												/*	assumption	*/
 
-qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(gvkey_num)
 est store enviroas1
 estadd local yearFE "Yes", replace
 estadd local firmFE "Yes", replace
@@ -1721,12 +1721,12 @@ local dv revt
 local iv gov_rtg_lym
 local controls "dltt at age emp tobinq xad xrd"
 
-qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+qui xtreg F.`dv' `iv', fe cluster(gvkey_num)
 est store govmod0
 estadd local yearFE "No", replace
 estadd local firmFE "Yes", replace
 
-qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+qui xtreg F.`dv' `iv' i.year, fe cluster(gvkey_num)
 est store govmod1
 estadd local yearFE "Yes", replace
 
@@ -1734,7 +1734,7 @@ local vars ""
 local counter 2
 foreach control of local controls {
 	*	Regression
-	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(gvkey_num)
 		
 	*	Store results
 	est store govmod`counter'
@@ -1751,7 +1751,7 @@ preserve
 replace xad=0 if xad==. & `iv'!=.												/*	assumption	*/
 replace xrd=0 if xrd==. & `iv'!=.												/*	assumption	*/
 
-qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(gvkey_num)
 est store govas1
 estadd local yearFE "Yes", replace
 estadd local firmFE "Yes", replace
@@ -1766,28 +1766,28 @@ esttab govmod* govas1, ///
 
 	
 ///	COMPARE ALL CSRHUB CATEGORIES
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym , fe cluster(cusip_n)
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym , fe cluster(gvkey_num)
 est store m1
 estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym i.year, fe cluster(cusip_n)
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym i.year, fe cluster(gvkey_num)
 est store m2
 estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt i.year, fe cluster(cusip_n)
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt i.year, fe cluster(gvkey_num)
 est store m3
 estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at i.year, fe cluster(cusip_n)
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at i.year, fe cluster(gvkey_num)
 est store m4
 estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age i.year, fe cluster(cusip_n)
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age i.year, fe cluster(gvkey_num)
 est store m5
 estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp i.year, fe cluster(cusip_n)
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp i.year, fe cluster(gvkey_num)
 est store m6
 estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad i.year, fe cluster(cusip_n)
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad i.year, fe cluster(gvkey_num)
 est store m7
 estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)
 est store m8
 estadd local yearFE "Yes", replace
 
@@ -1797,7 +1797,7 @@ preserve
 replace xad=0 if xad==.															/*	assumption	*/
 replace xrd=0 if xrd==.															/*	assumption	*/
 
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)
 est store m9
 restore 
 
@@ -1850,12 +1850,12 @@ local controls "dltt at age emp tobinq xad xrd"
 foreach iv of local ivs {
 	local vars ""
 	display "`iv'"
-	qui xtreg F.`dv' `iv', fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv', fe cluster(gvkey_num)
 	est store `iv'0
 	qui estadd local yearFE "No", replace
 	qui estadd local firmFE "Yes", replace
 
-	qui xtreg F.`dv' `iv' i.year, fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv' i.year, fe cluster(gvkey_num)
 	est store `iv'1
 	qui estadd local yearFE "Yes", replace
 	qui estadd local firmFE "Yes", replace
@@ -1864,7 +1864,7 @@ foreach iv of local ivs {
 	local counter 2
 	foreach control of local controls {
 		*	Regression
-		qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(cusip_n)
+		qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(gvkey_num)
 			
 		*	Store results
 		est store `iv'`counter'
@@ -1881,7 +1881,7 @@ foreach iv of local ivs {
 	replace xad=0 if xad==. & `iv'!=.											/*	assumption	*/
 	replace xrd=0 if xrd==. & `iv'!=.											/*	assumption	*/
 
-	qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(cusip_n)
+	qui xtreg F.`dv' `iv' `controls' i.year, fe cluster(gvkey_num)
 	est store `iv'as1
 	qui estadd local yearFE "Yes", replace
 	qui estadd local firmFE "Yes", replace
@@ -1900,7 +1900,7 @@ xtreg F.revt com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
 	comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym ///
 	enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym ///
 	board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym ///
-	dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+	dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)
 	
 preserve
 replace xad=0 if xad==.
@@ -1910,7 +1910,7 @@ xtreg F.revt com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym ///
 	comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym ///
 	enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym ///
 	board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym ///
-	dltt at age emp tobinq xad xrd i.year, fe cluster(cusip_n)
+	dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)
 est sto subcat_all
 qui estadd local yearFE "Yes", replace
 qui estadd local firmFE "Yes", replace
