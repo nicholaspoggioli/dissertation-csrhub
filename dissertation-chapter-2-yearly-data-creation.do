@@ -182,72 +182,28 @@ gen curcd = tocurm
 
 ***	Save
 compress
+
+label var tocurm "Exchange rate to currency code"
+label var exratm "Exchange rate"
+label var fromcurm "Exchange rate from currency code"
+label var curcd "Currency code of dollar values in row"
+
 save data\cstat-global-exchange-rate-monthly.dta, replace
 
 ***	Save only GBP to USD conversion
 keep if tocurm=="USD"
 
-rename exratm exratm_gpb_to_usd
+rename exratm exratm_gbp_to_usd
+label var exratm_gbp_to_usd "Exchange rate of GBP to USD"
 rename tocurm to_usd
+label var to_usd "Exchange rate currency code USD only"
 drop curcd
 drop datadate
-drop exrat12m
 
 compress
 save data\cstat-global-exchange-rate-monthly-gbp-to-usd-only.dta, replace
 
-///	LOAD CSTAT GLOBAL DATA
-use data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-global-for-merge.dta, clear
 
-***	Prep for merge
-gen month=fyr
-
-***	Merge on curcd year month
-merge m:1 curcd year month using data\cstat-global-exchange-rate-monthly.dta
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                        60,845
-        from master                     3,745  (_merge==1)
-        from using                     57,100  (_merge==2)
-
-    matched                            80,004  (_merge==3)
-    -----------------------------------------
-*/
-drop if _merge==2
-drop if _merge==1 /*	All 2018 observations	*/
-drop _merge
-
-***	Convert revt to British pounds
-gen revt_gbp=revt/exratm
-
-***	Merge on fromcurm year month to get GBP to USD conversion
-merge m:1 fromcurm year month ///
-	using data\cstat-global-exchange-rate-monthly-gbp-to-usd-only.dta, ///
-	update assert(1 2 3 4 5)
-/*
-    Result                           # of obs.
-    -----------------------------------------
-    not matched                           247
-        from master                         0  (_merge==1)
-        from using                        247  (_merge==2)
-
-    matched                            80,004
-        not updated                    80,004  (_merge==3)
-        missing updated                     0  (_merge==4)
-        nonmissing conflict                 0  (_merge==5)
-    -----------------------------------------
-*/
-drop if _merge==2
-drop _merge
-
-***	Convert revt_gbp to revt_usd
-gen revt_usd=
-
-***	Save
-compress
-save data\cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-global-for-merge-with-currency-code.dta, ///
-	replace
 
 ***===========================================***
 *	MERGE CSRHUB AND CSTAT GLOBAL ON ISIN YEAR	*
@@ -639,7 +595,6 @@ save data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-northam-for-mer
 ///	PREPARE CSTAT GLOBAL DATA FOR MERGE
 use data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-global.dta, clear
 
-
 ***	Generate year and drop duplicates
 gen year = fyear
 bysort gvkey year: gen N=_N
@@ -655,10 +610,63 @@ tab N
 drop if N>1
 drop N
 
+***	Prep for merge
+gen month=fyr
+
+***	Merge on curcd year month
+merge m:1 curcd year month using data\cstat-global-exchange-rate-monthly.dta
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        60,845
+        from master                     3,745  (_merge==1)
+        from using                     57,100  (_merge==2)
+
+    matched                            80,004  (_merge==3)
+    -----------------------------------------
+*/
+drop if _merge==2
+drop if _merge==1 /*	All 2018 observations	*/
+drop _merge
+
+***	Convert revt to British pounds
+gen revt_gbp=revt/exratm
+label var revt_gbp "Revenue in Great Britain pounds"
+
+***	Merge on fromcurm year month to get GBP to USD conversion
+merge m:1 fromcurm year month ///
+	using data\cstat-global-exchange-rate-monthly-gbp-to-usd-only.dta, ///
+	update assert(1 2 3 4 5)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           247
+        from master                         0  (_merge==1)
+        from using                        247  (_merge==2)
+
+    matched                            80,004
+        not updated                    80,004  (_merge==3)
+        missing updated                     0  (_merge==4)
+        nonmissing conflict                 0  (_merge==5)
+    -----------------------------------------
+*/
+drop if _merge==2
+drop _merge
+
+***	Convert revt_gbp to revt_usd
+gen revt_usd=revt_gbp*exratm_gbp_to_usd
+label var revt_usd "Revenue in United States dollars"
+
+
+***	Combined revenue in usd
+gen revenue=revt
+replace revenue=revt_usd if in_cstatg==1
+label revenue "(CSTAT) Revenue in USD"
+
 ***	Save
+drop busdesc weburl
 compress
 save data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-global-for-merge.dta, replace
-
 
 
 
@@ -760,11 +768,10 @@ save data/matched-csrhub-cstat-northam-and-global-2008-2017, replace
 
 						***===============================***
 						*									*
-						*  	   CREATE CSTAT VARIABLES		*
+						*  	   CREATE FIRM AGE VARIABLE		*
 						*									*
 						***===============================***
-///	FIRM AGE (YEARS SINCE APPEARING IN COMPUSTAT)
-***	Create age variable in CSTAT North Am data for all years
+///	CSTAT NORTH AMERICA
 use data/cstat-north-am-for-age-calculation.dta, clear
 
 *	Create age variable
@@ -803,8 +810,20 @@ merge 1:1 gvkey fyear using ///
 */
 drop if _merge==2
 
+///	CSTAT GLOBAL
 ***	NOTE: CSTAT GLOBAL is unreliable for creating firm age from first
 *			appearance in the data
+*		  Might use ipodate, but many missing.
+
+
+						***===============================***
+						*									*
+						*  CREATE REVENUE IN USD VARIABLE	*
+						*									*
+						***===============================***
+
+
+
 
 
 ///	Tobin's Q
@@ -844,6 +863,9 @@ gen revg = revt - L.revt
 *	Revenue percent growth
 gen revpct = ((revt - L.revt) / L.revt) * 100
 */
+
+
+
 
 ***	Save
 compress
