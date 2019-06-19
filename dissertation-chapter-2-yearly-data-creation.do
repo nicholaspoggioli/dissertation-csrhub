@@ -613,6 +613,10 @@ drop N
 ***	Prep for merge
 gen month=fyr
 
+*	Fix incorrect curcd codes
+replace curcd="VND" if gvkey=="286468" & year==2013
+
+
 ***	Merge on curcd year month
 merge m:1 curcd year month using data\cstat-global-exchange-rate-monthly.dta
 /*
@@ -629,9 +633,7 @@ drop if _merge==2
 drop if _merge==1 /*	All 2018 observations	*/
 drop _merge
 
-***	Convert revt to British pounds
-gen revt_gbp=revt/exratm
-label var revt_gbp "Revenue in Great Britain pounds"
+
 
 ***	Merge on fromcurm year month to get GBP to USD conversion
 merge m:1 fromcurm year month ///
@@ -653,18 +655,14 @@ merge m:1 fromcurm year month ///
 drop if _merge==2
 drop _merge
 
-///	CREATE NEEDED VARIABLES
-***	Convert revt_gbp to revt_usd
-gen revt_usd=revt_gbp*exratm_gbp_to_usd
-label var revt_usd "Revenue in United States dollars"
-
-
-
-
-
+///	CONVERT CURRENCY VARIABLES USED IN EMPIRICAL ANALYSIS TO USD
+foreach variable in revt dltt at csho ceq {
+	gen `variable'_usd = (`variable'/exratm)*exratm_gbp_to_usd
+	label var `variable'_usd "`variable' in United States dollars"
+}
 
 ***	Save
-drop busdesc weburl
+drop busdesc weburl 
 compress
 save data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-global-for-merge.dta, replace
 
