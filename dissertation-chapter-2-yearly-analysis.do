@@ -33,14 +33,14 @@ drop xrdp
 gen xad_original=xad
 label var xad_original "(CSTAT) xad before assuming missing=0"
 replace xad=0 if xad==. & in_cstatn==1
-gen assume_xad=(xad_original==.)
+gen assume_xad=(xad_original==.) & in_cstatn==1
 label var assume_xad "(CSTAT) =1 if missing xad assumed 0"
 
 ///	R&D
 gen xrd_original=xrd
 label var xad_original "(CSTAT) xrd before assuming missing=0"
-replace xrd=0 if xrd==.
-gen assume_xrd=(xrd_original==.)
+replace xrd=0 if xrd==. & in_cstatn==1
+gen assume_xrd=(xrd_original==.) & in_cstatn==1
 label var assume_xrd "(CSTAT) =1 if missing xrd assumed 0"
 
 
@@ -1467,8 +1467,15 @@ esttab revtmod*, ///
 	b se s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC")) ///
 	keep(over_rtg dltt at xad xrd tobinq emp age)
 
+
 	
-/// DV: Revenue (1-year change)
+	
+	
+	
+						***===========================***
+						*	FIXED EFFECTS REGRESSION	*
+						*	DV: NEXT YEAR LEVEL OF REVT *
+						***===========================***	
 local dv revt
 local iv over_rtg 
 local controls "dltt at age emp tobinq xad xrd"
@@ -1542,13 +1549,21 @@ esttab over_rtgint1 over_rtgint2, ///
 	r2 ar2 aic
 
 	
-***	COMPARE THE TWO DVs
+///	COMPARE THE TWO DVs
 esttab revtmod9 over_rtgmod8 revtmod10 over_rtgas1 , ///
 	keep(over_rtg dltt at age emp tobinq xad xrd) ///
 	order(over_rtg dltt at age emp tobinq xad xrd) ///
 	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
 
+
 	
+	
+	
+						***=======================================***
+						*	FIXED EFFECTS REGRESSION				*
+						*	CSRHUB CATEGORIES AND SUB-CATEGORIES	*
+						*		DV: NEXT YEAR LEVEL OF REVT			*
+						***=======================================***	
 /*
 ///	REVENUE = F (CSRHUB CATEGORIES)
 		CSRHub CATEGORIES and subcategories:
@@ -1571,7 +1586,6 @@ esttab revtmod9 over_rtgmod8 revtmod10 over_rtgas1 , ///
 */
 
 ///	COMMUNITY
-
 local dv revt
 local iv cmty_rtg_lym
 local controls "dltt at age emp tobinq xad xrd"
