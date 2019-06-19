@@ -149,8 +149,105 @@ save data/csrhub-all-year-level.dta, replace
 */
 
 
+***===========================================***
+*	CONVERT CSTAT GLOBAL CURRENCIES TO USD		*
+***===========================================***
+/*	PROBLEM: 	CSTAT Global reports local currency. CSTAT North Am reports USA dollars.
+				Need to convert CSTAT Global to USA dollars.
+				
+				This can be done by using the currency exchange file from CSTAT,
+				matching on curcd to convert to British pounds, then converting
+				from British pounds to USD.
+				
+				The Compustat Global Fundamentals Annual Exchange Rate Monthly
+				data were accessed at https://wrds-web.wharton.upenn.edu/wrds/tools/variable.cfm?library_id=162&file_id=95591
+*/
+///	CREATE .DTA FILE
+import delimited "data\cstat-global-exchange-rate-monthly.csv", clear
+
+***	Keep needed variables
+*	exratm:		Exchange rate monthly.
+*	datadate: 	The date for which exratm is valid? Documentation does not specify.
+keep datadate fromcurm tocurm exratm
+
+***	Generate variables
+tostring(datadate), gen(datestring)
+gen date = date(datestring,"YMD")
+gen year=year(date)
+gen month=month(date)
+drop datestring
 
 
+gen curcd = tocurm
+
+***	Save
+compress
+save data\cstat-global-exchange-rate-monthly.dta, replace
+
+***	Save only GBP to USD conversion
+keep if tocurm=="USD"
+
+rename exratm exratm_gpb_to_usd
+rename tocurm to_usd
+drop curcd
+drop datadate
+drop exrat12m
+
+compress
+save data\cstat-global-exchange-rate-monthly-gbp-to-usd-only.dta, replace
+
+///	LOAD CSTAT GLOBAL DATA
+use data/cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-global-for-merge.dta, clear
+
+***	Prep for merge
+gen month=fyr
+
+***	Merge on curcd year month
+merge m:1 curcd year month using data\cstat-global-exchange-rate-monthly.dta
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        60,845
+        from master                     3,745  (_merge==1)
+        from using                     57,100  (_merge==2)
+
+    matched                            80,004  (_merge==3)
+    -----------------------------------------
+*/
+drop if _merge==2
+drop if _merge==1 /*	All 2018 observations	*/
+drop _merge
+
+***	Convert revt to British pounds
+gen revt_gbp=revt/exratm
+
+***	Merge on fromcurm year month to get GBP to USD conversion
+merge m:1 fromcurm year month ///
+	using data\cstat-global-exchange-rate-monthly-gbp-to-usd-only.dta, ///
+	update assert(1 2 3 4 5)
+/*
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                           247
+        from master                         0  (_merge==1)
+        from using                        247  (_merge==2)
+
+    matched                            80,004
+        not updated                    80,004  (_merge==3)
+        missing updated                     0  (_merge==4)
+        nonmissing conflict                 0  (_merge==5)
+    -----------------------------------------
+*/
+drop if _merge==2
+drop _merge
+
+***	Convert revt_gbp to revt_usd
+gen revt_usd=
+
+***	Save
+compress
+save data\cstat-all-variables-for-gvkeys-in-matched-csrhub-cstat-global-for-merge-with-currency-code.dta, ///
+	replace
 
 ***===========================================***
 *	MERGE CSRHUB AND CSTAT GLOBAL ON ISIN YEAR	*
