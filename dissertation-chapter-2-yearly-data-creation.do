@@ -653,15 +653,15 @@ merge m:1 fromcurm year month ///
 drop if _merge==2
 drop _merge
 
+///	CREATE NEEDED VARIABLES
 ***	Convert revt_gbp to revt_usd
 gen revt_usd=revt_gbp*exratm_gbp_to_usd
 label var revt_usd "Revenue in United States dollars"
 
 
-***	Combined revenue in usd
-gen revenue=revt
-replace revenue=revt_usd if in_cstatg==1
-label revenue "(CSTAT) Revenue in USD"
+
+
+
 
 ***	Save
 drop busdesc weburl
@@ -821,6 +821,12 @@ drop if _merge==2
 						*  CREATE REVENUE IN USD VARIABLE	*
 						*									*
 						***===============================***
+***	Combined revenue in usd
+gen revenue=revt
+replace revenue=revt_usd if in_cstatg==1
+label revenue "(CSTAT) Revenue in USD"
+
+
 
 
 
