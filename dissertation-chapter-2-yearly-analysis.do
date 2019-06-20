@@ -83,6 +83,55 @@ foreach var of varlist trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		tab year `var'
 }
 
+///	YEARS WITH OBSERVATIONS ON ALL NEEDED VARIABLES
+capt n drop ps2*
+capt n drop markrevt
+mark markrevt
+markout markrevt revt trt3_sdw_pos dltt at age emp tobinq
+tab year trt3_sdw_neg if markrevt==1
+/*
+           |   Treatment = 1 if
+           | year-on-year over_rtg
+           |  > 3 std dev of sdw
+           |     and negative
+      year |         0          1 |     Total
+-----------+----------------------+----------
+      2009 |       745         21 |       766 
+      2010 |     1,209         13 |     1,222 
+      2011 |     1,579          1 |     1,580 
+      2012 |     2,093          3 |     2,096 
+      2013 |     2,348          0 |     2,348 
+      2014 |     2,610          0 |     2,610 
+      2015 |     2,707          1 |     2,708 
+      2016 |     2,880          0 |     2,880 
+-----------+----------------------+----------
+     Total |    16,171         39 |    16,210 
+*/
+
+drop markrevenue
+mark markrevenue
+markout markrevenue revenue trt3_sdw_pos dltt at age emp tobinq
+tab year trt3_sdw_neg if markrevenue==1
+
+/*
+           |   Treatment = 1 if
+           | year-on-year over_rtg
+           |  > 3 std dev of sdw
+           |     and negative
+      year |         0          1 |     Total
+-----------+----------------------+----------
+      2009 |       745         21 |       766 
+      2010 |     1,209         13 |     1,222 
+      2011 |     1,579          1 |     1,580 
+      2012 |     2,093          3 |     2,096 
+      2013 |     2,348          0 |     2,348 
+      2014 |     2,610          0 |     2,610 
+      2015 |     2,707          1 |     2,708 
+      2016 |     2,880          0 |     2,880 
+-----------+----------------------+----------
+     Total |    16,171         39 |    16,210 
+*/
+
 
 						***===========================***
 						*								*
@@ -112,7 +161,7 @@ forvalues neighbors = 1/10 {
 
 ///	2 STANDARD DEVIATIONS
 ***	Positive
-forvalues neighbors = 1/10 {
+forvalues neighbors = 1/3 {
 	capt n drop ps*
 	capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq), ///
 		osample(ps) nneighbor(`neighbors')
@@ -901,7 +950,7 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		label var treated "Treated"
 
 		*	Estimate
-		reg revt i.time##i.treated i.year, r
+		reg revenue i.time##i.treated i.year, r
 		
 		*	Store estimates
 		estimates store est_`variable'_`year'
@@ -917,15 +966,18 @@ coefplot est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_t
 	
 coefplot est_trt3_sdw_neg_2009 est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 est_trt3_sdw_neg_2012 est_trt3_sdw_neg_2013 est_trt3_sdw_neg_2014 est_trt3_sdw_neg_2015 est_trt3_sdw_neg_2016 est_trt3_sdw_neg_2017, ///
 	xline(0) ///
-	drop(*year)
+	drop(*year) ///
+	name(trt3_neg, replace)
 	
 coefplot est_trt2_sdw_pos_2009 est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 est_trt2_sdw_pos_2012 est_trt2_sdw_pos_2013 est_trt2_sdw_pos_2014 est_trt2_sdw_pos_2015 est_trt2_sdw_pos_2016 est_trt2_sdw_pos_2017, ///
 	xline(0) ///
-	drop(*year)
+	drop(*year) ///
+	name(trt2_pos, replace)
 	
 coefplot est_trt2_sdw_neg_2009 est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 est_trt2_sdw_neg_2012 est_trt2_sdw_neg_2013 est_trt2_sdw_neg_2014 est_trt2_sdw_neg_2015 est_trt2_sdw_neg_2016 est_trt2_sdw_neg_2017, ///
 	xline(0) ///
-	drop(*year)
+	drop(*year) ///
+	name(trt2_neg, replace)
 	
 coefplot est_trt1_sdw_pos_2009 est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 est_trt1_sdw_pos_2012 est_trt1_sdw_pos_2013 est_trt1_sdw_pos_2014 est_trt1_sdw_pos_2015 est_trt1_sdw_pos_2016 est_trt1_sdw_pos_2017, ///
 	xline(0) ///
@@ -933,7 +985,10 @@ coefplot est_trt1_sdw_pos_2009 est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 est_t
 	
 coefplot est_trt1_sdw_neg_2009 est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 est_trt1_sdw_neg_2012 est_trt1_sdw_neg_2013 est_trt1_sdw_neg_2014 est_trt1_sdw_neg_2015 est_trt1_sdw_neg_2016 est_trt1_sdw_neg_2017, ///
 	xline(0) ///
-	drop(*year)
+	drop(*year) ///
+	name(trt1_neg, replace)
+	
+graph combine trt3_neg trt2_neg trt1_neg, r(3) c(1) xcommon
 
 	
 ***	Inverse hyperbolic sine transformation DV
