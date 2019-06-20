@@ -960,40 +960,45 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 *	Coefficient plots
 coefplot est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 est_trt3_sdw_pos_2013 est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 est_trt3_sdw_pos_2016 est_trt3_sdw_pos_2017, ///
 	xline(0) ///
-	drop(*year) ///
-	name(g1a, replace) ///
+	drop(*year) nodraw  ///
+	name(trt3_pos, replace) ///
 	title("TRT3 POS")
 	
 coefplot est_trt3_sdw_neg_2009 est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 est_trt3_sdw_neg_2012 est_trt3_sdw_neg_2013 est_trt3_sdw_neg_2014 est_trt3_sdw_neg_2015 est_trt3_sdw_neg_2016 est_trt3_sdw_neg_2017, ///
 	xline(0) ///
-	drop(*year) ///
+	drop(*year) nodraw  ///
 	name(trt3_neg, replace)
 	
 coefplot est_trt2_sdw_pos_2009 est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 est_trt2_sdw_pos_2012 est_trt2_sdw_pos_2013 est_trt2_sdw_pos_2014 est_trt2_sdw_pos_2015 est_trt2_sdw_pos_2016 est_trt2_sdw_pos_2017, ///
 	xline(0) ///
-	drop(*year) ///
+	drop(*year) nodraw  ///
 	name(trt2_pos, replace)
 	
 coefplot est_trt2_sdw_neg_2009 est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 est_trt2_sdw_neg_2012 est_trt2_sdw_neg_2013 est_trt2_sdw_neg_2014 est_trt2_sdw_neg_2015 est_trt2_sdw_neg_2016 est_trt2_sdw_neg_2017, ///
 	xline(0) ///
-	drop(*year) ///
+	drop(*year) nodraw  ///
 	name(trt2_neg, replace)
 	
 coefplot est_trt1_sdw_pos_2009 est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 est_trt1_sdw_pos_2012 est_trt1_sdw_pos_2013 est_trt1_sdw_pos_2014 est_trt1_sdw_pos_2015 est_trt1_sdw_pos_2016 est_trt1_sdw_pos_2017, ///
 	xline(0) ///
-	drop(*year)
+	drop(*year) nodraw  ///
+	name(trt1_pos, replace)
 	
 coefplot est_trt1_sdw_neg_2009 est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 est_trt1_sdw_neg_2012 est_trt1_sdw_neg_2013 est_trt1_sdw_neg_2014 est_trt1_sdw_neg_2015 est_trt1_sdw_neg_2016 est_trt1_sdw_neg_2017, ///
 	xline(0) ///
-	drop(*year) ///
+	drop(*year) nodraw  ///
 	name(trt1_neg, replace)
-	
+
+*	Compare positive treatments
+graph combine trt3_pos trt2_pos trt1_pos, r(3) c(1) xcommon
+
+*	Compare negative treatments
 graph combine trt3_neg trt2_neg trt1_neg, r(3) c(1) xcommon
 
 	
 ***	Inverse hyperbolic sine transformation DV
-capt n gen ihasrevt = asinh(revt)
-label var ihasrevt "Inverse hyperbolic sine transformation of revt"
+capt n gen revenue_ihs = asinh(revenue)
+label var revenue_ihs "Inverse hyperbolic sine transformation of revt"
 
 foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
@@ -1013,15 +1018,15 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		label var treated "Treated"
 
 		*	Estimate
-		reg ihasrevt i.time##i.treated i.year, r
+		reg revenue_ihs i.time##i.treated i.year, r
 		
 		*	Store estimates
-		estimates store est_ihas_`variable'_`year'
+		estimates store est_ihs_`variable'_`year'
 	}
 }
 
 *	Coefficient plots
-coefplot est_ihas_trt3_sdw_pos_2009 est_ihas_trt3_sdw_pos_2010 est_ihas_trt3_sdw_pos_2011 est_ihas_trt3_sdw_pos_2012 est_ihas_trt3_sdw_pos_2013 est_ihas_trt3_sdw_pos_2014 est_ihas_trt3_sdw_pos_2015 est_ihas_trt3_sdw_pos_2016 est_ihas_trt3_sdw_pos_2017, ///
+coefplot est_ihs_trt3_sdw_pos_2009 est_ihs_trt3_sdw_pos_2010 est_ihs_trt3_sdw_pos_2011 est_ihs_trt3_sdw_pos_2012 est_ihs_trt3_sdw_pos_2013 est_ihs_trt3_sdw_pos_2014 est_ihs_trt3_sdw_pos_2015 est_ihs_trt3_sdw_pos_2016 est_ihs_trt3_sdw_pos_2017, ///
 	xline(0) ///
 	xlab(-10(5)10) ///
 	drop(*year) ///
@@ -1029,35 +1034,36 @@ coefplot est_ihas_trt3_sdw_pos_2009 est_ihas_trt3_sdw_pos_2010 est_ihas_trt3_sdw
 		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
 		label(18 "2017"))
 	
-coefplot est_ihas_trt3_sdw_neg_2009 est_ihas_trt3_sdw_neg_2010 est_ihas_trt3_sdw_neg_2011 est_ihas_trt3_sdw_neg_2012 est_ihas_trt3_sdw_neg_2013 est_ihas_trt3_sdw_neg_2014 est_ihas_trt3_sdw_neg_2015 est_ihas_trt3_sdw_neg_2016 est_ihas_trt3_sdw_neg_2017, ///
+coefplot est_ihs_trt3_sdw_neg_2009 est_ihs_trt3_sdw_neg_2010 est_ihs_trt3_sdw_neg_2011 est_ihs_trt3_sdw_neg_2012 est_ihs_trt3_sdw_neg_2013 est_ihs_trt3_sdw_neg_2014 est_ihs_trt3_sdw_neg_2015 est_ihs_trt3_sdw_neg_2016 est_ihs_trt3_sdw_neg_2017, ///
 	xline(0) ///
 	drop(*year) ///
 	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
 		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
 		label(18 "2017"))
 	
-coefplot est_ihas_trt2_sdw_pos_2009 est_ihas_trt2_sdw_pos_2010 est_ihas_trt2_sdw_pos_2011 est_ihas_trt2_sdw_pos_2012 est_ihas_trt2_sdw_pos_2013 est_ihas_trt2_sdw_pos_2014 est_ihas_trt2_sdw_pos_2015 est_ihas_trt2_sdw_pos_2016 est_ihas_trt2_sdw_pos_2017, ///
+coefplot est_ihs_trt2_sdw_pos_2009 est_ihs_trt2_sdw_pos_2010 est_ihs_trt2_sdw_pos_2011 est_ihs_trt2_sdw_pos_2012 est_ihs_trt2_sdw_pos_2013 est_ihs_trt2_sdw_pos_2014 est_ihs_trt2_sdw_pos_2015 est_ihs_trt2_sdw_pos_2016 est_ihs_trt2_sdw_pos_2017, ///
 	xline(0) ///
 	drop(*year) ///
 	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
 		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
 		label(18 "2017"))
 	
-coefplot est_ihas_trt2_sdw_neg_2009 est_ihas_trt2_sdw_neg_2010 est_ihas_trt2_sdw_neg_2011 est_ihas_trt2_sdw_neg_2012 est_ihas_trt2_sdw_neg_2013 est_ihas_trt2_sdw_neg_2014 est_ihas_trt2_sdw_neg_2015 est_ihas_trt2_sdw_neg_2016 est_ihas_trt2_sdw_neg_2017, ///
+coefplot est_ihs_trt2_sdw_neg_2009 est_ihs_trt2_sdw_neg_2010 est_ihs_trt2_sdw_neg_2011 est_ihs_trt2_sdw_neg_2012 est_ihs_trt2_sdw_neg_2013 est_ihs_trt2_sdw_neg_2014 est_ihs_trt2_sdw_neg_2015 est_ihs_trt2_sdw_neg_2016 est_ihs_trt2_sdw_neg_2017, ///
+	xline(0) ///
+	drop(*year) ///
+	xlab(-10(5)10) ///
+	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
+		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
+		label(18 "2017"))
+	
+coefplot est_ihs_trt1_sdw_pos_2009 est_ihs_trt1_sdw_pos_2010 est_ihs_trt1_sdw_pos_2011 est_ihs_trt1_sdw_pos_2012 est_ihs_trt1_sdw_pos_2013 est_ihs_trt1_sdw_pos_2014 est_ihs_trt1_sdw_pos_2015 est_ihs_trt1_sdw_pos_2016 est_ihs_trt1_sdw_pos_2017, ///
 	xline(0) ///
 	drop(*year) ///
 	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
 		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
 		label(18 "2017"))
 	
-coefplot est_ihas_trt1_sdw_pos_2009 est_ihas_trt1_sdw_pos_2010 est_ihas_trt1_sdw_pos_2011 est_ihas_trt1_sdw_pos_2012 est_ihas_trt1_sdw_pos_2013 est_ihas_trt1_sdw_pos_2014 est_ihas_trt1_sdw_pos_2015 est_ihas_trt1_sdw_pos_2016 est_ihas_trt1_sdw_pos_2017, ///
-	xline(0) ///
-	drop(*year) ///
-	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
-		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
-		label(18 "2017"))
-	
-coefplot est_ihas_trt1_sdw_neg_2009 est_ihas_trt1_sdw_neg_2010 est_ihas_trt1_sdw_neg_2011 est_ihas_trt1_sdw_neg_2012 est_ihas_trt1_sdw_neg_2013 est_ihas_trt1_sdw_neg_2014 est_ihas_trt1_sdw_neg_2015 est_ihas_trt1_sdw_neg_2016 est_ihas_trt1_sdw_neg_2017, ///
+coefplot est_ihs_trt1_sdw_neg_2009 est_ihs_trt1_sdw_neg_2010 est_ihs_trt1_sdw_neg_2011 est_ihs_trt1_sdw_neg_2012 est_ihs_trt1_sdw_neg_2013 est_ihs_trt1_sdw_neg_2014 est_ihs_trt1_sdw_neg_2015 est_ihs_trt1_sdw_neg_2016 est_ihs_trt1_sdw_neg_2017, ///
 	xline(0) ///
 	drop(*year) ///
 	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
