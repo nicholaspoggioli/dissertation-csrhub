@@ -1037,6 +1037,109 @@ gen trt3pos = (yoy_zscore>3 & yoy_zscore!=.)
 gen trt3neg = (yoy_zscore<-3 & yoy_zscore!=.)
 
 
+
+
+
+
+
+						***===============================***
+						*									*
+						*  			 ASSUMPTIONS			*
+						*									*
+						***===============================***
+///	ADVERTISING (CSTAT GLOBAL DOES NOT CONTAIN AN ADVERTISING VARIABLE)
+gen xad_original=xad
+label var xad_original "(CSTAT) xad before assuming missing=0"
+replace xad=0 if xad==. & in_cstatn==1
+gen assume_xad=(xad_original==.) & in_cstatn==1
+label var assume_xad "(CSTAT) =1 if missing xad assumed 0"
+
+///	R&D
+gen xrd_original=xrd
+label var xad_original "(CSTAT) xrd before assuming missing=0"
+replace xrd=0 if xrd==. & in_cstatn==1
+gen assume_xrd=(xrd_original==.) & in_cstatn==1
+label var assume_xrd "(CSTAT) =1 if missing xrd assumed 0"
+
+
+
+						***===============================***
+						*									*
+						*  		  GENERATE VARIABLES		*
+						*									*
+						***===============================***	
+///	RENAME CURRENCY ADJUSTED VARIABLES
+rename (dltt at csho ceq) (dltt_unadjusted at_unadjusted csho_unadjusted ceq_unadjusted)
+label var dltt_unadjusted "dltt in curcd currency"
+label var at_unadjusted "at in curcd currency"
+label var csho_unadjusted "csho in curcd currency"
+label var ceq_unadjusted "ceq in curcd currency"
+
+rename (dltt_usd at_usd csho_usd ceq_usd) (dltt at csho ceq)
+
+***	Replace missing adjusted values with USD values from CSTAT North America
+foreach variable in dltt at csho ceq {
+	replace `variable' = `variable'_unadjusted if `variable'==. & curcd=="USD"
+}
+						
+						
+///	REVENUE GROWTH VARIABLES
+***	Current year minus previous year
+gen revenue_yoy = revenue - l.revenue
+label var revenue_yoy "Year-on-year change in revenue (revenue - previous year revenue)"
+
+***	Next year minus current year
+gen Frevenue_yoy = F.revenue-revenue
+label var Frevenue_yoy "Next year revenue - current year revenue"
+
+***	Percent change in sales, current to next year
+gen revenue_pct = (revenue_yoy/L.revenue)*100
+label var revenue_pct "Percent change in revenue, current to previous year"
+
+
+
+///	Tobin's Q
+gen tobinq = (at + (csho * prcc_f) - ceq) / at
+
+/*
+gen mkt2book = mkvalt / bkvlps
+
+*	ROA
+gen roa = ni / at
+
+xtset
+gen lroa = L.roa
+
+*	Net income
+xtset
+gen lni = L.ni
+
+*	Net income growth
+gen ni_growth = ni - L.ni
+
+*	Net income percent growth
+gen nipct = ((ni - L.ni) / L.ni) * 100
+	
+*	Debt ratio
+gen debt = dltt / at
+
+*	R&D
+gen rd = xrd / sale
+
+*	Advertising
+gen ad = xad / sale
+
+*	Revenue growth
+gen revg = revt - L.revt
+
+*	Revenue percent growth
+gen revpct = ((revt - L.revt) / L.revt) * 100
+*/
+
+
+
+
+
 					***=======================================***
 					*											*
 					*  SAVE FINAL MATCHED CSRHUB-CSTAT DATASET 	*
@@ -1056,7 +1159,7 @@ save data/matched-csrhub-cstat-2008-2017, replace
 	
 	
 	
-	
+/*
 	
 	
 	
