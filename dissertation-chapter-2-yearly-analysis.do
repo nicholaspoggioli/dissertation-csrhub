@@ -63,6 +63,49 @@ label var Frevenue_yoy "Next year revenue - current year revenue"
 gen revenue_pct = (revenue_yoy/L.revenue)*100
 label var revenue_pct "Percent change in revenue, current to previous year"
 
+
+
+///	Tobin's Q
+gen tobinq = (at + (csho * prcc_f) - ceq) / at
+
+/*
+gen mkt2book = mkvalt / bkvlps
+
+*	ROA
+gen roa = ni / at
+
+xtset
+gen lroa = L.roa
+
+*	Net income
+xtset
+gen lni = L.ni
+
+*	Net income growth
+gen ni_growth = ni - L.ni
+
+*	Net income percent growth
+gen nipct = ((ni - L.ni) / L.ni) * 100
+	
+*	Debt ratio
+gen debt = dltt / at
+
+*	R&D
+gen rd = xrd / sale
+
+*	Advertising
+gen ad = xad / sale
+
+*	Revenue growth
+gen revg = revt - L.revt
+
+*	Revenue percent growth
+gen revpct = ((revt - L.revt) / L.revt) * 100
+*/
+
+
+
+
 						***===============================***
 						*									*
 						*  TREATMENT VARIABLE DESCRIPTIVES	*

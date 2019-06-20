@@ -655,6 +655,7 @@ merge m:1 fromcurm year month ///
 drop if _merge==2
 drop _merge
 
+
 ///	CONVERT CURRENCY VARIABLES USED IN EMPIRICAL ANALYSIS TO USD
 foreach variable in revt dltt at csho ceq {
 	gen `variable'_usd = (`variable'/exratm)*exratm_gbp_to_usd
@@ -826,52 +827,7 @@ label var revenue "(CSTAT) Revenue in USD"
 
 
 
-
-
-
-
-///	Tobin's Q
-gen tobinq = (at + (csho * prcc_f) - ceq) / at
-
-/*
-gen mkt2book = mkvalt / bkvlps
-
-*	ROA
-gen roa = ni / at
-
-xtset
-gen lroa = L.roa
-
-*	Net income
-xtset
-gen lni = L.ni
-
-*	Net income growth
-gen ni_growth = ni - L.ni
-
-*	Net income percent growth
-gen nipct = ((ni - L.ni) / L.ni) * 100
-	
-*	Debt ratio
-gen debt = dltt / at
-
-*	R&D
-gen rd = xrd / sale
-
-*	Advertising
-gen ad = xad / sale
-
-*	Revenue growth
-gen revg = revt - L.revt
-
-*	Revenue percent growth
-gen revpct = ((revt - L.revt) / L.revt) * 100
-*/
-
-
-
-
-***	Save
+///	SAVE
 compress
 save data/matched-csrhub-cstat-northam-and-global-2008-2017-with-age.dta, replace
 
