@@ -50,10 +50,6 @@ label var assume_xrd "(CSTAT) =1 if missing xrd assumed 0"
 						*  		  GENERATE VARIABLES		*
 						*									*
 						***===============================***	
-///	GENERATE YEAR-ON-YEAR REVENUE CHANGE
-capt n gen Frevt_yoy = F.revt-revt
-label var Frevt_yoy "Next year revt - current year revt"
-
 ///	REVENUE GROWTH VARIABLES
 ***	Current year minus previous year
 gen revenue_yoy = revenue - l.revenue
@@ -86,32 +82,6 @@ foreach var of varlist trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
 		tab year `var'
 }
-
-///	YEARS WITH OBSERVATIONS ON ALL NEEDED VARIABLES
-capt n drop ps2*
-capt n drop mark
-mark mark1
-markout mark1 trt3_sdw_pos Frevt_yoy dltt at age emp tobinq xad xrd
-tab year trt3_sdw_neg if mark1==1
-/*
-           |   Treatment = 1 if
-           | year-on-year over_rtg
-           |  > 3 std dev of sdw
-           |     and negative
-      year |         0          1 |     Total
------------+----------------------+----------
-      2009 |       726         21 |       747 
-      2010 |     1,177         13 |     1,190 
-      2011 |     1,542          1 |     1,543 
-      2012 |     2,033          3 |     2,036 
-      2013 |     2,269          0 |     2,269 
-      2014 |     2,475          0 |     2,475 
-      2015 |     2,521          1 |     2,522 
------------+----------------------+----------
-     Total |    12,743         39 |    12,782 
-*/
-drop mark1
-
 
 
 						***===========================***
