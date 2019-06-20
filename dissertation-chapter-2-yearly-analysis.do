@@ -54,7 +54,18 @@ label var assume_xrd "(CSTAT) =1 if missing xrd assumed 0"
 capt n gen Frevt_yoy = F.revt-revt
 label var Frevt_yoy "Next year revt - current year revt"
 
+///	REVENUE GROWTH VARIABLES
+***	Current year minus previous year
+gen revenue_yoy = revenue - l.revenue
+label var revenue_yoy "Year-on-year change in revenue (revenue - previous year revenue)"
 
+***	Next year minus current year
+gen Frevenue_yoy = F.revenue-revenue
+label var Frevenue_yoy "Next year revenue - current year revenue"
+
+***	Percent change in sales, current to next year
+gen revenue_pct = (revenue_yoy/L.revenue)*100
+label var revenue_pct "Percent change in revenue, current to previous year"
 
 						***===============================***
 						*									*
