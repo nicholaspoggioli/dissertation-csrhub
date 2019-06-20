@@ -822,7 +822,7 @@ drop if _merge==2
 ***	Combined revenue in usd
 gen revenue=revt
 replace revenue=revt_usd if in_cstatg==1
-label revenue "(CSTAT) Revenue in USD"
+label var revenue "(CSTAT) Revenue in USD"
 
 
 
@@ -1009,16 +1009,16 @@ over_rtg_y | Categorical treatment
    std dev |   std dev from sdw
   from sdw |        -7          0 |     Total
 -----------+----------------------+----------
-         0 |         0         42 |        42 
-         7 |         5          0 |         5 
+         0 |         0         86 |        86 
+         7 |        21          0 |        21 
 -----------+----------------------+----------
-     Total |         5         42 |        47 
+     Total |        21         86 |       107
 */
 sum over_rtg_yoy if trt_cat_sdw_pos==7 & trt_cat_sdw_neg==-7
 /*
     Variable |        Obs        Mean    Std. Dev.       Min        Max
 -------------+---------------------------------------------------------
-over_rtg_yoy |          5           0           0          0          0
+over_rtg_yoy |         21           0           0          0          0
 */
 
 *	No values of the trt_cat_sdw variables are greater than 3 or less than -3
@@ -1033,21 +1033,6 @@ foreach variable of varlist *sdw* {
 	display "`variable'"
 	replace `variable'=. if year < 2009
 }
-
-///	SALES GROWTH VARIABLES
-***	Current year minus previous year
-gen revt_yoy = revt - l.revt
-label var revt_yoy "Year-on-year change in revenue (revt - previous year revt)"
-
-***	Next year minus current year
-gen Frevt_yoy = F.revt-revt
-label var Frevt_yoy "Next year revt - current year revt"
-
-***	Percent change in sales, current to next year
-gen revt_pct = (revt_yoy/L.revt)*100
-label var revt_pct "Percent change in revenue, current to previous year"
-
-
 
 
 		*************************************************************
