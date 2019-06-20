@@ -1072,7 +1072,7 @@ coefplot est_ihs_trt1_sdw_neg_2009 est_ihs_trt1_sdw_neg_2010 est_ihs_trt1_sdw_ne
 	
 ///	REVENUE IN YEAR AFTER TREATMENT
 xtset
-gen frevt=f.revt
+gen Frevenue=f.revenue
 
 foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
@@ -1092,7 +1092,7 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		label var treated "Treated"
 
 		*	Estimate
-		reg frevt i.time##i.treated i.year, r
+		reg Frevenue i.time##i.treated i.year, r
 		
 		*	Store estimates
 		estimates store est_f_`variable'_`year'
@@ -1105,7 +1105,7 @@ coefplot est_f_trt3_sdw_pos_2009 est_f_trt3_sdw_pos_2010 est_f_trt3_sdw_pos_2011
 	xline(0) ///
 	drop(*year) ///
 	name(g1b, replace) ///
-	title("TRT3 POS, Forward")
+	title("TRT3 POS, Forward Revenue")
 	
 coefplot est_f_trt3_sdw_neg_2009 est_f_trt3_sdw_neg_2010 est_f_trt3_sdw_neg_2011 est_f_trt3_sdw_neg_2012 est_f_trt3_sdw_neg_2013 est_f_trt3_sdw_neg_2014 est_f_trt3_sdw_neg_2015 est_f_trt3_sdw_neg_2016 est_f_trt3_sdw_neg_2017, ///
 	xline(0) ///
@@ -1163,7 +1163,7 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 
 
 
-///	ESTIMATION: LEVEL OF REVT
+///	ESTIMATION: LEVEL OF REVENUE
 foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
 	forvalues year = 2009/2017 {
@@ -1182,7 +1182,7 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		label var treated "Treated"
 
 		*	Estimate
-		qui reg revt i.time##i.treated i.year, r
+		qui reg revenue i.time##i.treated i.year, r
 		
 		*	Store estimates
 		estimates store est_`variable'_`year'
@@ -1215,13 +1215,13 @@ estout est_trt3_sdw_neg_2009 est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 ///
 estout est_trt2_sdw_pos_2009 est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 ///
 	est_trt2_sdw_pos_2012 est_trt2_sdw_pos_2013 est_trt2_sdw_pos_2014 ///
 	est_trt2_sdw_pos_2015 est_trt2_sdw_pos_2016 est_trt2_sdw_pos_2017, ///
-	drop(*.year 0.treated 1.time#0.treated) ///
+	drop(*.year) ///
 	cells(b se p) nobase
 
 estout est_trt2_sdw_neg_2009 est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 ///
 	est_trt2_sdw_neg_2012 est_trt2_sdw_neg_2013 est_trt2_sdw_neg_2014 ///
 	est_trt2_sdw_neg_2015 est_trt2_sdw_neg_2016 est_trt2_sdw_neg_2017, ///
-	drop(*.year 0.treated 1.time#0.treated) ///
+	drop(*.year) ///
 	cells(b se p) nobase
 	
 estout est_trt1_sdw_pos_2009 est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 ///
@@ -1442,12 +1442,6 @@ tw 	(line trt1_sdw_pos_revt_ihs_mean trt1_sdw_pos_trtper, sort) ///
 	
 
 
-
-
-
-
-
-
 						***===========================***
 						*	FIXED EFFECTS REGRESSION	*
 						*		DV: LEVEL OF REVT 		*
@@ -1466,46 +1460,46 @@ xtset
 ///	ESTIMATION
 *mark mark3
 *markout mark3 revt over_rtg dltt at xad xrd emp year
-qui xtreg revt over_rtg, fe cluster(gvkey_num)										
-est store revtmod1
+qui xtreg revenue over_rtg, fe cluster(gvkey_num)										
+est store revenuemod1
 estadd local yearFE "No", replace
-qui xtreg revt over_rtg i.year, fe cluster(gvkey_num)									
-est store revtmod2
+qui xtreg revenue over_rtg i.year, fe cluster(gvkey_num)									
+est store revenuemod2
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt i.year, fe cluster(gvkey_num)							
-est store revtmod3
+qui xtreg revenue over_rtg dltt i.year, fe cluster(gvkey_num)							
+est store revenuemod3
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt at i.year, fe cluster(gvkey_num)							
-est store revtmod4
+qui xtreg revenue over_rtg dltt at i.year, fe cluster(gvkey_num)							
+est store revenuemod4
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt at emp i.year, fe cluster(gvkey_num)						
-est store revtmod5
+qui xtreg revenue over_rtg dltt at emp i.year, fe cluster(gvkey_num)						
+est store revenuemod5
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt at emp tobinq i.year, fe cluster(gvkey_num)					
-est store revtmod6
+qui xtreg revenue over_rtg dltt at emp tobinq i.year, fe cluster(gvkey_num)					
+est store revenuemod6
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt at emp tobinq age i.year, fe cluster(gvkey_num)				
-est store revtmod7
+qui xtreg revenue over_rtg dltt at emp tobinq age i.year, fe cluster(gvkey_num)				
+est store revenuemod7
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt at emp tobinq age xad i.year, fe cluster(gvkey_num)				
-est store revtmod8
+qui xtreg revenue over_rtg dltt at emp tobinq age xad i.year, fe cluster(gvkey_num)				
+est store revenuemod8
 estadd local yearFE "Yes", replace
-qui xtreg revt over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(gvkey_num)				
-est store revtmod9
+qui xtreg revenue over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(gvkey_num)				
+est store revenuemod9
 estadd local yearFE "Yes", replace
 
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
 preserve
-replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
-replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
+replace xad=0 if xad==. & in_cstatn==1							/*	assumption	*/
+replace xrd=0 if xrd==. & in_cstatn==1							/*	assumption	*/
 
-qui xtreg revt over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(gvkey_num)				
-est store revtmod10
+qui xtreg revenue over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(gvkey_num)				
+est store revenuemod10
 estadd local yearFE "Yes", replace
 restore
 
-esttab revtmod*, ///
+esttab revenuemod*, ///
 	b se s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC")) ///
 	keep(over_rtg dltt at xad xrd tobinq emp age)
 
