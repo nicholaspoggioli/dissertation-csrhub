@@ -1580,7 +1580,7 @@ esttab revtmod9 over_rtgmod8 revtmod10 over_rtgas1 , ///
 						***=======================================***
 						*	FIXED EFFECTS REGRESSION				*
 						*	CSRHUB CATEGORIES AND SUB-CATEGORIES	*
-						*		DV: NEXT YEAR LEVEL OF REVT			*
+						*		DV: NEXT YEAR LEVEL OF REVENUE		*
 						***=======================================***	
 /*
 ///	REVENUE = F (CSRHUB CATEGORIES)
@@ -1604,7 +1604,7 @@ esttab revtmod9 over_rtgmod8 revtmod10 over_rtgas1 , ///
 */
 
 ///	COMMUNITY
-local dv revt
+local dv revenue
 local iv cmty_rtg_lym
 local controls "dltt at age emp tobinq xad xrd"
 
@@ -1653,7 +1653,7 @@ esttab cmtymod* cmtyas1, ///
 	
 ///	EMPLOYEES
 
-local dv revt
+local dv revenue
 local iv emp_rtg_lym
 local controls "dltt at age emp tobinq xad xrd"
 
@@ -1699,7 +1699,7 @@ esttab empmod* empas1, ///
 
 ///	ENVIRONMENT
 
-local dv revt
+local dv revenue
 local iv enviro_rtg_lym
 local controls "dltt at age emp tobinq xad xrd"
 
@@ -1749,7 +1749,7 @@ esttab enviromod* enviroas1, ///
 	
 ///	GOVERNANCE
 
-local dv revt
+local dv revenue
 local iv gov_rtg_lym
 local controls "dltt at age emp tobinq xad xrd"
 
@@ -1793,33 +1793,33 @@ restore
 esttab govmod* govas1, ///
 	keep(gov_rtg_lym dltt at age emp tobinq xad xrd) ///
 	order(gov_rtg_lym dltt at age emp tobinq xad xrd) ///
-	s(yearFE firmFE N N_g r2 aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "R^2" "AIC"))
+	s(yearFE firmFE N N_g r2_a aic, label("Year FEs" "Firm FEs" "Observations" "Firms" "Adj. R^2" "AIC"))
 
 
 	
 ///	COMPARE ALL CSRHUB CATEGORIES
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym , fe cluster(gvkey_num)
+qui xtreg F.revenue cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym, fe cluster(gvkey_num)
 est store m1
-estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym i.year, fe cluster(gvkey_num)
+estadd local yearFE "No", replace
+qui xtreg F.revenue cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym i.year, fe cluster(gvkey_num)
 est store m2
 estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt i.year, fe cluster(gvkey_num)
+qui xtreg F.revenue cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt i.year, fe cluster(gvkey_num)
 est store m3
 estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at i.year, fe cluster(gvkey_num)
+qui xtreg F.revenue cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at i.year, fe cluster(gvkey_num)
 est store m4
 estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age i.year, fe cluster(gvkey_num)
+qui xtreg F.revenue cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age i.year, fe cluster(gvkey_num)
 est store m5
 estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp i.year, fe cluster(gvkey_num)
+qui xtreg F.revenue cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp i.year, fe cluster(gvkey_num)
 est store m6
 estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad i.year, fe cluster(gvkey_num)
+qui xtreg F.revenue cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad i.year, fe cluster(gvkey_num)
 est store m7
 estadd local yearFE "Yes", replace
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)
+qui xtreg F.revenue cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)
 est store m8
 estadd local yearFE "Yes", replace
 
@@ -1829,7 +1829,7 @@ preserve
 replace xad=0 if xad==.															/*	assumption	*/
 replace xrd=0 if xrd==.															/*	assumption	*/
 
-qui xtreg F.revt cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)
+qui xtreg F.revenue cmty_rtg_lym emp_rtg_lym enviro_rtg_lym gov_rtg_lym dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)
 est store m9
 restore 
 
@@ -1875,7 +1875,7 @@ esttab cmtymod8 empmod8 enviromod8 govmod8 m8 cmtyas1 empas1 enviroas1 govas1 m9
 					
 				*/
 
-local dv revt
+local dv revenue
 local ivs "com_dev_phl_rtg_lym prod_rtg_lym humrts_supchain_rtg_lym comp_ben_rtg_lym div_lab_rtg_lym train_hlth_safe_rtg_lym enrgy_climchge_rtg_lym enviro_pol_rpt_rtg_lym resource_mgmt_rtg_lym board_rtg_lym ldrship_ethics_rtg_lym trans_report_rtg_lym"
 local controls "dltt at age emp tobinq xad xrd"
 
