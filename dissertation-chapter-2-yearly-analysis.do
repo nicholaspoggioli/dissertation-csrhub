@@ -1512,7 +1512,7 @@ esttab revenuemod*, ///
 						*	FIXED EFFECTS REGRESSION	*
 						*	DV: NEXT YEAR LEVEL OF REVT *
 						***===========================***	
-local dv revt
+local dv revenue
 local iv over_rtg 
 local controls "dltt at age emp tobinq xad xrd"
 
@@ -1541,10 +1541,10 @@ foreach control of local controls {
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
 preserve
-replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
-replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
+replace xad=0 if xad==. & over_rtg!=. & in_cstatn==1									/*	assumption	*/
+replace xrd=0 if xrd==. & over_rtg!=. & in_cstatn==1							/*	assumption	*/
 
-qui xtreg F.revt over_rtg dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)	
+qui xtreg F.revenue over_rtg dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)	
 est store over_rtgas1
 estadd local yearFE "Yes", replace
 restore 
@@ -1552,37 +1552,19 @@ restore
 *	Assume missing xad and xrd are 0, interact over_rtg and revt, 
 *	all independent variables lagged
 preserve
-replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
-replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
+replace xad=0 if xad==. & over_rtg!=. & in_cstatn==1								/*	assumption	*/
+replace xrd=0 if xrd==. & over_rtg!=. & in_cstatn==1							/*	assumption	*/
 
-qui xtreg F.revt c.over_rtg##c.revt dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)
+xtreg F.revenue c.over_rtg##c.revenue dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)
 est store over_rtgint1
 estadd local yearFE "Yes", replace
 restore
 
-*	Assume missing xad and xrd are 0, interact over_rtg and revt, 
-*	all independent variables lagged, and standardized revt and over_rtg
-preserve
-replace xad=0 if xad==. & over_rtg!=.											/*	assumption	*/
-replace xrd=0 if xrd==. & over_rtg!=.											/*	assumption	*/
-
-egen Sover_rtg = std(over_rtg)
-egen Srevt = std(revt)
-
-qui xtreg F.revt c.Sover_rtg##c.Srevt dltt at emp tobinq xad xrd age i.year, fe cluster(gvkey_num)
-est store over_rtgint2
-estadd local yearFE "Yes", replace
-restore
-
+***	Results
 esttab over_rtgmod* over_rtgas1, ///
 	keep(over_rtg dltt at age emp tobinq xad xrd) ///
 	order(over_rtg dltt at age emp tobinq xad xrd) ///
 	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
-	
-esttab over_rtgint1 over_rtgint2, ///
-	keep(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at age emp tobinq xad xrd) ///
-	order(over_rtg revt c.over_rtg* Sover_rtg Srevt c.Sover_rtg* dltt at age emp tobinq xad xrd) ///
-	r2 ar2 aic
 
 	
 ///	COMPARE THE TWO DVs
