@@ -761,6 +761,9 @@ list firm year if _merge_northam==3 & _merge_global==5
        +-------------------------+
 */
 
+///	KEEP NEEDED VARIABLES
+keep firm year *_lym gvkey fyear industry in_* conm loc naics sic tic ipodate ///
+	cusip *_usd revt dltt at csho ceq cusip8 xad* xrd* curcd prcc_c prcc_f
 
 ///	SAVE
 compress
@@ -1089,32 +1092,24 @@ label var dltt_unadjusted "dltt in curcd currency"
 label var at_unadjusted "at in curcd currency"
 label var csho_unadjusted "csho in curcd currency"
 label var ceq_unadjusted "ceq in curcd currency"
-
-rename (dltt_usd at_usd csho_usd ceq_usd) (dltt at csho ceq)
-
-***	Replace missing adjusted values with USD values from CSTAT North America
-foreach variable in dltt at csho ceq {
-	replace `variable' = `variable'_unadjusted if `variable'==. & curcd=="USD"
-}
-						
 						
 ///	REVENUE GROWTH VARIABLES
 ***	Current year minus previous year
-gen revenue_yoy = revenue - l.revenue
-label var revenue_yoy "Year-on-year change in revenue (revenue - previous year revenue)"
+gen revt_usd_yoy = revt_usd - l.revt_usd
+label var revt_usd_yoy "Year-on-year change in revt_usd (revt_usd - previous year revt_usd)"
 
 ***	Next year minus current year
-gen Frevenue_yoy = F.revenue-revenue
-label var Frevenue_yoy "Next year revenue - current year revenue"
+gen Frevt_usd_yoy = F.revt_usd-revt_usd
+label var Frevt_usd_yoy "Next year revt_usd - current year revt_usd"
 
 ***	Percent change in sales, current to next year
-gen revenue_pct = (revenue_yoy/L.revenue)*100
-label var revenue_pct "Percent change in revenue, current to previous year"
+gen revt_usd_pct = (revt_usd_yoy/L.revt_usd)*100
+label var revt_usd_pct "Percent change in revenue, current to previous year"
 
 
 
 ///	Tobin's Q
-gen tobinq = (at + (csho * prcc_f) - ceq) / at
+gen tobinq = (at_usd + (csho_usd * prcc_f) - ceq_usd) / at_usd
 
 /*
 gen mkt2book = mkvalt / bkvlps
