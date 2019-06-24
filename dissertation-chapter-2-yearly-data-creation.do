@@ -763,7 +763,7 @@ list firm year if _merge_northam==3 & _merge_global==5
 
 ///	KEEP NEEDED VARIABLES
 keep firm year *_lym gvkey fyear industry in_* conm loc naics sic tic ipodate ///
-	cusip *_usd revt dltt at csho ceq cusip8 xad* xrd* curcd prcc_c prcc_f
+	cusip *_usd revt dltt at csho ceq cusip8 xad* xrd* curcd prcc_c prcc_f emp
 
 ///	SAVE
 compress
