@@ -108,8 +108,6 @@ tab year trt3_sdw_neg if markrevt_usd==1
 /*		Propensity model: treatment = f(dltt at age emp tobinq)	*/
 ///	3 STANDARD DEVIATION
 ***	Positive
-est sto clear
-
 forvalues neighbors = 1/10 {
 	capt n teffects psmatch (revt_usd) (trt3_sdw_pos dltt at age emp), ///
 		nneighbor(`neighbors') first
@@ -119,13 +117,15 @@ forvalues neighbors = 1/10 {
 coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
 	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
 	neighbors_9 neighbors_10, ///
-	nolabels ///
+	coeflabels(r1vs0.trt3_sdw_pos = "ATE") ///
 	xline(0) ///
-	xlabel(-15000(5000)15000)
+	xlabel(-15000(5000)15000) ///
+	ti("Effect on Revenue of Positive 3 Standard Deviation Change in Overall Rating") ///
+	name(psm_trt3_sdw_pos, replace)
 
+
+	
 ***	Negative
-est sto clear
-
 forvalues neighbors = 1/10 {
 	capt n teffects psmatch (revt_usd) (trt3_sdw_neg dltt at age emp), ///
 		first nneighbor(`neighbors')
@@ -135,39 +135,110 @@ forvalues neighbors = 1/10 {
 coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
 	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
 	neighbors_9 neighbors_10, ///
-	nolabels ///
-	xline(0) 
+	coeflabels(r1vs0.trt3_sdw_neg = "ATE") ///
+	xline(0) ///
+	xlabel(-15000(5000)15000) ///
+	ti("Negative 3 Standard Deviation Change in Overall Rating") ///
+	name(psm_trt3_sdw_neg, replace)
 
+	
+	
+	
+	
 ///	2 STANDARD DEVIATIONS
 ***	Positive
-forvalues neighbors = 1/3 {
-	capt n drop ps*
+forvalues neighbors = 1/10 {
 	capt n teffects psmatch (revt_usd) (trt2_sdw_pos dltt at age emp), ///
 		first nneighbor(`neighbors')
+	est sto neighbors_`neighbors'
 }
 
+coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
+	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
+	neighbors_9 neighbors_10, ///
+	coeflabels(r1vs0.trt2_sdw_pos = "ATE") ///
+	xline(0) ///
+	xlabel(-15000(5000)15000) ///
+	ti("Positive 2 Standard Deviation Change in Overall Rating") ///
+	name(psm_trt2_sdw_pos, replace)
+
+
+
+
 ***	Negative
-forvalues neighbors = 1/3 {
-	capt n drop ps
+forvalues neighbors = 1/10 {
 	capt n teffects psmatch (revt_usd) (trt2_sdw_neg dltt at age emp), ///
 		first nneighbor(`neighbors')
+	est sto neighbors_`neighbors'
 }
+
+coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
+	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
+	neighbors_9 neighbors_10, ///
+	coeflabels(r1vs0.trt2_sdw_neg = "ATE") ///
+	xline(0) ///
+	xlabel(-15000(5000)15000) ///
+	ti("Negative 2 Standard Deviation Change in Overall Rating") ///
+	name(psm_trt2_sdw_neg, replace)
+
+	
+
 
 ///	1 STANDARD DEVIATION
 ***	Positive
-forvalues neighbors = 1/2 {
+forvalues neighbors = 1/10 {
 	capt n teffects psmatch (revt_usd) (trt1_sdw_pos dltt at age emp), ///
 		first nneighbor(`neighbors')
+	est sto neighbors_`neighbors'
 }
+
+coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
+	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
+	neighbors_9 neighbors_10, ///
+	coeflabels(r1vs0.trt1_sdw_pos = "ATE") ///
+	xline(0) ///
+	xlabel(-15000(5000)15000) ///
+	ti("Positive 1 Standard Deviation Change in Overall Rating") ///
+	name(psm_trt1_sdw_pos, replace)
 
 ***	Negative
-forvalues neighbors = 1/2 {
+forvalues neighbors = 1/10 {
 	capt n teffects psmatch (revt_usd) (trt1_sdw_neg dltt at age emp), ///
 		first nneighbor(`neighbors')
+	est sto neighbors_`neighbors'
 }
 
+coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
+	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
+	neighbors_9 neighbors_10, ///
+	coeflabels(r1vs0.trt1_sdw_neg = "ATE") ///
+	xline(0) ///
+	xlabel(-15000(5000)15000) ///
+	ti("Negative 1 Standard Deviation Change in Overall Rating") ///
+	name(psm_trt1_sdw_neg, replace)
 
 
+
+
+
+///	COMBINED COEFFICIENT PLOTS
+graph combine	psm_trt3_sdw_pos psm_trt2_sdw_pos psm_trt1_sdw_pos ///
+				psm_trt3_sdw_neg psm_trt2_sdw_neg psm_trt1_sdw_neg, ///
+				r(2) c(3) xcommon altshrink
+
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
 						***===========================***
 						*								*
 						*	PROPENSITY SCORE MATCHING 	*
