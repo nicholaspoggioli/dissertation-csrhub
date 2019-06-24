@@ -24,11 +24,6 @@ use data/matched-csrhub-cstat-2008-2017, clear
 drop xrdp
 
 
-
-
-
-
-
 						***===============================***
 						*									*
 						*  TREATMENT VARIABLE DESCRIPTIVES	*
@@ -960,6 +955,12 @@ graph combine trt3_pos trt2_pos trt1_pos, r(3) c(1) xcommon
 *	Compare negative treatments
 graph combine trt3_neg trt2_neg trt1_neg, r(3) c(1) xcommon
 
+*	Compare all
+graph combine trt3_pos trt2_pos trt1_pos trt3_neg trt2_neg trt1_neg, ///
+	r(2) c(3) xcommon altshrink
+	
+*	Compare treatment levels
+graph combine trt2_pos trt2_neg, c(1) xcommon altshrink
 	
 ***	Inverse hyperbolic sine transformation DV
 capt n gen revenue_ihs = asinh(revenue)
