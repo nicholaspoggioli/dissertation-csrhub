@@ -24,6 +24,12 @@ use data/matched-csrhub-cstat-2008-2017, clear
 drop xrdp
 
 
+///	GENERATE USD ADJUSTED VARIABLES
+rename (dltt_usd at_usd) (dltt at)
+
+
+
+
 						***===============================***
 						*									*
 						*  TREATMENT VARIABLE DESCRIPTIVES	*
@@ -69,10 +75,10 @@ tab year trt3_sdw_neg if markrevt==1
      Total |    16,171         39 |    16,210 
 */
 
-capt n drop markrevenue
-mark markrevenue
-markout markrevenue revenue trt3_sdw_pos dltt at age emp tobinq
-tab year trt3_sdw_neg if markrevenue==1
+capt n drop markrevt_usd
+mark markrevt_usd
+markout markrevt_usd revt_usd trt3_sdw_pos dltt at age emp tobinq
+tab year trt3_sdw_neg if markrevt_usd==1
 /*
            |   Treatment = 1 if
            | year-on-year over_rtg
@@ -102,56 +108,45 @@ tab year trt3_sdw_neg if markrevenue==1
 /*		Propensity model: treatment = f(dltt at age emp tobinq)	*/
 ///	3 STANDARD DEVIATION
 ***	Positive
-forvalues neighbors = 1/10 {
+forvalues neighbors = 1/2 {
 	capt n drop ps*
-	capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq), ///
-		osample(ps) nneighbor(`neighbors') first
-	capt n teffects psmatch (revt) (trt3_sdw_pos dltt at age emp tobinq) ///
-		if ps==0, nneighbor(`neighbors') first
+	capt n teffects psmatch (revt_usd) (trt3_sdw_pos dltt at age emp), ///
+		nneighbor(`neighbors') first
 }
 
 ***	Negative
-forvalues neighbors = 1/10 {
+forvalues neighbors = 1/2 {
 	capt n drop ps
-	capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq), ///
-		osample(ps) nneighbor(`neighbors')
-	capt n teffects psmatch (revt) (trt3_sdw_neg dltt at age emp tobinq) ///
-		if ps==0, nneighbor(`neighbors')
+	capt n teffects psmatch (revt_usd) (trt3_sdw_neg dltt at age emp), ///
+		first nneighbor(`neighbors')
 }
 
 ///	2 STANDARD DEVIATIONS
 ***	Positive
 forvalues neighbors = 1/3 {
 	capt n drop ps*
-	capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq), ///
-		osample(ps) nneighbor(`neighbors')
-	capt n teffects psmatch (revt) (trt2_sdw_pos dltt at age emp tobinq) ///
-		if ps==0, nneighbor(`neighbors')
+	capt n teffects psmatch (revt_usd) (trt2_sdw_pos dltt at age emp), ///
+		first nneighbor(`neighbors')
 }
 
 ***	Negative
-forvalues neighbors = 1/10 {
+forvalues neighbors = 1/3 {
 	capt n drop ps
-	capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq), ///
-		osample(ps) nneighbor(`neighbors')
-	capt n teffects psmatch (revt) (trt2_sdw_neg dltt at age emp tobinq) ///
-		if ps==0, nneighbor(`neighbors')
+	capt n teffects psmatch (revt_usd) (trt2_sdw_neg dltt at age emp), ///
+		first nneighbor(`neighbors')
 }
 
 ///	1 STANDARD DEVIATION
 ***	Positive
-forvalues neighbors = 1/10 {
-	capt n teffects psmatch (revt) (trt1_sdw_pos dltt at age emp tobinq), ///
-		nneighbor(`neighbors')
+forvalues neighbors = 1/2 {
+	capt n teffects psmatch (revt_usd) (trt1_sdw_pos dltt at age emp), ///
+		first nneighbor(`neighbors')
 }
 
 ***	Negative
-forvalues neighbors = 1/10 {
-	capt n drop ps
-	capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq), ///
-		osample(ps) nneighbor(`neighbors')
-	capt n teffects psmatch (revt) (trt1_sdw_neg dltt at age emp tobinq) ///
-		if ps==0, nneighbor(`neighbors')
+forvalues neighbors = 1/2 {
+	capt n teffects psmatch (revt_usd) (trt1_sdw_neg dltt at age emp), ///
+		first nneighbor(`neighbors')
 }
 
 
