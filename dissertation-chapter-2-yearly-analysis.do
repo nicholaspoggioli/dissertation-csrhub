@@ -24,10 +24,12 @@ use data/matched-csrhub-cstat-2008-2017, clear
 drop xrdp
 
 
-///	GENERATE USD ADJUSTED VARIABLES
+						***===============================***
+						*									*
+						* GENERATE USD ADJUSTED VARIABLES	*
+						*									*
+						***===============================***
 rename (dltt_usd at_usd) (dltt at)
-
-
 
 
 						***===============================***
@@ -108,33 +110,57 @@ tab year trt3_sdw_neg if markrevt_usd==1
 /*		Propensity model: treatment = f(dltt at age emp tobinq)	*/
 ///	3 STANDARD DEVIATION
 ***	Positive
-forvalues neighbors = 1/10 {
-	capt n teffects psmatch (revt_usd) (trt3_sdw_pos dltt at age emp), ///
-		nneighbor(`neighbors') first
-	est sto neighbors_`neighbors'
-}
+capt n erase psm_trt3p.txt
+capt n erase psm_trt3p.xml
 
-coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
-	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
-	neighbors_9 neighbors_10, ///
+forvalues neighbors = 1/10 {
+	teffects psmatch (revt_usd) (trt3_sdw_pos dltt at age emp), ///
+		nneighbor(`neighbors')
+	outreg2 using psm_trt3p, stats(coef se pval) alpha(0.001, 0.01, 0.05) excel
+	est sto psm_trt3p_`neighbors'
+}
+seeout 
+
+coefplot psm_trt3p_1 psm_trt3p_2 psm_trt3p_3 psm_trt3p_4 ///
+	psm_trt3p_5 psm_trt3p_6 psm_trt3p_7 psm_trt3p_8 ///
+	psm_trt3p_9 psm_trt3p_10, ///
 	coeflabels(r1vs0.trt3_sdw_pos = "ATE") ///
 	xline(0) ///
 	xlabel(-15000(5000)15000) ///
-	ti("Effect on Revenue of Positive 3 Standard Deviation Change in Overall Rating") ///
 	name(psm_trt3_sdw_pos, replace)
 
 
 	
+	
+teffects psmatch (revt_usd) (trt3_sdw_pos dltt at age emp), first
+
+gen sample=(e(sample)==1)
+tab sample trt3_sdw_pos
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 ***	Negative
+capt n erase psm_trt3n.txt
+capt n erase psm_trt3n.xml
 forvalues neighbors = 1/10 {
-	capt n teffects psmatch (revt_usd) (trt3_sdw_neg dltt at age emp), ///
-		first nneighbor(`neighbors')
-	est sto neighbors_`neighbors'
+	qui capt n teffects psmatch (revt_usd) (trt3_sdw_neg dltt at age emp), ///
+		nneighbor(`neighbors')
+	outreg2 using psm_trt3n, stats(coef se pval) alpha(0.001, 0.01, 0.05) excel
+	est sto psm_trt3n_`neighbors'
 }
 
-coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
-	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
-	neighbors_9 neighbors_10, ///
+coefplot psm_trt3n_1 psm_trt3n_2 psm_trt3n_3 psm_trt3n_4 ///
+	psm_trt3n_5 psm_trt3n_6 psm_trt3n_7 psm_trt3n_8 ///
+	psm_trt3n_9 psm_trt3n_10, ///
 	coeflabels(r1vs0.trt3_sdw_neg = "ATE") ///
 	xline(0) ///
 	xlabel(-15000(5000)15000) ///
@@ -216,9 +242,6 @@ coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
 	xlabel(-15000(5000)15000) ///
 	ti("Negative 1 Standard Deviation Change in Overall Rating") ///
 	name(psm_trt1_sdw_neg, replace)
-
-
-
 
 
 ///	COMBINED COEFFICIENT PLOTS
