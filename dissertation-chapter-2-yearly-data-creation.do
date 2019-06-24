@@ -149,9 +149,9 @@ save data/csrhub-all-year-level.dta, replace
 */
 
 
-***===========================================***
-*	CONVERT CSTAT GLOBAL CURRENCIES TO USD		*
-***===========================================***
+***===============================================***
+*	CREATE CSTAT GLOBAL CURRENCY CONVERSION FILE	*
+***===============================================***
 /*	PROBLEM: 	CSTAT Global reports local currency. CSTAT North Am reports USA dollars.
 				Need to convert CSTAT Global to USA dollars.
 				
@@ -656,6 +656,8 @@ drop if _merge==2
 drop _merge
 
 
+
+
 ///	CONVERT CURRENCY VARIABLES USED IN EMPIRICAL ANALYSIS TO USD
 foreach variable in revt dltt at csho ceq {
 	gen `variable'_usd = (`variable'/exratm)*exratm_gbp_to_usd
@@ -765,6 +767,8 @@ compress
 save data/matched-csrhub-cstat-northam-and-global-2008-2017, replace
 
 
+
+
 						***===============================***
 						*									*
 						*  	   CREATE FIRM AGE VARIABLE		*
@@ -791,12 +795,12 @@ keep if fyear < 2018
 compress
 save data/cstat-north-am-for-age-calculation-with-age-variable.dta, replace
 
-***	Merge matched data with age variable
+///	MERGED MATCHED DATA WITH AGE VARIABLE
 use data/matched-csrhub-cstat-northam-and-global-2008-2017, clear
 
 merge 1:1 gvkey fyear using ///
 	data/cstat-north-am-for-age-calculation-with-age-variable.dta, ///
-	keepusing(age)
+	keepusing(age) update assert(1 2 3 4 5)
 /*
     Result                           # of obs.
     -----------------------------------------
@@ -814,18 +818,22 @@ drop if _merge==2
 *			appearance in the data
 *		  Might use ipodate, but many missing.
 
+***	Replace missing age variable with ipodate
+
+
+
 
 						***===============================***
 						*									*
-						*  CREATE REVENUE IN USD VARIABLE	*
+						*  	CURRENCY-ADJUST VARIABLES
 						*									*
 						***===============================***
-***	Combined revenue in usd
-gen revenue=revt
-replace revenue=revt_usd if in_cstatg==1
-label var revenue "(CSTAT) Revenue in USD"
+/*	Varibales to adjust: revt dltt at csho ceq	*/
 
-
+foreach variable in revt dltt at csho ceq {
+	replace `variable'_usd=`variable' if in_cstatn==1 & `variable'_usd==.
+	label var `variable'_usd "(CSTAT) `variable' in USD"
+}
 
 ///	SAVE
 compress
