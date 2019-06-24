@@ -801,14 +801,16 @@ use data/matched-csrhub-cstat-northam-and-global-2008-2017, clear
 merge 1:1 gvkey fyear using ///
 	data/cstat-north-am-for-age-calculation-with-age-variable.dta, ///
 	keepusing(age) update assert(1 2 3 4 5)
-/*
-    Result                           # of obs.
+/*    Result                           # of obs.
     -----------------------------------------
     not matched                       117,320
         from master                    29,999  (_merge==1)
         from using                     87,321  (_merge==2)
 
-    matched                            25,674  (_merge==3)
+    matched                            25,674
+        not updated                    25,674  (_merge==3)
+        missing updated                     0  (_merge==4)
+        nonmissing conflict                 0  (_merge==5)
     -----------------------------------------
 */
 drop if _merge==2
@@ -818,9 +820,14 @@ drop if _merge==2
 *			appearance in the data
 *		  Might use ipodate, but many missing.
 
-***	Replace missing age variable with ipodate
+/// REPLACE MISSING AGE WITH IPODATE WHERE AVAILABLE
+gen ipoyear=year(ipodate)
 
+replace age = (fyear - ipoyear) + 1 if age == .
 
+drop ipoyear
+
+replace age = . if age < 1
 
 
 						***===============================***
