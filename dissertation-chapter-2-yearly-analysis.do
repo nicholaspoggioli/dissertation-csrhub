@@ -110,17 +110,23 @@ tab year trt3_sdw_neg if markrevt_usd==1
 /*		Propensity model: treatment = f(dltt at age emp tobinq)	*/
 ///	3 STANDARD DEVIATION
 ***	Positive
-capt n erase psm_trt3p.txt
-capt n erase psm_trt3p.xml
-
+capt n erase tables-and-figures\psm\psm_trt3p.txt
+capt n erase tables-and-figures\psm\psm_trt3p.xml
 forvalues neighbors = 1/10 {
 	teffects psmatch (revt_usd) (trt3_sdw_pos dltt at age emp), ///
 		nneighbor(`neighbors')
-	outreg2 using psm_trt3p, stats(coef se pval) alpha(0.001, 0.01, 0.05) excel
+	outreg2 using "tables-and-figures\psm\psm_trt3p", stats(coef se pval) ///
+		alpha(0.001, 0.01, 0.05) excel word
 	est sto psm_trt3p_`neighbors'
 }
-seeout 
 
+*	Treated firms
+teffects psmatch (revt_usd) (trt3_sdw_pos dltt at age emp), first
+
+gen sample_trt3_p = (e(sample)==1)
+tab sample_trt3_p trt3_sdw_pos
+
+*	Plotting
 coefplot psm_trt3p_1 psm_trt3p_2 psm_trt3p_3 psm_trt3p_4 ///
 	psm_trt3p_5 psm_trt3p_6 psm_trt3p_7 psm_trt3p_8 ///
 	psm_trt3p_9 psm_trt3p_10, ///
@@ -129,35 +135,25 @@ coefplot psm_trt3p_1 psm_trt3p_2 psm_trt3p_3 psm_trt3p_4 ///
 	xlabel(-15000(5000)15000) ///
 	name(psm_trt3_sdw_pos, replace)
 
-
-	
-	
-teffects psmatch (revt_usd) (trt3_sdw_pos dltt at age emp), first
-
-gen sample=(e(sample)==1)
-tab sample trt3_sdw_pos
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 ***	Negative
-capt n erase psm_trt3n.txt
-capt n erase psm_trt3n.xml
+*	Estimation
+capt n erase tables-and-figures\psm\psm_trt3n.txt
+capt n erase tables-and-figures\psm\psm_trt3n.xml
 forvalues neighbors = 1/10 {
 	qui capt n teffects psmatch (revt_usd) (trt3_sdw_neg dltt at age emp), ///
 		nneighbor(`neighbors')
-	outreg2 using psm_trt3n, stats(coef se pval) alpha(0.001, 0.01, 0.05) excel
+	outreg2 using "tables-and-figures\psm\psm_trt3n", stats(coef se pval) alpha(0.001, 0.01, 0.05) excel
 	est sto psm_trt3n_`neighbors'
 }
 
+*	Treated firms
+teffects psmatch (revt_usd) (trt3_sdw_neg dltt at age emp), first
+
+gen sample_trt3_n = (e(sample)==1)
+tab sample_trt3_n trt3_sdw_neg
+
+*	Plotting
 coefplot psm_trt3n_1 psm_trt3n_2 psm_trt3n_3 psm_trt3n_4 ///
 	psm_trt3n_5 psm_trt3n_6 psm_trt3n_7 psm_trt3n_8 ///
 	psm_trt3n_9 psm_trt3n_10, ///
@@ -168,17 +164,25 @@ coefplot psm_trt3n_1 psm_trt3n_2 psm_trt3n_3 psm_trt3n_4 ///
 	name(psm_trt3_sdw_neg, replace)
 
 	
-	
-	
-	
 ///	2 STANDARD DEVIATIONS
 ***	Positive
+capt n erase tables-and-figures\psm\psm_trt2p.txt
+capt n erase tables-and-figures\psm\psm_trt2p.xml
 forvalues neighbors = 1/10 {
 	capt n teffects psmatch (revt_usd) (trt2_sdw_pos dltt at age emp), ///
-		first nneighbor(`neighbors')
+		nneighbor(`neighbors')
+	outreg2 using "tables-and-figures\psm\psm_trt2p", stats(coef se pval) ///
+		alpha(0.001, 0.01, 0.05) excel word
 	est sto neighbors_`neighbors'
 }
 
+*	Treated firms
+teffects psmatch (revt_usd) (trt2_sdw_pos dltt at age emp), first
+
+gen sample_trt2_p = (e(sample)==1)
+tab sample_trt2_p trt2_sdw_pos
+
+*	Plotting
 coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
 	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
 	neighbors_9 neighbors_10, ///
@@ -188,16 +192,25 @@ coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
 	ti("Positive 2 Standard Deviation Change in Overall Rating") ///
 	name(psm_trt2_sdw_pos, replace)
 
-
-
-
+	
 ***	Negative
+capt n erase tables-and-figures\psm\psm_trt2n.txt
+capt n erase tables-and-figures\psm\psm_trt2n.xml
 forvalues neighbors = 1/10 {
 	capt n teffects psmatch (revt_usd) (trt2_sdw_neg dltt at age emp), ///
-		first nneighbor(`neighbors')
+		nneighbor(`neighbors')
+	outreg2 using "tables-and-figures\psm\psm_trt2n", stats(coef se pval) ///
+		alpha(0.001, 0.01, 0.05) excel word
 	est sto neighbors_`neighbors'
 }
 
+*	Treated firms
+teffects psmatch (revt_usd) (trt2_sdw_neg dltt at age emp), first
+
+gen sample_trt2_n = (e(sample)==1)
+tab sample_trt2_n trt2_sdw_neg
+
+*	Plotting
 coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
 	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
 	neighbors_9 neighbors_10, ///
@@ -212,12 +225,23 @@ coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
 
 ///	1 STANDARD DEVIATION
 ***	Positive
+capt n erase tables-and-figures\psm\psm_trt1p.txt
+capt n erase tables-and-figures\psm\psm_trt1p.xml
 forvalues neighbors = 1/10 {
 	capt n teffects psmatch (revt_usd) (trt1_sdw_pos dltt at age emp), ///
-		first nneighbor(`neighbors')
+		nneighbor(`neighbors')
+	outreg2 using "tables-and-figures\psm\psm_trt1p", stats(coef se pval) ///
+		alpha(0.001, 0.01, 0.05) excel word
 	est sto neighbors_`neighbors'
 }
 
+*	Treated firms
+teffects psmatch (revt_usd) (trt1_sdw_pos dltt at age emp i.year), first
+
+gen sample_trt1_p = (e(sample)==1)
+tab sample_trt1_p trt1_sdw_pos
+
+*	Plotting
 coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
 	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
 	neighbors_9 neighbors_10, ///
@@ -228,12 +252,23 @@ coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
 	name(psm_trt1_sdw_pos, replace)
 
 ***	Negative
+capt n erase tables-and-figures\psm\psm_trt1n.txt
+capt n erase tables-and-figures\psm\psm_trt1n.xml
 forvalues neighbors = 1/10 {
 	capt n teffects psmatch (revt_usd) (trt1_sdw_neg dltt at age emp), ///
 		first nneighbor(`neighbors')
+	outreg2 using "tables-and-figures\psm\psm_trt1n", stats(coef se pval) ///
+		alpha(0.001, 0.01, 0.05) excel word
 	est sto neighbors_`neighbors'
 }
 
+*	Treated firms
+teffects psmatch (revt_usd) (trt1_sdw_neg dltt at age emp), first
+gen sample_trt1_n = (e(sample)==1)
+
+tab sample_trt1_n trt1_sdw_neg
+
+*	Plotting
 coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
 	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
 	neighbors_9 neighbors_10, ///
@@ -244,6 +279,26 @@ coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
 	name(psm_trt1_sdw_neg, replace)
 
 
+	
+	
+	
+///	GENERATE FIRST-STAGE RESULTS
+capt n erase "tables-and-figures\psm\first-stage.txt"
+capt n erase "tables-and-figures\psm\first-stage.xml"
+capt n erase "tables-and-figures\psm\first-stage.rtf"
+foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
+	trt1_sdw_pos trt1_sdw_neg {
+	logistic `variable' dltt at age emp
+	outreg2 using "tables-and-figures\psm\first-stage", stats(coef se pval) ///
+		alpha(0.001, 0.01, 0.05) excel word drop(`variable') bdec(3) sdec(3)
+}
+	
+	
+	
+	
+	
+	
+	
 ///	COMBINED COEFFICIENT PLOTS
 graph combine	psm_trt3_sdw_pos psm_trt2_sdw_pos psm_trt1_sdw_pos ///
 				psm_trt3_sdw_neg psm_trt2_sdw_neg psm_trt1_sdw_neg, ///
