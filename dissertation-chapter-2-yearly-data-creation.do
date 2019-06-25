@@ -1094,6 +1094,11 @@ label var csho_unadjusted "csho in curcd currency"
 label var ceq_unadjusted "ceq in curcd currency"
 						
 ///	REVENUE GROWTH VARIABLES
+*** Next year
+xtset
+gen Frevt_usd = f.revt_usd
+label var Frevt_usd "Next year's revt_usd"
+
 ***	Current year minus previous year
 gen revt_usd_yoy = revt_usd - l.revt_usd
 label var revt_usd_yoy "Year-on-year change in revt_usd (revt_usd - previous year revt_usd)"
