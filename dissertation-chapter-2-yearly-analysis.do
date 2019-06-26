@@ -105,7 +105,7 @@ tab year trt3_sdw_neg if markrevt_usd==1
 						*								*
 						*	PROPENSITY SCORE MATCHING 	*
 						*		ALL YEARS COMBINED		*
-						*								*
+						*		DV: Same year revt		*
 						***===========================***
 /*		Propensity model: treatment = f(dltt at age emp tobinq)	*/
 ///	3 STANDARD DEVIATION
@@ -179,6 +179,7 @@ forvalues neighbors = 1/10 {
 *	Treated firms
 teffects psmatch (revt_usd) (trt2_sdw_pos dltt at age emp), first
 
+capt n drop sample_trt2_p
 gen sample_trt2_p = (e(sample)==1)
 tab sample_trt2_p trt2_sdw_pos
 
@@ -395,6 +396,7 @@ forvalues neighbors = 1/10 {
 *	Treated firms
 teffects psmatch (Frevt_usd) (trt2_sdw_pos dltt at age emp), first
 
+capt n drop sample_trt2_p 
 gen sample_trt2_p = (e(sample)==1)
 tab sample_trt2_p trt2_sdw_pos
 
@@ -423,6 +425,7 @@ forvalues neighbors = 1/10 {
 *	Treated firms
 teffects psmatch (Frevt_usd) (trt2_sdw_neg dltt at age emp), first
 
+capt n drop sample_trt2_n 
 gen sample_trt2_n = (e(sample)==1)
 tab sample_trt2_n trt2_sdw_neg
 
@@ -452,8 +455,9 @@ forvalues neighbors = 1/10 {
 }
 
 *	Treated firms
-teffects psmatch (Frevt_usd) (trt1_sdw_pos dltt at age emp i.year), first
+teffects psmatch (Frevt_usd) (trt1_sdw_pos dltt at age emp), first
 
+capt n drop sample_trt1_p 
 gen sample_trt1_p = (e(sample)==1)
 tab sample_trt1_p trt1_sdw_pos
 
@@ -480,8 +484,9 @@ forvalues neighbors = 1/10 {
 
 *	Treated firms
 teffects psmatch (Frevt_usd) (trt1_sdw_neg dltt at age emp), first
-gen sample_trt1_n = (e(sample)==1)
 
+capt n drop sample_trt1_n
+gen sample_trt1_n = (e(sample)==1)
 tab sample_trt1_n trt1_sdw_neg
 
 *	Plotting
@@ -1067,6 +1072,7 @@ capt n teffects psmatch (Frevt_usd) (trt3_sdw_neg dltt at age emp ) ///
 	if year == 2010 & ps2010==0
 estimates store ps2010
 
+/*
 capt n drop ps2*
 capt n teffects psmatch (Frevt_usd) (trt3_sdw_neg dltt at age emp ) ///
 	if year == 2011, osample(ps2011)
@@ -1075,6 +1081,7 @@ capt n teffects psmatch (Frevt_usd) (trt3_sdw_neg dltt at age emp ) ///
 capt n teffects psmatch (Frevt_usd) (trt3_sdw_neg dltt at age emp ) ///
 	if year == 2011 & ps2011==0 & ps2011_2==0
 estimates store ps2011
+*/
 
 capt n drop ps2*
 capt n teffects psmatch (Frevt_usd) (trt3_sdw_neg dltt at age emp ) ///
@@ -1083,6 +1090,7 @@ capt n teffects psmatch (Frevt_usd) (trt3_sdw_neg dltt at age emp ) ///
 	if year == 2012 & ps2012==0, osample(ps2012_2)
 estimates store ps2012
 
+/*
 capt n drop ps2*
 capt n teffects psmatch (Frevt_usd) (trt3_sdw_neg dltt at age emp ) ///
 	if year == 2013, osample(ps2013)
@@ -1101,12 +1109,25 @@ capt n teffects psmatch (Frevt_usd) (trt3_sdw_neg dltt at age emp ) ///
 capt n teffects psmatch (Frevt_usd) (trt3_sdw_neg dltt at age emp ) ///
 	if year == 2015 & ps2015==0 & ps2015_2==0
 estimates store ps2015
+*/
 
-estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
+*	Tables
+estimates table ps2009 ps2010 ps2012, ///
 	b se p ///
 	stats(N)
 	
-coefplot ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
+estout ps2009 ps2010 ps2012, ///
+	cells(b(star fmt(%9.0fc)) se(fmt(%9.0fc)) p(fmt(%9.0g))) ///
+	keep(r1*) ///
+	stats(N)
+	
+outreg2 [ps2009 ps2010 ps2012] ///
+	using "tables-and-figures\psm\each-year-next-year-trt3n", stats(coef se pval) ///
+	alpha(0.001, 0.01, 0.05) replace excel word drop(Frevt_usd) bdec(0) sdec(0) pdec(5)
+	
+	
+*	Plot
+coefplot ps2009 ps2010 ps2012, ///
 	nolabels ///
 	xline(0)
 
@@ -1162,10 +1183,23 @@ capt n teffects psmatch (Frevt_usd) (trt2_sdw_pos dltt at age emp ) ///
 	if year == 2015 & ps2015==0
 estimates store ps2015
 
+
+*	Tables
 estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 	b se p ///
 	stats(N)
 	
+estout ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
+	cells(b(star fmt(%9.0fc)) se(fmt(%9.0fc)) p(fmt(%9.0g))) ///
+	keep(r1*) ///
+	stats(N)
+	
+outreg2 [ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015] ///
+	using "tables-and-figures\psm\each-year-next-year-trt2p", stats(coef se pval) ///
+	alpha(0.001, 0.01, 0.05) replace excel word drop(Frevt_usd) bdec(0) sdec(0) pdec(4)
+	
+	
+*	Plot
 coefplot ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 	nolabels ///
 	xline(0)
@@ -1221,14 +1255,26 @@ capt n teffects psmatch (Frevt_usd) (trt2_sdw_neg dltt at age emp ) ///
 	if year == 2015 & ps2015==0
 estimates store ps2015
 
+
+*	Tables
 estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 	b se p ///
 	stats(N)
 	
+estout ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
+	cells(b(star fmt(%9.0fc)) se(fmt(%9.0fc)) p(fmt(%9.0g))) ///
+	keep(r1*) ///
+	stats(N)
+	
+outreg2 [ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015] ///
+	using "tables-and-figures\psm\each-year-next-year-trt2n", stats(coef se pval) ///
+	alpha(0.001, 0.01, 0.05) replace excel word drop(Frevt_usd) bdec(0) sdec(0) pdec(4)
+	
+	
+*	Plot
 coefplot ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 	nolabels ///
 	xline(0)
-
 
 
 
@@ -1271,17 +1317,38 @@ capt n drop ps2*
 capt n teffects psmatch (Frevt_usd) (trt1_sdw_pos dltt at age emp ) if year == 2014, ///
 	osample(ps2014)
 capt n teffects psmatch (Frevt_usd) (trt1_sdw_pos dltt at age emp ) ///
-	if year == 2014 & ps2014==0
+	if year == 2014 & ps2014==0, osample(ps2014_2)
+capt n teffects psmatch (Frevt_usd) (trt1_sdw_pos dltt at age emp ) ///
+	if year == 2014 & ps2014==0 & ps2014_2==0
 estimates store ps2014
 
 capt n drop ps2*
 capt n teffects psmatch (Frevt_usd) (trt1_sdw_pos dltt at age emp ) ///
-	if year == 2015
+	if year == 2015, osample(ps2015)
+capt n teffects psmatch (Frevt_usd) (trt1_sdw_pos dltt at age emp ) ///
+	if year == 2015 & ps2015==0
 estimates store ps2015
 
+
+*	Tables
 estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 	b se p ///
 	stats(N)
+	
+estout ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
+	cells(b(star fmt(%9.0fc)) se(fmt(%9.0fc)) p(fmt(%9.0g))) ///
+	keep(r1*) ///
+	stats(N)
+	
+outreg2 [ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015] ///
+	using "tables-and-figures\psm\each-year-next-year-trt1p", stats(coef se pval) ///
+	alpha(0.001, 0.01, 0.05) replace excel word drop(Frevt_usd) bdec(0) sdec(0) pdec(4)
+	
+	
+*	Plot
+coefplot ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
+	nolabels ///
+	xline(0)
 	
 
 ***	1 Standard Deviation Negative
@@ -1332,9 +1399,26 @@ capt n teffects psmatch (Frevt_usd) (trt1_sdw_neg dltt at age emp ) ///
 	if year == 2015 & ps2015==0
 estimates store ps2015
 
+
+*	Tables
 estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 	b se p ///
 	stats(N)
+	
+estout ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
+	cells(b(star fmt(%9.0fc)) se(fmt(%9.0fc)) p(fmt(%9.0g))) ///
+	keep(r1*) ///
+	stats(N)
+	
+outreg2 [ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015] ///
+	using "tables-and-figures\psm\each-year-next-year-trt1n", stats(coef se pval) ///
+	alpha(0.001, 0.01, 0.05) replace excel word drop(Frevt_usd) bdec(0) sdec(0) pdec(4)
+	
+	
+*	Plot
+coefplot ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
+	nolabels ///
+	xline(0)
 
 	
 						***===========================***
