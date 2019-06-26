@@ -295,15 +295,232 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	
 	
 	
-	
-	
-	
-	
+
 ///	COMBINED COEFFICIENT PLOTS
 graph combine	psm_trt3_sdw_pos psm_trt2_sdw_pos psm_trt1_sdw_pos ///
 				psm_trt3_sdw_neg psm_trt2_sdw_neg psm_trt1_sdw_neg, ///
 				r(2) c(3) xcommon altshrink
 
+				
+
+				
+				
+				
+						***===========================***
+						*								*
+						*	PROPENSITY SCORE MATCHING 	*
+						*		ALL YEARS COMBINED		*
+						*		DV: Next year revt		*
+						***===========================***
+/*		Propensity model: treatment = f(dltt at age emp tobinq)	*/
+///	3 STANDARD DEVIATION
+***	Positive
+capt n erase tables-and-figures\psm\psm_trt3p-next-year.txt
+capt n erase tables-and-figures\psm\psm_trt3p-next-year.xml
+forvalues neighbors = 1/10 {
+	teffects psmatch (Frevt_usd) (trt3_sdw_pos dltt at age emp), ///
+		nneighbor(`neighbors')
+	outreg2 using "tables-and-figures\psm\psm_trt3p-next-year", stats(coef se pval) ///
+		alpha(0.001, 0.01, 0.05) excel word
+	est sto psm_trt3p_`neighbors'
+}
+
+*	Treated firms
+teffects psmatch (Frevt_usd) (trt3_sdw_pos dltt at age emp), first
+
+capt n drop sample_trt3_p
+gen sample_trt3_p = (e(sample)==1)
+tab sample_trt3_p trt3_sdw_pos
+
+*	Plotting
+coefplot psm_trt3p_1 psm_trt3p_2 psm_trt3p_3 psm_trt3p_4 ///
+	psm_trt3p_5 psm_trt3p_6 psm_trt3p_7 psm_trt3p_8 ///
+	psm_trt3p_9 psm_trt3p_10, ///
+	coeflabels(r1vs0.trt3_sdw_pos = "ATE") ///
+	xline(0) ///
+	xlabel(-15000(5000)15000) ///
+	name(psm_trt3_sdw_pos, replace)
+
+	
+***	Negative
+*	Estimation
+capt n erase tables-and-figures\psm\psm_trt3n-next-year.txt
+capt n erase tables-and-figures\psm\psm_trt3n-next-year.xml
+forvalues neighbors = 1/10 {
+	capt n teffects psmatch (Frevt_usd) (trt3_sdw_neg dltt at age emp), ///
+		nneighbor(`neighbors') osample(ps`neighbors')
+	capt n teffects psmatch (Frevt_usd) (trt3_sdw_neg dltt at age emp) ///
+		if ps`neighbors'==0, ///
+		nneighbor(`neighbors')
+	
+	outreg2 using "tables-and-figures\psm\psm_trt3n-next-year", ///
+		stats(coef se pval) alpha(0.001, 0.01, 0.05) excel word
+	est sto psm_trt3n_`neighbors'
+}
+
+*	Treated firms
+capt n drop ps
+capt n teffects psmatch (Frevt_usd) (trt3_sdw_neg dltt at age emp), ///
+	osample(ps) first
+teffects psmatch (Frevt_usd) (trt3_sdw_neg dltt at age emp) ///
+	if ps==0, first
+
+capt n drop sample_trt3_n
+gen sample_trt3_n = (e(sample)==1)
+tab sample_trt3_n trt3_sdw_neg
+
+*	Plotting
+coefplot psm_trt3n_1 psm_trt3n_2 psm_trt3n_3 psm_trt3n_4 ///
+	psm_trt3n_5 psm_trt3n_6 psm_trt3n_7 psm_trt3n_8 ///
+	psm_trt3n_9 psm_trt3n_10, ///
+	coeflabels(r1vs0.trt3_sdw_neg = "ATE") ///
+	xline(0) ///
+	xlabel(-15000(5000)15000) ///
+	ti("Negative 3 Standard Deviation Change in Overall Rating") ///
+	name(psm_trt3_sdw_neg, replace)
+
+	
+///	2 STANDARD DEVIATIONS
+***	Positive
+capt n erase tables-and-figures\psm\psm_trt2p-next-year.txt
+capt n erase tables-and-figures\psm\psm_trt2p-next-year.xml
+forvalues neighbors = 1/10 {
+	capt n teffects psmatch (Frevt_usd) (trt2_sdw_pos dltt at age emp), ///
+		nneighbor(`neighbors')
+	outreg2 using "tables-and-figures\psm\psm_trt2p-next-year", stats(coef se pval) ///
+		alpha(0.001, 0.01, 0.05) excel word
+	est sto neighbors_`neighbors'
+}
+
+*	Treated firms
+teffects psmatch (Frevt_usd) (trt2_sdw_pos dltt at age emp), first
+
+gen sample_trt2_p = (e(sample)==1)
+tab sample_trt2_p trt2_sdw_pos
+
+*	Plotting
+coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
+	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
+	neighbors_9 neighbors_10, ///
+	coeflabels(r1vs0.trt2_sdw_pos = "ATE") ///
+	xline(0) ///
+	xlabel(-15000(5000)15000) ///
+	ti("Positive 2 Standard Deviation Change in Overall Rating") ///
+	name(psm_trt2_sdw_pos, replace)
+
+	
+***	Negative
+capt n erase tables-and-figures\psm\psm_trt2n-next-year.txt
+capt n erase tables-and-figures\psm\psm_trt2n-next-year.xml
+forvalues neighbors = 1/10 {
+	capt n teffects psmatch (Frevt_usd) (trt2_sdw_neg dltt at age emp), ///
+		nneighbor(`neighbors')
+	outreg2 using "tables-and-figures\psm\psm_trt2n-next-year", stats(coef se pval) ///
+		alpha(0.001, 0.01, 0.05) excel word
+	est sto neighbors_`neighbors'
+}
+
+*	Treated firms
+teffects psmatch (Frevt_usd) (trt2_sdw_neg dltt at age emp), first
+
+gen sample_trt2_n = (e(sample)==1)
+tab sample_trt2_n trt2_sdw_neg
+
+*	Plotting
+coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
+	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
+	neighbors_9 neighbors_10, ///
+	coeflabels(r1vs0.trt2_sdw_neg = "ATE") ///
+	xline(0) ///
+	xlabel(-15000(5000)15000) ///
+	ti("Negative 2 Standard Deviation Change in Overall Rating") ///
+	name(psm_trt2_sdw_neg, replace)
+
+	
+
+
+///	1 STANDARD DEVIATION
+***	Positive
+capt n erase tables-and-figures\psm\psm_trt1p-next-year.txt
+capt n erase tables-and-figures\psm\psm_trt1p-next-year.xml
+forvalues neighbors = 1/10 {
+	capt n teffects psmatch (Frevt_usd) (trt1_sdw_pos dltt at age emp), ///
+		nneighbor(`neighbors')
+	outreg2 using "tables-and-figures\psm\psm_trt1p-next-year", stats(coef se pval) ///
+		alpha(0.001, 0.01, 0.05) excel word
+	est sto neighbors_`neighbors'
+}
+
+*	Treated firms
+teffects psmatch (Frevt_usd) (trt1_sdw_pos dltt at age emp i.year), first
+
+gen sample_trt1_p = (e(sample)==1)
+tab sample_trt1_p trt1_sdw_pos
+
+*	Plotting
+coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
+	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
+	neighbors_9 neighbors_10, ///
+	coeflabels(r1vs0.trt1_sdw_pos = "ATE") ///
+	xline(0) ///
+	xlabel(-15000(5000)15000) ///
+	ti("Positive 1 Standard Deviation Change in Overall Rating") ///
+	name(psm_trt1_sdw_pos, replace)
+
+***	Negative
+capt n erase tables-and-figures\psm\psm_trt1n-next-year.txt
+capt n erase tables-and-figures\psm\psm_trt1n-next-year.xml
+forvalues neighbors = 1/10 {
+	capt n teffects psmatch (Frevt_usd) (trt1_sdw_neg dltt at age emp), ///
+		first nneighbor(`neighbors')
+	outreg2 using "tables-and-figures\psm\psm_trt1n-next-year", stats(coef se pval) ///
+		alpha(0.001, 0.01, 0.05) excel word
+	est sto neighbors_`neighbors'
+}
+
+*	Treated firms
+teffects psmatch (Frevt_usd) (trt1_sdw_neg dltt at age emp), first
+gen sample_trt1_n = (e(sample)==1)
+
+tab sample_trt1_n trt1_sdw_neg
+
+*	Plotting
+coefplot neighbors_1 neighbors_2 neighbors_3 neighbors_4 ///
+	neighbors_5 neighbors_6 neighbors_7 neighbors_8 ///
+	neighbors_9 neighbors_10, ///
+	coeflabels(r1vs0.trt1_sdw_neg = "ATE") ///
+	xline(0) ///
+	xlabel(-15000(5000)15000) ///
+	ti("Negative 1 Standard Deviation Change in Overall Rating") ///
+	name(psm_trt1_sdw_neg, replace)
+
+
+	
+	
+	
+///	GENERATE FIRST-STAGE RESULTS
+capt n erase "tables-and-figures\psm\first-stage-next-year.txt"
+capt n erase "tables-and-figures\psm\first-stage-next-year.xml"
+capt n erase "tables-and-figures\psm\first-stage.rtf"
+foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
+	trt1_sdw_pos trt1_sdw_neg {
+	logistic `variable' dltt at age emp
+	outreg2 using "tables-and-figures\psm\first-stage-next-year", stats(coef se pval) ///
+		alpha(0.001, 0.01, 0.05) excel word drop(`variable') bdec(3) sdec(3)
+}
+	
+	
+	
+
+///	COMBINED COEFFICIENT PLOTS
+graph combine	psm_trt3_sdw_pos psm_trt2_sdw_pos psm_trt1_sdw_pos ///
+				psm_trt3_sdw_neg psm_trt2_sdw_neg psm_trt1_sdw_neg, ///
+				r(2) c(3) xcommon altshrink				
+				
+				
+				
+				
+				
 				
 				
 				
@@ -812,9 +1029,25 @@ capt n teffects psmatch (Frevt_usd) (trt3_sdw_pos dltt at age emp ) ///
 	if year == 2015, osample(ps2015)
 estimates store ps2015
 
+*	Tables
 estimates table ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 	b se p ///
 	stats(N)
+	
+estout ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
+	cells(b(star fmt(%9.0fc)) se(fmt(%9.0fc)) p(fmt(%9.0g))) ///
+	keep(r1*) ///
+	stats(N)
+	
+outreg2 [ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015] ///
+	using "tables-and-figures\psm\each-year-next-year-trt3p", stats(coef se pval) ///
+	alpha(0.001, 0.01, 0.05) replace excel word drop(Frevt_usd) bdec(0) sdec(0)
+	
+	
+*	Plot
+coefplot ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015 ps2016, ///
+	nolabels ///
+	xline(0)
 	
 ***	3 Standard Deviation Negative
 *	Insufficient number of treatment events for several years
