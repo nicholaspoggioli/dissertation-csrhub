@@ -1577,10 +1577,8 @@ graph combine trt3_neg trt2_neg trt1_neg, r(3) c(1) xcommon
 *	Compare all
 graph combine trt3_pos trt2_pos trt1_pos trt3_neg trt2_neg trt1_neg, ///
 	r(2) c(3) xcommon altshrink
-	
-	
-*	Compare treatment levels
-graph combine trt2_pos trt2_neg, c(1) xcommon altshrink
+
+graph export "figures\dif-in-difs\dif-in-dif-each-year.png", as(png) replace	
 
 
 
@@ -1619,7 +1617,7 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		*	Export
 		outreg2 using "tables-and-figures\did\did-each-year-`variable'-leading-dv", ///
 			stats(coef se pval) ///
-			pdec(4) ///
+			pdec(3) ///
 			keep(1.time 1.treated 1.time#1.treated) ///
 			alpha(0.001, 0.01, 0.05) excel word ///
 			ctitle(`year') ///
@@ -1628,20 +1626,19 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 			title("`variable'")
 	 	
 		*	Store estimates
-		estimates store est_`variable'_`year'
+		estimates store est_ldg_`variable'_`year'
 		
 		*	Pause 0.5 seconds to allow outreg writing to complete
 		sleep 500
 	}
 }
 
-///	PLOTTING
-***	Coefficient plots
+///	COEFFICIENT PLOTS
 set scheme plotplainblind
 
-coefplot est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 ///
-	est_trt3_sdw_pos_2013 est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 ///
-	est_trt3_sdw_pos_2016, ///
+coefplot est_ldg_trt3_sdw_pos_2010 est_ldg_trt3_sdw_pos_2011 est_ldg_trt3_sdw_pos_2012 ///
+	est_ldg_trt3_sdw_pos_2013 est_ldg_trt3_sdw_pos_2014 est_ldg_trt3_sdw_pos_2015 ///
+	est_ldg_trt3_sdw_pos_2016, ///
 	xline(0) nodraw ///
 	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
 		1.time#1.treated="Treatment effect" ///
@@ -1653,11 +1650,11 @@ coefplot est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 ///
 		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
 		label(14 "2016") label(16 "2017")) ///
 	title("3 SD +") note("DV: Next year revenue", size(vsmall)) ///
-	name(trt3_pos_leading, replace)
+	name(trt3_pos_ldg, replace)
 		
-coefplot est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 est_trt3_sdw_neg_2012 ///
-	est_trt3_sdw_neg_2013 est_trt3_sdw_neg_2014 est_trt3_sdw_neg_2015 ///
-	est_trt3_sdw_neg_2016, ///
+coefplot est_ldg_trt3_sdw_neg_2010 est_ldg_trt3_sdw_neg_2011 est_ldg_trt3_sdw_neg_2012 ///
+	est_ldg_trt3_sdw_neg_2013 est_ldg_trt3_sdw_neg_2014 est_ldg_trt3_sdw_neg_2015 ///
+	est_ldg_trt3_sdw_neg_2016, ///
 	xline(0) ///
 	drop(*year) nodraw ///
 	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
@@ -1668,11 +1665,11 @@ coefplot est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 est_trt3_sdw_neg_2012 ///
 		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
 		label(14 "2016") label(16 "2017")) ///
 	title("3 SD -") note("DV: Next year revenue", size(vsmall)) ///
-	name(trt3_neg_leading, replace)
+	name(trt3_neg_ldg, replace)
 	
-coefplot est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 est_trt2_sdw_pos_2012 ///
-	est_trt2_sdw_pos_2013 est_trt2_sdw_pos_2014 est_trt2_sdw_pos_2015 ///
-	est_trt2_sdw_pos_2016, ///
+coefplot est_ldg_trt2_sdw_pos_2010 est_ldg_trt2_sdw_pos_2011 est_ldg_trt2_sdw_pos_2012 ///
+	est_ldg_trt2_sdw_pos_2013 est_ldg_trt2_sdw_pos_2014 est_ldg_trt2_sdw_pos_2015 ///
+	est_ldg_trt2_sdw_pos_2016, ///
 	xline(0) ///
 	drop(*year) nodraw ///
 	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
@@ -1683,11 +1680,11 @@ coefplot est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 est_trt2_sdw_pos_2012 ///
 		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
 		label(14 "2016") label(16 "2017")) ///
 	title("2 SD +") note("DV: Next year revenue", size(vsmall)) ///
-	name(trt2_pos_leading, replace)
+	name(trt2_pos_ldg, replace)
 	
-coefplot est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 est_trt2_sdw_neg_2012 ///
-	est_trt2_sdw_neg_2013 est_trt2_sdw_neg_2014 est_trt2_sdw_neg_2015 ///
-	est_trt2_sdw_neg_2016, ///
+coefplot est_ldg_trt2_sdw_neg_2010 est_ldg_trt2_sdw_neg_2011 est_ldg_trt2_sdw_neg_2012 ///
+	est_ldg_trt2_sdw_neg_2013 est_ldg_trt2_sdw_neg_2014 est_ldg_trt2_sdw_neg_2015 ///
+	est_ldg_trt2_sdw_neg_2016, ///
 	xline(0) ///
 	drop(*year) nodraw ///
 	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
@@ -1698,11 +1695,11 @@ coefplot est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 est_trt2_sdw_neg_2012 ///
 		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
 		label(14 "2016") label(16 "2017")) ///
 	title("2 SD -") note("DV: Next year revenue", size(vsmall)) ///
-	name(trt2_neg_leading, replace)
+	name(trt2_neg_ldg, replace)
 	
-coefplot est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 est_trt1_sdw_pos_2012 ///
-	est_trt1_sdw_pos_2013 est_trt1_sdw_pos_2014 est_trt1_sdw_pos_2015 ///
-	est_trt1_sdw_pos_2016, ///
+coefplot est_ldg_trt1_sdw_pos_2010 est_ldg_trt1_sdw_pos_2011 est_ldg_trt1_sdw_pos_2012 ///
+	est_ldg_trt1_sdw_pos_2013 est_ldg_trt1_sdw_pos_2014 est_ldg_trt1_sdw_pos_2015 ///
+	est_ldg_trt1_sdw_pos_2016, ///
 	xline(0) ///
 	drop(*year) nodraw ///
 	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
@@ -1713,11 +1710,11 @@ coefplot est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 est_trt1_sdw_pos_2012 ///
 		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
 		label(14 "2016") label(16 "2017")) ///
 	title("1 SD +") note("DV: Next year revenue", size(vsmall)) ///
-	name(trt1_pos_leading, replace)
+	name(trt1_pos_ldg, replace)
 	
-coefplot est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 est_trt1_sdw_neg_2012 ///
-	est_trt1_sdw_neg_2013 est_trt1_sdw_neg_2014 est_trt1_sdw_neg_2015 ///
-	est_trt1_sdw_neg_2016, ///
+coefplot est_ldg_trt1_sdw_neg_2010 est_ldg_trt1_sdw_neg_2011 est_ldg_trt1_sdw_neg_2012 ///
+	est_ldg_trt1_sdw_neg_2013 est_ldg_trt1_sdw_neg_2014 est_ldg_trt1_sdw_neg_2015 ///
+	est_ldg_trt1_sdw_neg_2016, ///
 	xline(0) ///
 	drop(*year) nodraw ///
 	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
@@ -1728,18 +1725,20 @@ coefplot est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 est_trt1_sdw_neg_2012 ///
 		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
 		label(14 "2016") label(16 "2017")) ///
 	title("1 SD -") note("DV: Next year revenue", size(vsmall)) ///
-	name(trt1_neg_leading, replace)
+	name(trt1_neg_ldg, replace)
 
-*	Compare positive treatments
-graph combine trt3_pos_leading trt2_pos_leading trt1_pos_leading, r(3) c(1) xcommon
+***	Compare positive treatments
+graph combine trt3_pos_ldg trt2_pos_ldg trt1_pos_ldg, r(3) c(1) xcommon
 
-*	Compare negative treatments
-graph combine trt3_neg_leading trt2_neg_leading trt1_neg_leading, r(3) c(1) xcommon
+***	Compare negative treatments
+graph combine trt3_neg_ldg trt2_neg_ldg trt1_neg_ldg, r(3) c(1) xcommon
 
-*	Compare all
-graph combine trt3_pos_leading trt2_pos_leading trt1_pos_leading trt3_neg_leading trt2_neg_leading trt1_neg_leading, ///
+***	Compare all
+graph combine trt3_pos_ldg trt2_pos_ldg trt1_pos_ldg trt3_neg_ldg trt2_neg_ldg trt1_neg_ldg, ///
 	r(2) c(3) xcommon altshrink
-	
+
+*	Export
+graph export "figures\dif-in-difs\dif-in-dif-each-year-leading-dv.png", as(png) replace	
 					
 						
 						
@@ -1758,11 +1757,14 @@ label var revenue_ihs "Inverse hyperbolic sine transformation of revt"
 histogram revt_usd, bin(100) ///
 	name(hist_revt_usd, replace) nodraw freq ylabel(,format(%9.0gc)) ///
 	xti("Revenue in millions USA dollars")
-histogram revt_usd_ihs, bin(100) ti("Inverse hyperbolic sine revenue") ///
+histogram revt_usd_ihs, bin(100)  ///
 	name(hist_revt_usd_ihs, replace) nodraw freq ylabel(,format(%9.0gc)) ///
 	xti("Inverse hyperbolic sine of revenue")
 	
 graph combine hist_revt_usd hist_revt_usd_ihs
+
+graph export "\figures\dif-in-difs\histogram-revenue and inverse hyperbolic sine revenue.png", ///
+	as(png) replace
 
 ///	ESTIMATION
 foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
@@ -1911,59 +1913,58 @@ graph combine trt3_neg_ihs trt2_neg_ihs trt1_neg_ihs, r(3) c(1) xcommon
 *	Compare all
 graph combine trt3_pos_ihs trt2_pos_ihs trt1_pos_ihs trt3_neg_ihs trt2_neg_ihs trt1_neg_ihs, ///
 	r(2) c(3) xcommon altshrink
-	
-	
-	
-	
-	
+
+*	Export
+graph export "figures\dif-in-difs\dif-in-dif-each-year-ihs.png", as(png) replace	
 
 	
-
+	
+	
 
 						***===========================***
 						*	FIXED EFFECTS REGRESSION	*
 						*		DV: LEVEL OF REVT 		*
 						***===========================***	
-///	LOAD DATA
-use data/matched-csrhub-cstat-2008-2017, clear
-
-est clear
-
-***	Drop unneeded variables
-drop xrdp
-
-***	Panel
+///	SET PANEL
 xtset
 
 ///	ESTIMATION
 *mark mark3
 *markout mark3 revt over_rtg dltt at xad xrd emp year
-qui xtreg revenue over_rtg, fe cluster(gvkey_num)										
-est store revenuemod1
+qui asdoc xtreg revt_usd over_rtg, fe cluster(gvkey_num) nest
+est store revt_usdmod1
 estadd local yearFE "No", replace
-qui xtreg revenue over_rtg i.year, fe cluster(gvkey_num)									
-est store revenuemod2
+
+qui asdoc xtreg revt_usd over_rtg i.year, fe cluster(gvkey_num) nest
+est store revt_usdmod2
 estadd local yearFE "Yes", replace
-qui xtreg revenue over_rtg dltt i.year, fe cluster(gvkey_num)							
-est store revenuemod3
+
+qui asdoc xtreg revt_usd over_rtg dltt i.year, fe cluster(gvkey_num)							
+est store revt_usdmod3
 estadd local yearFE "Yes", replace
-qui xtreg revenue over_rtg dltt at i.year, fe cluster(gvkey_num)							
-est store revenuemod4
+
+qui asdoc xtreg revt_usd over_rtg dltt at i.year, fe cluster(gvkey_num)							
+est store revt_usdmod4
 estadd local yearFE "Yes", replace
-qui xtreg revenue over_rtg dltt at emp i.year, fe cluster(gvkey_num)						
-est store revenuemod5
+
+qui asdoc xtreg revt_usd over_rtg dltt at emp i.year, fe cluster(gvkey_num)						
+est store revt_usdmod5
 estadd local yearFE "Yes", replace
-qui xtreg revenue over_rtg dltt at emp tobinq i.year, fe cluster(gvkey_num)					
-est store revenuemod6
+
+qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq i.year, fe cluster(gvkey_num)					
+est store revt_usdmod6
 estadd local yearFE "Yes", replace
-qui xtreg revenue over_rtg dltt at emp tobinq age i.year, fe cluster(gvkey_num)				
-est store revenuemod7
+
+qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq age i.year, fe cluster(gvkey_num)				
+est store revt_usdmod7
 estadd local yearFE "Yes", replace
-qui xtreg revenue over_rtg dltt at emp tobinq age xad i.year, fe cluster(gvkey_num)				
-est store revenuemod8
+
+qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq age xad i.year, fe cluster(gvkey_num)				
+est store revt_usdmod8
 estadd local yearFE "Yes", replace
-qui xtreg revenue over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(gvkey_num)				
-est store revenuemod9
+
+qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(gvkey_num)				
+est store revt_usdmod9
 estadd local yearFE "Yes", replace
 
 
@@ -1972,12 +1973,12 @@ preserve
 replace xad=0 if xad==. & in_cstatn==1							/*	assumption	*/
 replace xrd=0 if xrd==. & in_cstatn==1							/*	assumption	*/
 
-qui xtreg revenue over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(gvkey_num)				
-est store revenuemod10
+qui xtreg revt_usd over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(gvkey_num)				
+est store revt_usdmod10
 estadd local yearFE "Yes", replace
 restore
 
-esttab revenuemod*, ///
+esttab revt_usdmod*, ///
 	b se s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC")) ///
 	keep(over_rtg dltt at xad xrd tobinq emp age)
 
