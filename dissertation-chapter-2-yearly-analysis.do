@@ -1583,6 +1583,8 @@ graph combine trt3_pos trt2_pos trt1_pos trt3_neg trt2_neg trt1_neg, ///
 graph combine trt2_pos trt2_neg, c(1) xcommon altshrink
 
 
+
+
 						***===========================***
 						*								*
 						*		DIF-IN-DIFS 			*
@@ -1593,9 +1595,9 @@ est clear
 ***	Nominal revenue
 foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
-	capt n erase "tables-and-figures\did\did-each-year-`variable'.xml"
-	capt n erase "tables-and-figures\did\did-each-year-`variable'.rtf"
-	capt n erase "tables-and-figures\did\did-each-year-`variable'.txt"
+	capt n erase "tables-and-figures\did\did-each-year-`variable'-leading-dv.xml"
+	capt n erase "tables-and-figures\did\did-each-year-`variable'-leading-dv.rtf"
+	capt n erase "tables-and-figures\did\did-each-year-`variable'-leading-dv.txt"
 	forvalues year = 2010/2016 {
 		display "`variable' for `year'"
 		
@@ -1633,7 +1635,8 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	}
 }
 
-*	Coefficient plots
+///	PLOTTING
+***	Coefficient plots
 set scheme plotplainblind
 
 coefplot est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 ///
@@ -1737,10 +1740,7 @@ graph combine trt3_neg_leading trt2_neg_leading trt1_neg_leading, r(3) c(1) xcom
 graph combine trt3_pos_leading trt2_pos_leading trt1_pos_leading trt3_neg_leading trt2_neg_leading trt1_neg_leading, ///
 	r(2) c(3) xcommon altshrink
 	
-	
-*	Compare treatment levels
-graph combine trt2_pos_leading trt2_neg_leading, c(1) xcommon
-						
+					
 						
 						
 						***===========================***
@@ -1750,15 +1750,27 @@ graph combine trt2_pos_leading trt2_neg_leading, c(1) xcommon
 						*		DV: Inverse hyperbolic	*
 						*			sine of revenue		*
 						***===========================***
-
-	
-***	Inverse hyperbolic sine transformation DV
-capt n gen revenue_ihs = asinh(revenue)
+///	GENERATE VARIABLE
+capt n gen revt_usd_ihs = asinh(revt_usd)
 label var revenue_ihs "Inverse hyperbolic sine transformation of revt"
 
+///	COMPARE DISTRIBUTIONS
+histogram revt_usd, bin(100) ///
+	name(hist_revt_usd, replace) nodraw freq ylabel(,format(%9.0gc)) ///
+	xti("Revenue in millions USA dollars")
+histogram revt_usd_ihs, bin(100) ti("Inverse hyperbolic sine revenue") ///
+	name(hist_revt_usd_ihs, replace) nodraw freq ylabel(,format(%9.0gc)) ///
+	xti("Inverse hyperbolic sine of revenue")
+	
+graph combine hist_revt_usd hist_revt_usd_ihs
+
+///	ESTIMATION
 foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
-	forvalues year = 2009/2017 {
+	capt n erase "tables-and-figures\did\did-each-year-`variable'-ihs.xml"
+	capt n erase "tables-and-figures\did\did-each-year-`variable'-ihs.rtf"
+	capt n erase "tables-and-figures\did\did-each-year-`variable'-ihs.txt"
+	forvalues year = 2010/2016 {
 		display "`variable' for `year'"
 		
 		capt n drop time treatyear treated
@@ -1774,13 +1786,28 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		label var treated "Treated"
 
 		*	Estimate
-		reg revenue_ihs i.time##i.treated i.year, r
+		reg revt_usd_ihs i.time##i.treated i.year, robust
 		
+		*	Export
+		outreg2 using "tables-and-figures\did\did-each-year-`variable'-ihs", ///
+			stats(coef se pval) ///
+			pdec(4) ///
+			keep(1.time 1.treated 1.time#1.treated) ///
+			alpha(0.001, 0.01, 0.05) excel word ///
+			ctitle(`year') ///
+			addtext(Year FEs, YES) ///
+			nor2 ///
+			title("`variable'")
+	 	
 		*	Store estimates
 		estimates store est_ihs_`variable'_`year'
+		
+		*	Pause 0.5 seconds to allow outreg writing to complete
+		sleep 500
 	}
 }
 
+///	PLOTTING
 *	Coefficient plots
 coefplot est_ihs_trt3_sdw_pos_2009 est_ihs_trt3_sdw_pos_2010 est_ihs_trt3_sdw_pos_2011 est_ihs_trt3_sdw_pos_2012 est_ihs_trt3_sdw_pos_2013 est_ihs_trt3_sdw_pos_2014 est_ihs_trt3_sdw_pos_2015 est_ihs_trt3_sdw_pos_2016 est_ihs_trt3_sdw_pos_2017, ///
 	xline(0) ///
@@ -1825,63 +1852,9 @@ coefplot est_ihs_trt1_sdw_neg_2009 est_ihs_trt1_sdw_neg_2010 est_ihs_trt1_sdw_ne
 	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
 		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
 		label(18 "2017"))
-	
-///	REVENUE IN YEAR AFTER TREATMENT
-xtset
-gen Frevenue=f.revenue
 
-foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
-	trt1_sdw_pos trt1_sdw_neg {
-	forvalues year = 2009/2017 {
-		display "`variable' for `year'"
 		
-		capt n drop time treatyear treated
 		
-		*	Create dummy to indicate year of treatment
-		gen time = (year>=`year') & !missing(year)
-		label var time "Post-treatment"
-		
-		*	Create dummy identifying treatment and control groups
-			/*	Assumes all firms not treated in this year are valid controls	*/
-		gen treatyear = (year==`year') & (`variable'==1)
-		bysort gvkey_num: egen treated = max(treatyear) if `variable'!=.
-		label var treated "Treated"
-
-		*	Estimate
-		reg Frevenue i.time##i.treated i.year, r
-		
-		*	Store estimates
-		estimates store est_f_`variable'_`year'
-	}
-}
-
-***	Visualize
-*	Coefficient plots
-coefplot est_f_trt3_sdw_pos_2009 est_f_trt3_sdw_pos_2010 est_f_trt3_sdw_pos_2011 est_f_trt3_sdw_pos_2012 est_f_trt3_sdw_pos_2013 est_f_trt3_sdw_pos_2014 est_f_trt3_sdw_pos_2015 est_f_trt3_sdw_pos_2016 est_f_trt3_sdw_pos_2017, ///
-	xline(0) ///
-	drop(*year) ///
-	name(g1b, replace) ///
-	title("TRT3 POS, Forward Revenue")
-	
-coefplot est_f_trt3_sdw_neg_2009 est_f_trt3_sdw_neg_2010 est_f_trt3_sdw_neg_2011 est_f_trt3_sdw_neg_2012 est_f_trt3_sdw_neg_2013 est_f_trt3_sdw_neg_2014 est_f_trt3_sdw_neg_2015 est_f_trt3_sdw_neg_2016 est_f_trt3_sdw_neg_2017, ///
-	xline(0) ///
-	drop(*year)
-	
-coefplot est_f_trt2_sdw_pos_2009 est_f_trt2_sdw_pos_2010 est_f_trt2_sdw_pos_2011 est_f_trt2_sdw_pos_2012 est_f_trt2_sdw_pos_2013 est_f_trt2_sdw_pos_2014 est_f_trt2_sdw_pos_2015 est_f_trt2_sdw_pos_2016 est_f_trt2_sdw_pos_2017, ///
-	xline(0) ///
-	drop(*year)
-	
-coefplot est_f_trt2_sdw_neg_2009 est_f_trt2_sdw_neg_2010 est_f_trt2_sdw_neg_2011 est_f_trt2_sdw_neg_2012 est_f_trt2_sdw_neg_2013 est_f_trt2_sdw_neg_2014 est_f_trt2_sdw_neg_2015 est_f_trt2_sdw_neg_2016 est_f_trt2_sdw_neg_2017, ///
-	xline(0) ///
-	drop(*year)
-	
-coefplot est_f_trt1_sdw_pos_2009 est_f_trt1_sdw_pos_2010 est_f_trt1_sdw_pos_2011 est_f_trt1_sdw_pos_2012 est_f_trt1_sdw_pos_2013 est_f_trt1_sdw_pos_2014 est_f_trt1_sdw_pos_2015 est_f_trt1_sdw_pos_2016 est_f_trt1_sdw_pos_2017, ///
-	xline(0) ///
-	drop(*year)
-	
-coefplot est_f_trt1_sdw_neg_2009 est_f_trt1_sdw_neg_2010 est_f_trt1_sdw_neg_2011 est_f_trt1_sdw_neg_2012 est_f_trt1_sdw_neg_2013 est_f_trt1_sdw_neg_2014 est_f_trt1_sdw_neg_2015 est_f_trt1_sdw_neg_2016 est_f_trt1_sdw_neg_2017, ///
-	xline(0) ///
-	drop(*year)
 
 
 						***===========================***
