@@ -1808,119 +1808,115 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 }
 
 ///	PLOTTING
-*	Coefficient plots
-coefplot est_ihs_trt3_sdw_pos_2009 est_ihs_trt3_sdw_pos_2010 est_ihs_trt3_sdw_pos_2011 est_ihs_trt3_sdw_pos_2012 est_ihs_trt3_sdw_pos_2013 est_ihs_trt3_sdw_pos_2014 est_ihs_trt3_sdw_pos_2015 est_ihs_trt3_sdw_pos_2016 est_ihs_trt3_sdw_pos_2017, ///
-	xline(0) ///
-	xlab(-10(5)10) ///
+set scheme plotplainblind
+
+coefplot est_ihs_trt3_sdw_pos_2010 est_ihs_trt3_sdw_pos_2011 est_ihs_trt3_sdw_pos_2012 ///
+	est_ihs_trt3_sdw_pos_2013 est_ihs_trt3_sdw_pos_2014 est_ihs_trt3_sdw_pos_2015 ///
+	est_ihs_trt3_sdw_pos_2016, ///
+	xline(0) nodraw ///
+	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
+		1.time#1.treated="Treatment effect" ///
+		_cons="Untreated pre-treatment") ///
+	order("Treated pre-treatment" "Untreated pre-treatment" ///
+		`""Untreated post-treatment" "Treated post-treatment" "(Treatment effect)""') ///
 	drop(*year) ///
-	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
-		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
-		label(18 "2017"))
+	legend(label(2 "2010") label(4 "2011") ///
+		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
+		label(14 "2016") label(16 "2017")) ///
+	title("3 SD +") note("DV: Inverse hyperbolic sine transformed revenue", size(vsmall)) ///
+	name(trt3_pos_ihs, replace)
+		
+coefplot est_ihs_trt3_sdw_neg_2010 est_ihs_trt3_sdw_neg_2011 est_ihs_trt3_sdw_neg_2012 ///
+	est_ihs_trt3_sdw_neg_2013 est_ihs_trt3_sdw_neg_2014 est_ihs_trt3_sdw_neg_2015 ///
+	est_ihs_trt3_sdw_neg_2016, ///
+	xline(0) ///
+	drop(*year) nodraw ///
+	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
+		1.time#1.treated="Treatment Effect" _cons="Untreated pre-treatment") ///
+	order("Treated pre-treatment" "Untreated pre-treatment" ///
+		`""Untreated post-treatment" "Treated post-treatment" "(Treatment effect)""') ///
+	legend(label(2 "2010") label(4 "2011") ///
+		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
+		label(14 "2016") label(16 "2017")) ///
+	title("3 SD -") note("DV: Inverse hyperbolic sine transformed revenue", size(vsmall)) ///
+	name(trt3_neg_ihs, replace)
 	
-coefplot est_ihs_trt3_sdw_neg_2009 est_ihs_trt3_sdw_neg_2010 est_ihs_trt3_sdw_neg_2011 est_ihs_trt3_sdw_neg_2012 est_ihs_trt3_sdw_neg_2013 est_ihs_trt3_sdw_neg_2014 est_ihs_trt3_sdw_neg_2015 est_ihs_trt3_sdw_neg_2016 est_ihs_trt3_sdw_neg_2017, ///
+coefplot est_ihs_trt2_sdw_pos_2010 est_ihs_trt2_sdw_pos_2011 est_ihs_trt2_sdw_pos_2012 ///
+	est_ihs_trt2_sdw_pos_2013 est_ihs_trt2_sdw_pos_2014 est_ihs_trt2_sdw_pos_2015 ///
+	est_ihs_trt2_sdw_pos_2016, ///
 	xline(0) ///
-	drop(*year) ///
-	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
-		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
-		label(18 "2017"))
+	drop(*year) nodraw ///
+	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
+		1.time#1.treated="Treatment Effect" _cons="Untreated pre-treatment") ///
+	order("Treated pre-treatment" "Untreated pre-treatment" ///
+		`""Untreated post-treatment" "Treated post-treatment" "(Treatment effect)""') ///
+	legend(label(2 "2010") label(4 "2011") ///
+		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
+		label(14 "2016") label(16 "2017")) ///
+	title("2 SD +") note("DV: Inverse hyperbolic sine transformed revenue", size(vsmall)) ///
+	name(trt2_pos_ihs, replace)
 	
-coefplot est_ihs_trt2_sdw_pos_2009 est_ihs_trt2_sdw_pos_2010 est_ihs_trt2_sdw_pos_2011 est_ihs_trt2_sdw_pos_2012 est_ihs_trt2_sdw_pos_2013 est_ihs_trt2_sdw_pos_2014 est_ihs_trt2_sdw_pos_2015 est_ihs_trt2_sdw_pos_2016 est_ihs_trt2_sdw_pos_2017, ///
+coefplot est_ihs_trt2_sdw_neg_2010 est_ihs_trt2_sdw_neg_2011 est_ihs_trt2_sdw_neg_2012 ///
+	est_ihs_trt2_sdw_neg_2013 est_ihs_trt2_sdw_neg_2014 est_ihs_trt2_sdw_neg_2015 ///
+	est_ihs_trt2_sdw_neg_2016, ///
 	xline(0) ///
-	drop(*year) ///
-	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
-		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
-		label(18 "2017"))
+	drop(*year) nodraw ///
+	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
+		1.time#1.treated="Treatment Effect" _cons="Untreated pre-treatment") ///
+	order("Treated pre-treatment" "Untreated pre-treatment" ///
+		`""Untreated post-treatment" "Treated post-treatment" "(Treatment effect)""') ///
+	legend(label(2 "2010") label(4 "2011") ///
+		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
+		label(14 "2016") label(16 "2017")) ///
+	title("2 SD -") note("DV: Inverse hyperbolic sine transformed revenue", size(vsmall)) ///
+	name(trt2_neg_ihs, replace)
 	
-coefplot est_ihs_trt2_sdw_neg_2009 est_ihs_trt2_sdw_neg_2010 est_ihs_trt2_sdw_neg_2011 est_ihs_trt2_sdw_neg_2012 est_ihs_trt2_sdw_neg_2013 est_ihs_trt2_sdw_neg_2014 est_ihs_trt2_sdw_neg_2015 est_ihs_trt2_sdw_neg_2016 est_ihs_trt2_sdw_neg_2017, ///
+coefplot est_ihs_trt1_sdw_pos_2010 est_ihs_trt1_sdw_pos_2011 est_ihs_trt1_sdw_pos_2012 ///
+	est_ihs_trt1_sdw_pos_2013 est_ihs_trt1_sdw_pos_2014 est_ihs_trt1_sdw_pos_2015 ///
+	est_ihs_trt1_sdw_pos_2016, ///
 	xline(0) ///
-	drop(*year) ///
-	xlab(-10(5)10) ///
-	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
-		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
-		label(18 "2017"))
+	drop(*year) nodraw ///
+	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
+		1.time#1.treated="Treatment Effect" _cons="Untreated pre-treatment") ///
+	order("Treated pre-treatment" "Untreated pre-treatment" ///
+		`""Untreated post-treatment" "Treated post-treatment" "(Treatment effect)""') ///
+	legend(label(2 "2010") label(4 "2011") ///
+		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
+		label(14 "2016") label(16 "2017")) ///
+	title("1 SD +") note("DV: Inverse hyperbolic sine transformed revenue", size(vsmall)) ///
+	name(trt1_pos_ihs, replace)
 	
-coefplot est_ihs_trt1_sdw_pos_2009 est_ihs_trt1_sdw_pos_2010 est_ihs_trt1_sdw_pos_2011 est_ihs_trt1_sdw_pos_2012 est_ihs_trt1_sdw_pos_2013 est_ihs_trt1_sdw_pos_2014 est_ihs_trt1_sdw_pos_2015 est_ihs_trt1_sdw_pos_2016 est_ihs_trt1_sdw_pos_2017, ///
+coefplot est_ihs_trt1_sdw_neg_2010 est_ihs_trt1_sdw_neg_2011 est_ihs_trt1_sdw_neg_2012 ///
+	est_ihs_trt1_sdw_neg_2013 est_ihs_trt1_sdw_neg_2014 est_ihs_trt1_sdw_neg_2015 ///
+	est_ihs_trt1_sdw_neg_2016, ///
 	xline(0) ///
-	drop(*year) ///
-	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
-		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
-		label(18 "2017"))
-	
-coefplot est_ihs_trt1_sdw_neg_2009 est_ihs_trt1_sdw_neg_2010 est_ihs_trt1_sdw_neg_2011 est_ihs_trt1_sdw_neg_2012 est_ihs_trt1_sdw_neg_2013 est_ihs_trt1_sdw_neg_2014 est_ihs_trt1_sdw_neg_2015 est_ihs_trt1_sdw_neg_2016 est_ihs_trt1_sdw_neg_2017, ///
-	xline(0) ///
-	drop(*year) ///
-	legend(label(2 "2009") label(4 "2010") label(6 "2011") label(8 "2012") ///
-		label(10 "2013") label(12 "2014") label(14 "2015") label(16 "2016") ///
-		label(18 "2017"))
+	drop(*year) nodraw ///
+	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
+		1.time#1.treated="Treatment Effect" _cons="Untreated pre-treatment") ///
+	order("Treated pre-treatment" "Untreated pre-treatment" ///
+		`""Untreated post-treatment" "Treated post-treatment" "(Treatment effect)""') ///
+	legend(label(2 "2010") label(4 "2011") ///
+		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
+		label(14 "2016") label(16 "2017")) ///
+	title("1 SD -") note("DV: Inverse hyperbolic sine transformed revenue", size(vsmall)) ///
+	name(trt1_neg_ihs, replace)
 
 		
-		
+*	Compare positive treatments
+graph combine trt3_pos_ihs trt2_pos_ihs trt1_pos_ihs, r(3) c(1) xcommon
 
+*	Compare negative treatments
+graph combine trt3_neg_ihs trt2_neg_ihs trt1_neg_ihs, r(3) c(1) xcommon
 
-
-
-///	VISUALIZATION OF DATA
-***	Box plot
-graph box revt_ihs, over(trt2_sdw_pos_trtper) ///
-	name(g1, replace) ///
-	title("revt_ihs by 2 sdw pos treatment period")
-graph box revt_ihs, over(trt2_sdw_neg_trtper) ///
-	name(g2, replace) nodraw ///
-	title("revt_ihs by 2 sdw neg treatment period")
-graph combine g1 g2
-
-
-***	Line graph
-*	3 sdw
-bysort trt3_sdw_neg_trtper: egen trt3_sdw_neg_revt_ihs_mean=mean(revt_ihs) ///
-	if trt3_sdw_neg_trtper!=.
-bysort trt3_sdw_neg_trtper: egen trt3_sdw_neg_revt_ihs_med=median(revt_ihs) ///
-	if trt3_sdw_neg_trtper!=.
-tw (line trt3_sdw_neg_revt_ihs_mean trt3_sdw_neg_trtper, sort) ///
-	(line trt3_sdw_neg_revt_ihs_med trt3_sdw_neg_trtper, sort), ///
-	ylabel() xline(0)
+*	Compare all
+graph combine trt3_pos_ihs trt2_pos_ihs trt1_pos_ihs trt3_neg_ihs trt2_neg_ihs trt1_neg_ihs, ///
+	r(2) c(3) xcommon altshrink
 	
-bysort trt3_sdw_pos_trtper: egen trt3_sdw_pos_revt_ihs_mean=mean(revt_ihs) ///
-	if trt3_sdw_pos_trtper!=.
-bysort trt3_sdw_pos_trtper: egen trt3_sdw_pos_revt_ihs_med=median(revt_ihs) ///
-	if trt3_sdw_pos_trtper!=.
-tw 	(line trt3_sdw_pos_revt_ihs_mean trt3_sdw_pos_trtper, sort) ///
-	(line trt3_sdw_pos_revt_ihs_med trt3_sdw_pos_trtper, sort), ///
-	ylabel() xline(0)
 	
-*	2 sdw
-bysort trt2_sdw_neg_trtper: egen trt2_sdw_neg_revt_ihs_mean=mean(revt_ihs) ///
-	if trt2_sdw_neg_trtper!=.
-bysort trt2_sdw_neg_trtper: egen trt2_sdw_neg_revt_ihs_med=median(revt_ihs) ///
-	if trt2_sdw_neg_trtper!=.
-tw (line trt2_sdw_neg_revt_ihs_mean trt2_sdw_neg_trtper, sort) ///
-	(line trt2_sdw_neg_revt_ihs_med trt2_sdw_neg_trtper, sort), ///
-	ylabel() xline(0)
+	
+	
+	
 
-bysort trt2_sdw_pos_trtper: egen trt2_sdw_pos_revt_ihs_mean=mean(revt_ihs) ///
-	if trt2_sdw_pos_trtper!=.
-bysort trt2_sdw_pos_trtper: egen trt2_sdw_pos_revt_ihs_med=median(revt_ihs) ///
-	if trt2_sdw_pos_trtper!=.
-tw 	(line trt2_sdw_pos_revt_ihs_mean trt2_sdw_pos_trtper, sort) ///
-	(line trt2_sdw_pos_revt_ihs_med trt2_sdw_pos_trtper, sort), ///
-	ylabel() xline(0)
-
-*	1 sdw
-bysort trt1_sdw_neg_trtper: egen trt1_sdw_neg_revt_ihs_mean=mean(revt_ihs) ///
-	if trt1_sdw_neg_trtper!=.
-bysort trt1_sdw_neg_trtper: egen trt1_sdw_neg_revt_ihs_med=median(revt_ihs) ///
-	if trt1_sdw_neg_trtper!=.
-tw (line trt1_sdw_neg_revt_ihs_mean trt1_sdw_neg_trtper, sort) ///
-	(line trt1_sdw_neg_revt_ihs_med trt1_sdw_neg_trtper, sort), ///
-	ylabel() xline(0)
-
-bysort trt1_sdw_pos_trtper: egen trt1_sdw_pos_revt_ihs_mean=mean(revt_ihs) ///
-	if trt1_sdw_pos_trtper!=.
-bysort trt1_sdw_pos_trtper: egen trt1_sdw_pos_revt_ihs_med=median(revt_ihs) ///
-	if trt1_sdw_pos_trtper!=.
-tw 	(line trt1_sdw_pos_revt_ihs_mean trt1_sdw_pos_trtper, sort) ///
-	(line trt1_sdw_pos_revt_ihs_med trt1_sdw_pos_trtper, sort), ///
-	ylabel() xline(0)
 	
 
 
