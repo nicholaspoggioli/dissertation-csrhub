@@ -1424,20 +1424,22 @@ coefplot ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 						***===========================***
 						*								*
 						*		DIF-IN-DIFS 			*
+						*		Individual years
 						*		DV: Same year revenue	*
 						*								*
 						***===========================***
 /*	WORKFLOW (See https://dss.princeton.edu/training/)
 */
 						
-/// LOAD DATA
-use data/matched-csrhub-cstat-2008-2017, clear
 
 ///	REVENUE IN SAME YEAR AS TREATMENT
 ***	Nominal revenue
 foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
-	forvalues year = 2009/2017 {
+	capt n erase "tables-and-figures\did\did-each-year-`variable'.xml"
+	capt n erase "tables-and-figures\did\did-each-year-`variable'.rtf"
+	capt n erase "tables-and-figures\did\did-each-year-`variable'.txt"
+	forvalues year = 2009/2016 {
 		display "`variable' for `year'"
 		
 		capt n drop time treatyear treated
@@ -1453,8 +1455,18 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		label var treated "Treated"
 
 		*	Estimate
-		reg revenue i.time##i.treated i.year, r
+		reg revt_usd i.time##i.treated i.year, robust
 		
+		*	Export
+		outreg2 using "tables-and-figures\did\did-each-year-`variable'", ///
+			stats(coef se pval) ///
+			keep(1.time 1.treated 1.time#1.treated) ///
+			alpha(0.001, 0.01, 0.05) excel word ///
+			ctitle(`year') ///
+			addtext(Year FEs, YES) ///
+			nor2 ///
+			title("`variable'")
+	 	
 		*	Store estimates
 		estimates store est_`variable'_`year'
 	}
@@ -1463,7 +1475,7 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 *	Coefficient plots
 coefplot est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 est_trt3_sdw_pos_2013 est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 est_trt3_sdw_pos_2016 est_trt3_sdw_pos_2017, ///
 	xline(0) ///
-	drop(*year) nodraw  ///
+	drop(*year)  ///
 	name(trt3_pos, replace) ///
 	title("TRT3 POS")
 	
