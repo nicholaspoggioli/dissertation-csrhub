@@ -1433,13 +1433,14 @@ coefplot ps2009 ps2010 ps2011 ps2012 ps2013 ps2014 ps2015, ///
 						
 
 ///	REVENUE IN SAME YEAR AS TREATMENT
+est clear
 ***	Nominal revenue
 foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	trt1_sdw_pos trt1_sdw_neg {
 	capt n erase "tables-and-figures\did\did-each-year-`variable'.xml"
 	capt n erase "tables-and-figures\did\did-each-year-`variable'.rtf"
 	capt n erase "tables-and-figures\did\did-each-year-`variable'.txt"
-	forvalues year = 2009/2016 {
+	forvalues year = 2010/2016 {
 		display "`variable' for `year'"
 		
 		capt n drop time treatyear treated
@@ -1460,6 +1461,7 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 		*	Export
 		outreg2 using "tables-and-figures\did\did-each-year-`variable'", ///
 			stats(coef se pval) ///
+			pdec(4) ///
 			keep(1.time 1.treated 1.time#1.treated) ///
 			alpha(0.001, 0.01, 0.05) excel word ///
 			ctitle(`year') ///
@@ -1469,39 +1471,104 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	 	
 		*	Store estimates
 		estimates store est_`variable'_`year'
+		
+		*	Pause 0.5 seconds to allow outreg writing to complete
+		sleep 500
 	}
 }
 
 *	Coefficient plots
-coefplot est_trt3_sdw_pos_2009 est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 est_trt3_sdw_pos_2013 est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 est_trt3_sdw_pos_2016 est_trt3_sdw_pos_2017, ///
+set scheme plotplainblind
+
+coefplot est_trt3_sdw_pos_2010 est_trt3_sdw_pos_2011 est_trt3_sdw_pos_2012 ///
+	est_trt3_sdw_pos_2013 est_trt3_sdw_pos_2014 est_trt3_sdw_pos_2015 ///
+	est_trt3_sdw_pos_2016, ///
+	xline(0) nodraw ///
+	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
+		1.time#1.treated="Treatment effect" ///
+		_cons="Untreated pre-treatment") ///
+	order("Treated pre-treatment" "Untreated pre-treatment" ///
+		`""Untreated post-treatment" "Treated post-treatment" "(Treatment effect)""') ///
+	drop(*year) ///
+	legend(label(2 "2010") label(4 "2011") ///
+		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
+		label(14 "2016") label(16 "2017")) ///
+	title("3 SD +") ///
+	name(trt3_pos, replace)
+		
+coefplot est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 est_trt3_sdw_neg_2012 ///
+	est_trt3_sdw_neg_2013 est_trt3_sdw_neg_2014 est_trt3_sdw_neg_2015 ///
+	est_trt3_sdw_neg_2016, ///
 	xline(0) ///
-	drop(*year)  ///
-	name(trt3_pos, replace) ///
-	title("TRT3 POS")
-	
-coefplot est_trt3_sdw_neg_2009 est_trt3_sdw_neg_2010 est_trt3_sdw_neg_2011 est_trt3_sdw_neg_2012 est_trt3_sdw_neg_2013 est_trt3_sdw_neg_2014 est_trt3_sdw_neg_2015 est_trt3_sdw_neg_2016 est_trt3_sdw_neg_2017, ///
-	xline(0) ///
-	drop(*year) nodraw  ///
+	drop(*year) nodraw ///
+	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
+		1.time#1.treated="Treatment Effect" _cons="Untreated pre-treatment") ///
+	order("Treated pre-treatment" "Untreated pre-treatment" ///
+		`""Untreated post-treatment" "Treated post-treatment" "(Treatment effect)""') ///
+	legend(label(2 "2010") label(4 "2011") ///
+		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
+		label(14 "2016") label(16 "2017")) ///
+	title("3 SD -") ///
 	name(trt3_neg, replace)
 	
-coefplot est_trt2_sdw_pos_2009 est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 est_trt2_sdw_pos_2012 est_trt2_sdw_pos_2013 est_trt2_sdw_pos_2014 est_trt2_sdw_pos_2015 est_trt2_sdw_pos_2016 est_trt2_sdw_pos_2017, ///
+coefplot est_trt2_sdw_pos_2010 est_trt2_sdw_pos_2011 est_trt2_sdw_pos_2012 ///
+	est_trt2_sdw_pos_2013 est_trt2_sdw_pos_2014 est_trt2_sdw_pos_2015 ///
+	est_trt2_sdw_pos_2016, ///
 	xline(0) ///
-	drop(*year) nodraw  ///
+	drop(*year) nodraw ///
+	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
+		1.time#1.treated="Treatment Effect" _cons="Untreated pre-treatment") ///
+	order("Treated pre-treatment" "Untreated pre-treatment" ///
+		`""Untreated post-treatment" "Treated post-treatment" "(Treatment effect)""') ///
+	legend(label(2 "2010") label(4 "2011") ///
+		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
+		label(14 "2016") label(16 "2017")) ///
+	title("2 SD +") ///
 	name(trt2_pos, replace)
 	
-coefplot est_trt2_sdw_neg_2009 est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 est_trt2_sdw_neg_2012 est_trt2_sdw_neg_2013 est_trt2_sdw_neg_2014 est_trt2_sdw_neg_2015 est_trt2_sdw_neg_2016 est_trt2_sdw_neg_2017, ///
+coefplot est_trt2_sdw_neg_2010 est_trt2_sdw_neg_2011 est_trt2_sdw_neg_2012 ///
+	est_trt2_sdw_neg_2013 est_trt2_sdw_neg_2014 est_trt2_sdw_neg_2015 ///
+	est_trt2_sdw_neg_2016, ///
 	xline(0) ///
-	drop(*year) nodraw  ///
+	drop(*year) nodraw ///
+	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
+		1.time#1.treated="Treatment Effect" _cons="Untreated pre-treatment") ///
+	order("Treated pre-treatment" "Untreated pre-treatment" ///
+		`""Untreated post-treatment" "Treated post-treatment" "(Treatment effect)""') ///
+	legend(label(2 "2010") label(4 "2011") ///
+		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
+		label(14 "2016") label(16 "2017")) ///
+	title("2 SD -") ///
 	name(trt2_neg, replace)
 	
-coefplot est_trt1_sdw_pos_2009 est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 est_trt1_sdw_pos_2012 est_trt1_sdw_pos_2013 est_trt1_sdw_pos_2014 est_trt1_sdw_pos_2015 est_trt1_sdw_pos_2016 est_trt1_sdw_pos_2017, ///
+coefplot est_trt1_sdw_pos_2010 est_trt1_sdw_pos_2011 est_trt1_sdw_pos_2012 ///
+	est_trt1_sdw_pos_2013 est_trt1_sdw_pos_2014 est_trt1_sdw_pos_2015 ///
+	est_trt1_sdw_pos_2016, ///
 	xline(0) ///
-	drop(*year) nodraw  ///
+	drop(*year) nodraw ///
+	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
+		1.time#1.treated="Treatment Effect" _cons="Untreated pre-treatment") ///
+	order("Treated pre-treatment" "Untreated pre-treatment" ///
+		`""Untreated post-treatment" "Treated post-treatment" "(Treatment effect)""') ///
+	legend(label(2 "2010") label(4 "2011") ///
+		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
+		label(14 "2016") label(16 "2017")) ///
+	title("1 SD +") ///
 	name(trt1_pos, replace)
 	
-coefplot est_trt1_sdw_neg_2009 est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 est_trt1_sdw_neg_2012 est_trt1_sdw_neg_2013 est_trt1_sdw_neg_2014 est_trt1_sdw_neg_2015 est_trt1_sdw_neg_2016 est_trt1_sdw_neg_2017, ///
+coefplot est_trt1_sdw_neg_2010 est_trt1_sdw_neg_2011 est_trt1_sdw_neg_2012 ///
+	est_trt1_sdw_neg_2013 est_trt1_sdw_neg_2014 est_trt1_sdw_neg_2015 ///
+	est_trt1_sdw_neg_2016, ///
 	xline(0) ///
-	drop(*year) nodraw  ///
+	drop(*year) nodraw ///
+	rename(1.treated="Treated pre-treatment" 1.time="Untreated post-treatment" ///
+		1.time#1.treated="Treatment Effect" _cons="Untreated pre-treatment") ///
+	order("Treated pre-treatment" "Untreated pre-treatment" ///
+		`""Untreated post-treatment" "Treated post-treatment" "(Treatment effect)""') ///
+	legend(label(2 "2010") label(4 "2011") ///
+		label (6 "2012") label (8 "2013") label (10 "2014") label (12 "2015") ///
+		label(14 "2016") label(16 "2017")) ///
+	title("1 SD -") ///
 	name(trt1_neg, replace)
 
 *	Compare positive treatments
@@ -1513,6 +1580,7 @@ graph combine trt3_neg trt2_neg trt1_neg, r(3) c(1) xcommon
 *	Compare all
 graph combine trt3_pos trt2_pos trt1_pos trt3_neg trt2_neg trt1_neg, ///
 	r(2) c(3) xcommon altshrink
+	
 	
 *	Compare treatment levels
 graph combine trt2_pos trt2_neg, c(1) xcommon altshrink
