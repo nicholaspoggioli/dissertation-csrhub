@@ -1928,45 +1928,55 @@ graph export "figures\dif-in-difs\dif-in-dif-each-year-ihs.png", as(png) replace
 ///	SET PANEL
 xtset
 
+tables-and-figures\fixed-effects\fe-same-year
+
 ///	ESTIMATION
 *mark mark3
 *markout mark3 revt over_rtg dltt at xad xrd emp year
-qui asdoc xtreg revt_usd over_rtg, fe cluster(gvkey_num) nest
+qui xtreg revt_usd over_rtg, ///
+	fe cluster(gvkey_num)
 est store revt_usdmod1
 estadd local yearFE "No", replace
 
-qui asdoc xtreg revt_usd over_rtg i.year, fe cluster(gvkey_num) nest
+qui asdoc xtreg revt_usd over_rtg i.year, ///
+	fe cluster(gvkey_num)
 est store revt_usdmod2
 estadd local yearFE "Yes", replace
 
-qui asdoc xtreg revt_usd over_rtg dltt i.year, fe cluster(gvkey_num)							
+qui asdoc xtreg revt_usd over_rtg dltt i.year, ///
+	fe cluster(gvkey_num)
 est store revt_usdmod3
 estadd local yearFE "Yes", replace
 
-qui asdoc xtreg revt_usd over_rtg dltt at i.year, fe cluster(gvkey_num)							
+qui asdoc xtreg revt_usd over_rtg dltt at i.year, ///
+	fe cluster(gvkey_num)
 est store revt_usdmod4
 estadd local yearFE "Yes", replace
 
-qui asdoc xtreg revt_usd over_rtg dltt at emp i.year, fe cluster(gvkey_num)						
+qui asdoc xtreg revt_usd over_rtg dltt at emp i.year, ///
+	fe cluster(gvkey_num)
 est store revt_usdmod5
 estadd local yearFE "Yes", replace
 
-qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq i.year, fe cluster(gvkey_num)					
+qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq i.year, ///
+	fe cluster(gvkey_num)
 est store revt_usdmod6
 estadd local yearFE "Yes", replace
 
-qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq age i.year, fe cluster(gvkey_num)				
+qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq age i.year, ///
+	fe cluster(gvkey_num)
 est store revt_usdmod7
 estadd local yearFE "Yes", replace
 
-qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq age xad i.year, fe cluster(gvkey_num)				
+qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq age xad i.year, ///
+	fe cluster(gvkey_num)
 est store revt_usdmod8
 estadd local yearFE "Yes", replace
 
-qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(gvkey_num)				
+qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq age xad xrd i.year, ///
+	fe cluster(gvkey_num)
 est store revt_usdmod9
 estadd local yearFE "Yes", replace
-
 
 *	Many xad and xrd observations are missing. Assume missing = 0.
 preserve
@@ -1983,6 +1993,24 @@ esttab revt_usdmod*, ///
 	keep(over_rtg dltt at xad xrd tobinq emp age)
 
 
+
+	
+*	Export table
+outreg2 [revt_usdmod1 revt_usdmod2 revt_usdmod3 revt_usdmod4 revt_usdmod5 ///
+	revt_usdmod6 revt_usdmod7 revt_usdmod8 revt_usdmod9 revt_usdmod10] ///
+	using "tables-and-figures\fixed-effects\fe-same-year", excel word
+	
+	
+outreg2 using "tables-and-figures\did\did-each-year-`variable'-ihs", ///
+	stats(coef se pval) ///
+	pdec(4) ///
+	keep(1.time 1.treated 1.time#1.treated) ///
+	alpha(0.001, 0.01, 0.05) excel word ///
+	ctitle(`year') ///
+	addtext(Year FEs, YES) ///
+	nor2 ///
+	title("`variable'")	
+	
 	
 	
 	
