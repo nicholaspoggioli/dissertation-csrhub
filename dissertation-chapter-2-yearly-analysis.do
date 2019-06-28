@@ -1928,15 +1928,20 @@ graph export "figures\dif-in-difs\dif-in-dif-each-year-ihs.png", as(png) replace
 ///	SET PANEL
 xtset
 
-tables-and-figures\fixed-effects\fe-same-year
-
 ///	ESTIMATION
+est clear
 *mark mark3
 *markout mark3 revt over_rtg dltt at xad xrd emp year
 qui xtreg revt_usd over_rtg, ///
 	fe cluster(gvkey_num)
 est store revt_usdmod1
 estadd local yearFE "No", replace
+outreg2 revt_usdmod1 ///
+	using "tables-and-figures\fixed-effects\fe-same-year", replace excel word ///
+	addnote(Model 9 assumes missing xrd/xad = 0 for North American data) ///
+	stats(coef se pval) pdec(4) drop(revt_usd) alpha(0.001, 0.01, 0.05) ///
+	addtext(Year FEs, No) ///
+	nor2
 
 qui asdoc xtreg revt_usd over_rtg i.year, ///
 	fe cluster(gvkey_num)
@@ -1958,87 +1963,98 @@ qui asdoc xtreg revt_usd over_rtg dltt at emp i.year, ///
 est store revt_usdmod5
 estadd local yearFE "Yes", replace
 
-qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq i.year, ///
+qui asdoc xtreg revt_usd over_rtg dltt at emp age i.year, ///
 	fe cluster(gvkey_num)
 est store revt_usdmod6
 estadd local yearFE "Yes", replace
 
-qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq age i.year, ///
+qui asdoc xtreg revt_usd over_rtg dltt at emp age xad i.year, ///
 	fe cluster(gvkey_num)
 est store revt_usdmod7
 estadd local yearFE "Yes", replace
 
-qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq age xad i.year, ///
+qui asdoc xtreg revt_usd over_rtg dltt at emp age xad xrd i.year, ///
 	fe cluster(gvkey_num)
 est store revt_usdmod8
 estadd local yearFE "Yes", replace
 
-qui asdoc xtreg revt_usd over_rtg dltt at emp tobinq age xad xrd i.year, ///
-	fe cluster(gvkey_num)
-est store revt_usdmod9
-estadd local yearFE "Yes", replace
+***	Create table
+outreg2 [revt_usdmod2 revt_usdmod3 revt_usdmod4 revt_usdmod5 ///
+	revt_usdmod6 revt_usdmod7 revt_usdmod8] ///
+	using "tables-and-figures\fixed-effects\fe-same-year", excel word ///
+	stats(coef se pval) pdec(4) drop(revt_usd i.year 2016o.year) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	addtext(Year FEs, Yes)
 
-*	Many xad and xrd observations are missing. Assume missing = 0.
+***	Assume missing xrd and xad are = 0 for CSTAT North Am data
+*	CSTAT Global has no xrd or xad data
 preserve
-replace xad=0 if xad==. & in_cstatn==1							/*	assumption	*/
-replace xrd=0 if xrd==. & in_cstatn==1							/*	assumption	*/
 
-qui xtreg revt_usd over_rtg dltt at emp tobinq age xad xrd i.year, fe cluster(gvkey_num)				
-est store revt_usdmod10
+*	xad
+gen xad_original=xad
+label var xad_original "(CSTAT) xad before assuming missing=0"
+replace xad=0 if xad==. & in_cstatn==1
+gen assume_xad=(xad_original==.) & in_cstatn==1
+label var assume_xad "(CSTAT) =1 if missing xad assumed 0"
+
+*	xrd
+gen xrd_original=xrd
+label var xad_original "(CSTAT) xrd before assuming missing=0"
+replace xrd=0 if xrd==. & in_cstatn==1
+gen assume_xrd=(xrd_original==.) & in_cstatn==1
+label var assume_xrd "(CSTAT) =1 if missing xrd assumed 0"
+
+*	Estimate
+qui xtreg revt_usd over_rtg dltt at emp age xad xrd i.year, fe cluster(gvkey_num)				
+est store revt_usdmod9
 estadd local yearFE "Yes", replace
 restore
 
 esttab revt_usdmod*, ///
 	b se s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC")) ///
-	keep(over_rtg dltt at xad xrd tobinq emp age)
+	keep(over_rtg dltt at xad xrd emp age)
 
 
-
-	
-*	Export table
-outreg2 [revt_usdmod1 revt_usdmod2 revt_usdmod3 revt_usdmod4 revt_usdmod5 ///
-	revt_usdmod6 revt_usdmod7 revt_usdmod8 revt_usdmod9 revt_usdmod10] ///
-	using "tables-and-figures\fixed-effects\fe-same-year", excel word
-	
-	
-outreg2 using "tables-and-figures\did\did-each-year-`variable'-ihs", ///
-	stats(coef se pval) ///
-	pdec(4) ///
-	keep(1.time 1.treated 1.time#1.treated) ///
-	alpha(0.001, 0.01, 0.05) excel word ///
-	ctitle(`year') ///
-	addtext(Year FEs, YES) ///
-	nor2 ///
-	title("`variable'")	
-	
-	
-	
+***	Add to table
+outreg2 revt_usdmod9 ///
+	using "tables-and-figures\fixed-effects\fe-same-year", excel word ///
+	stats(coef se pval) pdec(4) drop(revt_usd i.year 2016o.year) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	addtext(Year FEs, Yes)
 	
 	
 						***===========================***
 						*	FIXED EFFECTS REGRESSION	*
 						*	DV: NEXT YEAR LEVEL OF REVT *
 						***===========================***	
-local dv revenue
+est clear
+
+local dv revt_usd
 local iv over_rtg 
-local controls "dltt at age emp tobinq xad xrd"
+local controls "dltt at age emp xad xrd"
 
 qui xtreg F.`dv' `iv', fe cluster(gvkey_num)
-est store over_rtgmod0
+est store frevt_mod1
 estadd local yearFE "No", replace
+outreg2 frevt_mod1 ///
+	using "tables-and-figures\fixed-effects\fe-next-year", replace excel word ///
+	addnote(Model 9 assumes missing xrd/xad = 0 for North American data) ///
+	stats(coef se pval) pdec(4) drop(f.revt_usd) alpha(0.001, 0.01, 0.05) ///
+	addtext(Firm FEs, Yes, Year FEs, No) ///
+	nor2
 
 qui xtreg F.`dv' `iv' i.year, fe cluster(gvkey_num)
-est store over_rtgmod1
+est store frevt_mod2
 estadd local yearFE "Yes", replace
 
 local vars ""
-local counter 2
+local counter 3
 foreach control of local controls {
 	*	Regression
 	qui xtreg F.`dv' `iv' `vars' `control' i.year, fe cluster(gvkey_num)
 		
 	*	Store results
-	est store over_rtgmod`counter'
+	est store frevt_mod`counter'
 	estadd local yearFE "Yes", replace
 	
 	*	Increment
@@ -2046,40 +2062,59 @@ foreach control of local controls {
 	local counter = `counter' + 1
 }
 
-*	Many xad and xrd observations are missing. Assume missing = 0.
+***	Create table
+outreg2 [frevt_mod2 frevt_mod3 frevt_mod4 frevt_mod5 ///
+	frevt_mod6 frevt_mod7 frevt_mod8] ///
+	using "tables-and-figures\fixed-effects\fe-next-year", excel word ///
+	stats(coef se pval) pdec(4) drop(f.revt_usd i.year 2015o.year) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	addtext(Firm FEs, Yes, Year FEs, Yes)
+
+***	Assume missing xrd and xad are = 0 for CSTAT North Am data
+*	CSTAT Global has no xrd or xad data
 preserve
-replace xad=0 if xad==. & over_rtg!=. & in_cstatn==1									/*	assumption	*/
-replace xrd=0 if xrd==. & over_rtg!=. & in_cstatn==1							/*	assumption	*/
 
-qui xtreg F.revenue over_rtg dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)	
-est store over_rtgas1
-estadd local yearFE "Yes", replace
-restore 
+*	xad
+gen xad_original=xad
+label var xad_original "(CSTAT) xad before assuming missing=0"
+replace xad=0 if xad==. & in_cstatn==1
+gen assume_xad=(xad_original==.) & in_cstatn==1
+label var assume_xad "(CSTAT) =1 if missing xad assumed 0"
 
-*	Assume missing xad and xrd are 0, interact over_rtg and revt, 
-*	all independent variables lagged
-preserve
-replace xad=0 if xad==. & over_rtg!=. & in_cstatn==1								/*	assumption	*/
-replace xrd=0 if xrd==. & over_rtg!=. & in_cstatn==1							/*	assumption	*/
+*	xrd
+gen xrd_original=xrd
+label var xad_original "(CSTAT) xrd before assuming missing=0"
+replace xrd=0 if xrd==. & in_cstatn==1
+gen assume_xrd=(xrd_original==.) & in_cstatn==1
+label var assume_xrd "(CSTAT) =1 if missing xrd assumed 0"
 
-xtreg F.revenue c.over_rtg##c.revenue dltt at age emp tobinq xad xrd i.year, fe cluster(gvkey_num)
-est store over_rtgint1
+*	Estimate
+qui xtreg f.revt_usd over_rtg dltt at emp age xad xrd i.year, fe cluster(gvkey_num)				
+est store frevt_mod9
 estadd local yearFE "Yes", replace
 restore
 
-***	Results
-esttab over_rtgmod* over_rtgas1, ///
+*	Results
+esttab frevt_mod*, ///
 	keep(over_rtg dltt at age emp tobinq xad xrd) ///
 	order(over_rtg dltt at age emp tobinq xad xrd) ///
 	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
-
 	
-///	COMPARE THE TWO DVs
-esttab revtmod9 over_rtgmod8 revtmod10 over_rtgas1 , ///
+*	Add to table
+outreg2 frevt_mod9 ///
+	using "tables-and-figures\fixed-effects\fe-next-year", excel word ///
+	stats(coef se pval) pdec(4) drop(f.revt_usd i.year 2015o.year) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	addtext(Firm FEs, Yes, Year FEs, Yes)
+	
+
+/*	
+///	COMPARE THE CONTEMPORANEOUS AND LEADING REGRESSIONS
+esttab revtmod9 frevt_mod8 revtmod10 over_rtgas1 , ///
 	keep(over_rtg dltt at age emp tobinq xad xrd) ///
 	order(over_rtg dltt at age emp tobinq xad xrd) ///
 	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
-
+*/
 
 	
 	
