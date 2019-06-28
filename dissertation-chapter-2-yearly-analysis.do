@@ -1940,7 +1940,7 @@ outreg2 revt_usdmod1 ///
 	using "tables-and-figures\fixed-effects\fe-same-year", replace excel word ///
 	addnote(Model 9 assumes missing xrd/xad = 0 for North American data) ///
 	stats(coef se pval) pdec(4) drop(revt_usd) alpha(0.001, 0.01, 0.05) ///
-	addtext(Year FEs, No) ///
+	addtext(Firm FEs, Yes, Year FEs, No) ///
 	nor2
 
 qui asdoc xtreg revt_usd over_rtg i.year, ///
@@ -1984,7 +1984,7 @@ outreg2 [revt_usdmod2 revt_usdmod3 revt_usdmod4 revt_usdmod5 ///
 	using "tables-and-figures\fixed-effects\fe-same-year", excel word ///
 	stats(coef se pval) pdec(4) drop(revt_usd i.year 2016o.year) ///
 	alpha(0.001, 0.01, 0.05) nor2 ///
-	addtext(Year FEs, Yes)
+	addtext(Firm FEs, Yes, Year FEs, Yes)
 
 ***	Assume missing xrd and xad are = 0 for CSTAT North Am data
 *	CSTAT Global has no xrd or xad data
@@ -2020,7 +2020,7 @@ outreg2 revt_usdmod9 ///
 	using "tables-and-figures\fixed-effects\fe-same-year", excel word ///
 	stats(coef se pval) pdec(4) drop(revt_usd i.year 2016o.year) ///
 	alpha(0.001, 0.01, 0.05) nor2 ///
-	addtext(Year FEs, Yes)
+	addtext(Firm FEs, Yes, Year FEs, Yes)
 	
 	
 						***===========================***
@@ -2116,9 +2116,123 @@ esttab revtmod9 frevt_mod8 revtmod10 over_rtgas1 , ///
 	s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC"))
 */
 
+
+
+
+
+						***===========================***
+						*	FIXED EFFECTS REGRESSION	*
+						*	DV: INVERSE HYPERBOLIC SINE *
+						***===========================***	
+///	SET PANEL
+xtset
+
+///	ESTIMATION
+est clear
+*mark mark3
+*markout mark3 revt over_rtg dltt at xad xrd emp year
+xtreg revt_usd_ihs over_rtg, ///
+	fe cluster(gvkey_num) 
+est store revt_usd_ihsmod1
+estadd local yearFE "No", replace
+outreg2 revt_usd_ihsmod1 ///
+	using "tables-and-figures\fixed-effects\fe-same-year-ihs", replace excel word ///
+	addnote(Model 9 assumes missing xrd/xad = 0 for North American data) ///
+	stats(coef se pval) dec(4) drop(revt_usd_ihs) alpha(0.001, 0.01, 0.05) ///
+	nocons addtext(Firm FEs, Yes, Year FEs, No) ///
+	nor2
+
+qui asdoc xtreg revt_usd_ihs over_rtg i.year, ///
+	fe cluster(gvkey_num)
+est store revt_usd_ihsmod2
+estadd local yearFE "Yes", replace
+
+qui asdoc xtreg revt_usd_ihs over_rtg dltt i.year, ///
+	fe cluster(gvkey_num)
+est store revt_usd_ihsmod3
+estadd local yearFE "Yes", replace
+
+qui asdoc xtreg revt_usd_ihs over_rtg dltt at i.year, ///
+	fe cluster(gvkey_num)
+est store revt_usd_ihsmod4
+estadd local yearFE "Yes", replace
+
+qui asdoc xtreg revt_usd_ihs over_rtg dltt at emp i.year, ///
+	fe cluster(gvkey_num)
+est store revt_usd_ihsmod5
+estadd local yearFE "Yes", replace
+
+qui asdoc xtreg revt_usd_ihs over_rtg dltt at emp age i.year, ///
+	fe cluster(gvkey_num)
+est store revt_usd_ihsmod6
+estadd local yearFE "Yes", replace
+
+qui asdoc xtreg revt_usd_ihs over_rtg dltt at emp age xad i.year, ///
+	fe cluster(gvkey_num)
+est store revt_usd_ihsmod7
+estadd local yearFE "Yes", replace
+
+qui asdoc xtreg revt_usd_ihs over_rtg dltt at emp age xad xrd i.year, ///
+	fe cluster(gvkey_num)
+est store revt_usd_ihsmod8
+estadd local yearFE "Yes", replace
+
+***	Create table
+outreg2 [revt_usd_ihsmod2 revt_usd_ihsmod3 revt_usd_ihsmod4 revt_usd_ihsmod5 ///
+	revt_usd_ihsmod6 revt_usd_ihsmod7 revt_usd_ihsmod8] ///
+	using "tables-and-figures\fixed-effects\fe-same-year-ihs", excel word ///
+	stats(coef se pval) dec(4) drop(revt_usd_ihs i.year 2016o.year) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	nocons addtext(Firm FEs, Yes, Year FEs, Yes)
+
+***	Assume missing xrd and xad are = 0 for CSTAT North Am data
+*	CSTAT Global has no xrd or xad data
+preserve
+
+*	xad
+gen xad_original=xad
+label var xad_original "(CSTAT) xad before assuming missing=0"
+replace xad=0 if xad==. & in_cstatn==1
+gen assume_xad=(xad_original==.) & in_cstatn==1
+label var assume_xad "(CSTAT) =1 if missing xad assumed 0"
+
+*	xrd
+gen xrd_original=xrd
+label var xad_original "(CSTAT) xrd before assuming missing=0"
+replace xrd=0 if xrd==. & in_cstatn==1
+gen assume_xrd=(xrd_original==.) & in_cstatn==1
+label var assume_xrd "(CSTAT) =1 if missing xrd assumed 0"
+
+*	Estimate
+qui xtreg revt_usd_ihs over_rtg dltt at emp age xad xrd i.year, fe cluster(gvkey_num)				
+est store revt_usd_ihsmod9
+estadd local yearFE "Yes", replace
+restore
+
+esttab revt_usd_ihsmod*, ///
+	b se s(yearFE N N_g r2 aic, label("Year FEs" "Observations" "Firms" "R^2" "AIC")) ///
+	keep(over_rtg dltt at xad xrd emp age)
+
+
+***	Add to table
+outreg2 revt_usd_ihsmod9 ///
+	using "tables-and-figures\fixed-effects\fe-same-year-ihs", excel word ///
+	stats(coef se pval) dec(4) drop(revt_usd_ihs i.year 2016o.year) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	nocons addtext(Firm FEs, Yes, Year FEs, Yes)
+
+
+
+
+
+
+
+
+
+
+
 	
-	
-	
+
 						***=======================================***
 						*	FIXED EFFECTS REGRESSION				*
 						*	CSRHUB CATEGORIES AND SUB-CATEGORIES	*
