@@ -1057,30 +1057,6 @@ gen trt3neg = (yoy_zscore<-3 & yoy_zscore!=.)
 
 
 
-
-
-
-						***===============================***
-						*									*
-						*  			 ASSUMPTIONS			*
-						*									*
-						***===============================***
-///	ADVERTISING (CSTAT GLOBAL DOES NOT CONTAIN AN ADVERTISING VARIABLE)
-gen xad_original=xad
-label var xad_original "(CSTAT) xad before assuming missing=0"
-replace xad=0 if xad==. & in_cstatn==1
-gen assume_xad=(xad_original==.) & in_cstatn==1
-label var assume_xad "(CSTAT) =1 if missing xad assumed 0"
-
-///	R&D
-gen xrd_original=xrd
-label var xad_original "(CSTAT) xrd before assuming missing=0"
-replace xrd=0 if xrd==. & in_cstatn==1
-gen assume_xrd=(xrd_original==.) & in_cstatn==1
-label var assume_xrd "(CSTAT) =1 if missing xrd assumed 0"
-
-
-
 						***===============================***
 						*									*
 						*  		  GENERATE VARIABLES		*
