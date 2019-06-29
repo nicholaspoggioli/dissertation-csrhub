@@ -1437,7 +1437,7 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	capt n erase "tables-and-figures\did\did-each-year-`variable'.xml"
 	capt n erase "tables-and-figures\did\did-each-year-`variable'.rtf"
 	capt n erase "tables-and-figures\did\did-each-year-`variable'.txt"
-	forvalues year = 2010/2016 {
+	forvalues year = 2009/2017 {
 		display "`variable' for `year'"
 		
 		capt n drop time treatyear treated
@@ -1596,7 +1596,7 @@ foreach variable in trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos trt2_sdw_neg ///
 	capt n erase "tables-and-figures\did\did-each-year-`variable'-leading-dv.xml"
 	capt n erase "tables-and-figures\did\did-each-year-`variable'-leading-dv.rtf"
 	capt n erase "tables-and-figures\did\did-each-year-`variable'-leading-dv.txt"
-	forvalues year = 2010/2016 {
+	forvalues year = 2009/2017 {
 		display "`variable' for `year'"
 		
 		capt n drop time treatyear treated
@@ -2226,7 +2226,7 @@ outreg2 revt_usd_ihsmod9 ///
 
 
 
-
+/*
 
 
 
