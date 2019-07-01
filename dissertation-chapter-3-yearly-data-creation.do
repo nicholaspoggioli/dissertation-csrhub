@@ -277,6 +277,28 @@ merge 1:1 ticker year using data/kld-all.dta
 
 
 
+///	SET PANEL
+xtset, clear
+
+encode cusip8, gen(cusip8_num)
+
+xtset cusip8_num year, y
+
+
+///	SAVE
+***	Drop unneeded variables
+drop in_cstat_csrhub_cusip in_cstat_kld_cusip
+
+***	Save all
+compress
+save data/analysis-file-cstat-kld-csrhub-cusip8-year-all.dta, replace
+
+***	Only non-matched observations
+keep if _merge!=3
+compress
+drop _merge
+save data/mergefile-nonmatched-cstat-kld-csrhub-cusip8-year.dta, replace
+
 
 
 
