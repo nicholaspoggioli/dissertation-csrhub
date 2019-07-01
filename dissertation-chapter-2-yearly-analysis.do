@@ -23,13 +23,52 @@ use data/matched-csrhub-cstat-2008-2017, clear
 ***	Drop unneeded variables
 drop xrdp
 
+///	RENAME
+rename (dltt_usd at_usd) (dltt at)
+
 
 						***===============================***
 						*									*
-						* GENERATE USD ADJUSTED VARIABLES	*
+						*  		DESCRIPTIVE STATISTICS		*
 						*									*
-						***===============================***
-rename (dltt_usd at_usd) (dltt at)
+						***===============================***	
+///	CORRELATION TABLE
+asdoc pwcorr revt_usd revt_usd_ihs f.revt_usd f.revt_usd_ihs over_rtg trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos ///
+	trt2_sdw_neg trt1_sdw_pos trt1_sdw_neg dltt at age emp xad xrd year, ///
+	st(.05) dec(2) ///
+	replace save(tables-and-figures/descriptive-statistics/correlation-table.doc)
+
+***	Assume missing xrd and xad are 0
+preserve
+
+*	xad
+gen xad_original=xad
+label var xad_original "(CSTAT) xad before assuming missing=0"
+replace xad=0 if xad==. & in_cstatn==1
+gen assume_xad=(xad_original==.) & in_cstatn==1
+label var assume_xad "(CSTAT) =1 if missing xad assumed 0"
+
+*	xrd
+gen xrd_original=xrd
+label var xad_original "(CSTAT) xrd before assuming missing=0"
+replace xrd=0 if xrd==. & in_cstatn==1
+gen assume_xrd=(xrd_original==.) & in_cstatn==1
+label var assume_xrd "(CSTAT) =1 if missing xrd assumed 0"	
+	
+*	Table
+asdoc pwcorr revt_usd revt_usd_ihs over_rtg trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos ///
+	trt2_sdw_neg trt1_sdw_pos trt1_sdw_neg dltt at age emp xad xrd year, ///
+	st(.05) dec(2) ///
+	replace save(tables-and-figures/descriptive-statistics/correlation-table-assumptions.doc)
+restore
+	
+///	SUMMARY STATISTICS
+asdoc sum revt_usd revt_usd_ihs over_rtg trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos ///
+	trt2_sdw_neg trt1_sdw_pos trt1_sdw_neg dltt at age emp xad xrd year, ///
+	replace save(tables-and-figures/descriptive-statistics/summary-statistics.doc)
+
+///	PANEL STATISTICS
+xtsum revt_usd revt_usd_ihs dltt at age emp xad xrd year
 
 
 						***===============================***
@@ -1749,10 +1788,6 @@ graph export "figures\dif-in-difs\dif-in-dif-each-year-leading-dv.png", as(png) 
 						*		DV: Inverse hyperbolic	*
 						*			sine of revenue		*
 						***===========================***
-///	GENERATE VARIABLE
-capt n gen revt_usd_ihs = asinh(revt_usd)
-label var revenue_ihs "Inverse hyperbolic sine transformation of revt"
-
 ///	COMPARE DISTRIBUTIONS
 histogram revt_usd, bin(100) ///
 	name(hist_revt_usd, replace) nodraw freq ylabel(,format(%9.0gc)) ///
@@ -1977,6 +2012,7 @@ qui asdoc xtreg revt_usd over_rtg dltt at emp age xad xrd i.year, ///
 	fe cluster(gvkey_num)
 est store revt_usdmod8
 estadd local yearFE "Yes", replace
+
 
 ***	Create table
 outreg2 [revt_usdmod2 revt_usdmod3 revt_usdmod4 revt_usdmod5 ///
