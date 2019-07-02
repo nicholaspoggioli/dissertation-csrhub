@@ -207,11 +207,11 @@ save data/kld-all.dta, replace
 
 
 
-							***===========================***
-							*								*
-							*	MERGE WITH CHAPTER 2 DATA	*
-							*								*
-							***===========================***
+						***===============================***
+						*									*
+						*	MERGE KLD WITH CHAPTER 2 DATA	*
+						*									*
+						***===============================***
 /*	PLAN
 		Match variables in KLD
 			-	CUSIP8
@@ -253,7 +253,15 @@ preserve
 keep if _merge==3
 drop _merge
 compress
-save data/matched-csrhub-cstat-kld-1.dta, replace
+save data/csrhub-cstat-kld-matched.dta, replace
+restore
+
+***	Save unmatched
+preserve
+keep if _merge!=3
+drop _merge
+compress
+save data/csrhub-cstat-kld-unmatched.dta, replace
 restore
 
 
