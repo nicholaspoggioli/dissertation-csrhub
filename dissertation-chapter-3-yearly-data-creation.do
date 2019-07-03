@@ -68,25 +68,26 @@ label var row_id_kld "(KLD) Unique ID for each row of data"
 ***	Sum variables	/*	The sum variables included in KLD are wrong	*/
 drop *num
 
-egen sum_alc_con = rowtotal(alc_con_a alc_con_x), missing
-egen sum_cgov_con = rowtotal(cgov_con_b cgov_con_f cgov_con_g cgov_con_h cgov_con_i cgov_con_j cgov_con_k cgov_con_l cgov_con_m cgov_con_x), missing
-egen sum_cgov_str = rowtotal(cgov_str_a cgov_str_c cgov_str_d cgov_str_e cgov_str_f cgov_str_g cgov_str_h cgov_str_x), missing
-egen sum_com_con = rowtotal(com_con_a com_con_b com_con_d com_con_x), missing
-egen sum_com_str = rowtotal(com_str_a com_str_b com_str_c com_str_d com_str_f com_str_g com_str_h com_str_x), missing
-egen sum_div_con = rowtotal(div_con_a div_con_b div_con_c div_con_d div_con_x), missing
-egen sum_div_str = rowtotal(div_str_a div_str_b div_str_c div_str_d div_str_e div_str_f div_str_g div_str_h div_str_x), missing
-egen sum_emp_con = rowtotal(emp_con_a emp_con_b emp_con_c emp_con_d emp_con_f emp_con_g emp_con_x), missing
-egen sum_emp_str = rowtotal(emp_str_a emp_str_b emp_str_c emp_str_d emp_str_f emp_str_g emp_str_h emp_str_i emp_str_j emp_str_k emp_str_l emp_str_n emp_str_x), missing
-egen sum_env_con = rowtotal(env_con_a env_con_b env_con_c env_con_d env_con_e env_con_f env_con_g env_con_h env_con_i env_con_j env_con_k env_con_x), missing
-egen sum_env_str = rowtotal(env_str_a env_str_b env_str_c env_str_d env_str_f env_str_g env_str_h env_str_i env_str_j env_str_k env_str_l env_str_m env_str_n env_str_o env_str_p env_str_q env_str_x), missing
-egen sum_gam_con = rowtotal(gam_con_a gam_con_x), missing
-egen sum_hum_con = rowtotal(hum_con_a hum_con_b hum_con_c hum_con_d hum_con_f hum_con_g hum_con_h hum_con_j hum_con_k hum_con_x), missing
-egen sum_hum_str = rowtotal(hum_str_a hum_str_d hum_str_g hum_str_x), missing
-egen sum_mil_con = rowtotal(mil_con_a mil_con_b mil_con_c mil_con_x), missing
-egen sum_nuc_con = rowtotal(nuc_con_a nuc_con_c nuc_con_d nuc_con_x), missing
-egen sum_pro_con = rowtotal(pro_con_a pro_con_d pro_con_e pro_con_f pro_con_g pro_con_x), missing
-egen sum_pro_str = rowtotal(pro_str_a pro_str_b pro_str_c pro_str_d pro_str_e pro_str_f pro_str_g pro_str_h pro_str_i pro_str_j pro_str_k pro_str_x), missing
-egen sum_tob_con = rowtotal(tob_con_a tob_con_x), missing
+*	Sum of 1s
+egen sum_alc_con = rowtotal(alc_con_a alc_con_x)
+egen sum_cgov_con = rowtotal(cgov_con_b cgov_con_f cgov_con_g cgov_con_h cgov_con_i cgov_con_j cgov_con_k cgov_con_l cgov_con_m cgov_con_x)
+egen sum_cgov_str = rowtotal(cgov_str_a cgov_str_c cgov_str_d cgov_str_e cgov_str_f cgov_str_g cgov_str_h cgov_str_x)
+egen sum_com_con = rowtotal(com_con_a com_con_b com_con_d com_con_x)
+egen sum_com_str = rowtotal(com_str_a com_str_b com_str_c com_str_d com_str_f com_str_g com_str_h com_str_x)
+egen sum_div_con = rowtotal(div_con_a div_con_b div_con_c div_con_d div_con_x)
+egen sum_div_str = rowtotal(div_str_a div_str_b div_str_c div_str_d div_str_e div_str_f div_str_g div_str_h div_str_x)
+egen sum_emp_con = rowtotal(emp_con_a emp_con_b emp_con_c emp_con_d emp_con_f emp_con_g emp_con_x)
+egen sum_emp_str = rowtotal(emp_str_a emp_str_b emp_str_c emp_str_d emp_str_f emp_str_g emp_str_h emp_str_i emp_str_j emp_str_k emp_str_l emp_str_n emp_str_x)
+egen sum_env_con = rowtotal(env_con_a env_con_b env_con_c env_con_d env_con_e env_con_f env_con_g env_con_h env_con_i env_con_j env_con_k env_con_x)
+egen sum_env_str = rowtotal(env_str_a env_str_b env_str_c env_str_d env_str_f env_str_g env_str_h env_str_i env_str_j env_str_k env_str_l env_str_m env_str_n env_str_o env_str_p env_str_q env_str_x)
+egen sum_gam_con = rowtotal(gam_con_a gam_con_x)
+egen sum_hum_con = rowtotal(hum_con_a hum_con_b hum_con_c hum_con_d hum_con_f hum_con_g hum_con_h hum_con_j hum_con_k hum_con_x)
+egen sum_hum_str = rowtotal(hum_str_a hum_str_d hum_str_g hum_str_x)
+egen sum_mil_con = rowtotal(mil_con_a mil_con_b mil_con_c mil_con_x)
+egen sum_nuc_con = rowtotal(nuc_con_a nuc_con_c nuc_con_d nuc_con_x)
+egen sum_pro_con = rowtotal(pro_con_a pro_con_d pro_con_e pro_con_f pro_con_g pro_con_x)
+egen sum_pro_str = rowtotal(pro_str_a pro_str_b pro_str_c pro_str_d pro_str_e pro_str_f pro_str_g pro_str_h pro_str_i pro_str_j pro_str_k pro_str_x)
+egen sum_tob_con = rowtotal(tob_con_a tob_con_x)
 
 label var sum_alc_con "(KLD) Sum of alcohol concerns"
 label var sum_cgov_con "(KLD) Sum of corporate governance concerns"
@@ -108,8 +109,77 @@ label var sum_pro_con "(KLD) Sum of product concerns"
 label var sum_pro_str "(KLD) Sum of product strengths"
 label var sum_tob_con "(KLD) Sum of tobacco concerns"
 
+*	Number of rated sub-dimensions
+egen nonmiss_alc_con = rownonmiss(alc_con_a alc_con_x)
+egen nonmiss_cgov_con = rownonmiss(cgov_con_b cgov_con_f cgov_con_g cgov_con_h cgov_con_i cgov_con_j cgov_con_k cgov_con_l cgov_con_m cgov_con_x)
+egen nonmiss_cgov_str = rownonmiss(cgov_str_a cgov_str_c cgov_str_d cgov_str_e cgov_str_f cgov_str_g cgov_str_h cgov_str_x)
+egen nonmiss_com_con = rownonmiss(com_con_a com_con_b com_con_d com_con_x)
+egen nonmiss_com_str = rownonmiss(com_str_a com_str_b com_str_c com_str_d com_str_f com_str_g com_str_h com_str_x)
+egen nonmiss_div_con = rownonmiss(div_con_a div_con_b div_con_c div_con_d div_con_x)
+egen nonmiss_div_str = rownonmiss(div_str_a div_str_b div_str_c div_str_d div_str_e div_str_f div_str_g div_str_h div_str_x)
+egen nonmiss_emp_con = rownonmiss(emp_con_a emp_con_b emp_con_c emp_con_d emp_con_f emp_con_g emp_con_x)
+egen nonmiss_emp_str = rownonmiss(emp_str_a emp_str_b emp_str_c emp_str_d emp_str_f emp_str_g emp_str_h emp_str_i emp_str_j emp_str_k emp_str_l emp_str_n emp_str_x)
+egen nonmiss_env_con = rownonmiss(env_con_a env_con_b env_con_c env_con_d env_con_e env_con_f env_con_g env_con_h env_con_i env_con_j env_con_k env_con_x)
+egen nonmiss_env_str = rownonmiss(env_str_a env_str_b env_str_c env_str_d env_str_f env_str_g env_str_h env_str_i env_str_j env_str_k env_str_l env_str_m env_str_n env_str_o env_str_p env_str_q env_str_x)
+egen nonmiss_gam_con = rownonmiss(gam_con_a gam_con_x)
+egen nonmiss_hum_con = rownonmiss(hum_con_a hum_con_b hum_con_c hum_con_d hum_con_f hum_con_g hum_con_h hum_con_j hum_con_k hum_con_x)
+egen nonmiss_hum_str = rownonmiss(hum_str_a hum_str_d hum_str_g hum_str_x)
+egen nonmiss_mil_con = rownonmiss(mil_con_a mil_con_b mil_con_c mil_con_x)
+egen nonmiss_nuc_con = rownonmiss(nuc_con_a nuc_con_c nuc_con_d nuc_con_x)
+egen nonmiss_pro_con = rownonmiss(pro_con_a pro_con_d pro_con_e pro_con_f pro_con_g pro_con_x)
+egen nonmiss_pro_str = rownonmiss(pro_str_a pro_str_b pro_str_c pro_str_d pro_str_e pro_str_f pro_str_g pro_str_h pro_str_i pro_str_j pro_str_k pro_str_x)
+egen nonmiss_tob_con = rownonmiss(tob_con_a tob_con_x)
 
-***	Generate
+*	Number of non-rated sub-dimensions
+egen miss_alc_con = rowmiss(alc_con_a alc_con_x)
+egen miss_cgov_con = rowmiss(cgov_con_b cgov_con_f cgov_con_g cgov_con_h cgov_con_i cgov_con_j cgov_con_k cgov_con_l cgov_con_m cgov_con_x)
+egen miss_cgov_str = rowmiss(cgov_str_a cgov_str_c cgov_str_d cgov_str_e cgov_str_f cgov_str_g cgov_str_h cgov_str_x)
+egen miss_com_con = rowmiss(com_con_a com_con_b com_con_d com_con_x)
+egen miss_com_str = rowmiss(com_str_a com_str_b com_str_c com_str_d com_str_f com_str_g com_str_h com_str_x)
+egen miss_div_con = rowmiss(div_con_a div_con_b div_con_c div_con_d div_con_x)
+egen miss_div_str = rowmiss(div_str_a div_str_b div_str_c div_str_d div_str_e div_str_f div_str_g div_str_h div_str_x)
+egen miss_emp_con = rowmiss(emp_con_a emp_con_b emp_con_c emp_con_d emp_con_f emp_con_g emp_con_x)
+egen miss_emp_str = rowmiss(emp_str_a emp_str_b emp_str_c emp_str_d emp_str_f emp_str_g emp_str_h emp_str_i emp_str_j emp_str_k emp_str_l emp_str_n emp_str_x)
+egen miss_env_con = rowmiss(env_con_a env_con_b env_con_c env_con_d env_con_e env_con_f env_con_g env_con_h env_con_i env_con_j env_con_k env_con_x)
+egen miss_env_str = rowmiss(env_str_a env_str_b env_str_c env_str_d env_str_f env_str_g env_str_h env_str_i env_str_j env_str_k env_str_l env_str_m env_str_n env_str_o env_str_p env_str_q env_str_x)
+egen miss_gam_con = rowmiss(gam_con_a gam_con_x)
+egen miss_hum_con = rowmiss(hum_con_a hum_con_b hum_con_c hum_con_d hum_con_f hum_con_g hum_con_h hum_con_j hum_con_k hum_con_x)
+egen miss_hum_str = rowmiss(hum_str_a hum_str_d hum_str_g hum_str_x)
+egen miss_mil_con = rowmiss(mil_con_a mil_con_b mil_con_c mil_con_x)
+egen miss_nuc_con = rowmiss(nuc_con_a nuc_con_c nuc_con_d nuc_con_x)
+egen miss_pro_con = rowmiss(pro_con_a pro_con_d pro_con_e pro_con_f pro_con_g pro_con_x)
+egen miss_pro_str = rowmiss(pro_str_a pro_str_b pro_str_c pro_str_d pro_str_e pro_str_f pro_str_g pro_str_h pro_str_i pro_str_j pro_str_k pro_str_x)
+egen miss_tob_con = rowmiss(tob_con_a tob_con_x)
+
+*	Number of sub-dimensions
+foreach variable in alc_con cgov_con cgov_str com_con com_str div_con div_str ///
+	emp_con emp_str env_con env_str gam_con hum_con hum_str mil_con nuc_con ///
+	pro_con pro_str tob_con {
+	
+	gen dims_`variable' = miss_`variable' + nonmiss_`variable'
+	
+	label var dims_`variable' "(KLD) Number of sub-dimensions for `variable'"
+}
+
+*	Sum adjusted for number of rated sub-dimensions
+foreach variable in alc_con cgov_con cgov_str com_con com_str div_con div_str ///
+	emp_con emp_str env_con env_str gam_con hum_con hum_str mil_con nuc_con ///
+	pro_con pro_str tob_con {
+
+	*	Generate
+	gen sum_adj_`variable' = sum_`variable'/nonmiss_`variable'
+	
+	*	Label
+	label var sum_adj_`variable' "(KLD) Adjusted sum of `variable'"
+	
+}
+
+
+
+
+
+***	Aggregate 
+*	Strengths and concerns sums
 foreach v in cgov com div emp env hum pro {
 	gen `v'_agg = sum_`v'_str - sum_`v'_con
 }
@@ -135,6 +205,8 @@ label var nuc_agg "(KLD) Aggregate nuclear involvement (no strengths in KLD)"
 label var tob_agg "(KLD) Aggregate tobacco invovlement (no strengths in KLD)"
 
 
+
+
 ***	Generate Net Variables
 egen net_kld_str = rowtotal(sum_cgov_str sum_com_str sum_div_str sum_emp_str sum_env_str sum_hum_str sum_pro_str)
 egen net_kld_con = rowtotal(sum_alc_con sum_cgov_con sum_com_con sum_div_con sum_emp_con sum_env_con sum_gam_con sum_hum_con sum_mil_con sum_nuc_con sum_pro_con sum_tob_con)
@@ -143,6 +215,10 @@ gen net_kld = net_kld_str - net_kld_con
 label var net_kld_str "(KLD) Sum of KLD strengths"
 label var net_kld_con "(KLD) Sum of KLD concerns"
 label var net_kld "(KLD) Net KLD score (strengths - concerns)"
+
+
+
+
 
 
 ///	CREATE UNIQUE FIRM-YEARS
