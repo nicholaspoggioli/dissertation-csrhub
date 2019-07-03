@@ -130,6 +130,26 @@ egen nonmiss_pro_con = rownonmiss(pro_con_a pro_con_d pro_con_e pro_con_f pro_co
 egen nonmiss_pro_str = rownonmiss(pro_str_a pro_str_b pro_str_c pro_str_d pro_str_e pro_str_f pro_str_g pro_str_h pro_str_i pro_str_j pro_str_k pro_str_x)
 egen nonmiss_tob_con = rownonmiss(tob_con_a tob_con_x)
 
+label var nonmiss_alc_con "(KLD) Number of rated dimensions of alcohol concerns"
+label var nonmiss_cgov_con "(KLD) Number of rated dimensions of corporate governance concerns"
+label var nonmiss_cgov_str "(KLD) Number of rated dimensions of corporate governance strengths"
+label var nonmiss_com_con "(KLD) Number of rated dimensions of community concerns"
+label var nonmiss_com_str "(KLD) Number of rated dimensions of community strengths"
+label var nonmiss_div_con "(KLD) Number of rated dimensions of diversity concerns"
+label var nonmiss_div_str "(KLD) Number of rated dimensions of diversity strengths"
+label var nonmiss_emp_con "(KLD) Number of rated dimensions of employee concerns"
+label var nonmiss_emp_str "(KLD) Number of rated dimensions of employee strengths"
+label var nonmiss_env_con "(KLD) Number of rated dimensions of environment concerns"
+label var nonmiss_env_str "(KLD) Number of rated dimensions of environment strengths"
+label var nonmiss_gam_con "(KLD) Number of rated dimensions of gambling concerns"
+label var nonmiss_hum_con "(KLD) Number of rated dimensions of human rights concerns"
+label var nonmiss_hum_str "(KLD) Number of rated dimensions of human rights strengths"
+label var nonmiss_mil_con "(KLD) Number of rated dimensions of military concerns"
+label var nonmiss_nuc_con "(KLD) Number of rated dimensions of nuclear concerns"
+label var nonmiss_pro_con "(KLD) Number of rated dimensions of product concerns"					
+label var nonmiss_pro_str "(KLD) Number of rated dimensions of product strengths"
+label var nonmiss_tob_con "(KLD) Number of rated dimensions of tobacco concerns"
+
 *	Number of non-rated sub-dimensions
 egen miss_alc_con = rowmiss(alc_con_a alc_con_x)
 egen miss_cgov_con = rowmiss(cgov_con_b cgov_con_f cgov_con_g cgov_con_h cgov_con_i cgov_con_j cgov_con_k cgov_con_l cgov_con_m cgov_con_x)
@@ -150,6 +170,26 @@ egen miss_nuc_con = rowmiss(nuc_con_a nuc_con_c nuc_con_d nuc_con_x)
 egen miss_pro_con = rowmiss(pro_con_a pro_con_d pro_con_e pro_con_f pro_con_g pro_con_x)
 egen miss_pro_str = rowmiss(pro_str_a pro_str_b pro_str_c pro_str_d pro_str_e pro_str_f pro_str_g pro_str_h pro_str_i pro_str_j pro_str_k pro_str_x)
 egen miss_tob_con = rowmiss(tob_con_a tob_con_x)
+
+label var miss_alc_con "(KLD) Number of non-rated dimensions of alcohol concerns"
+label var miss_cgov_con "(KLD) Number of non-rated dimensions of corporate governance concerns"
+label var miss_cgov_str "(KLD) Number of non-rated dimensions of corporate governance strengths"
+label var miss_com_con "(KLD) Number of non-rated dimensions of community concerns"
+label var miss_com_str "(KLD) Number of non-rated dimensions of community strengths"
+label var miss_div_con "(KLD) Number of non-rated dimensions of diversity concerns"
+label var miss_div_str "(KLD) Number of non-rated dimensions of diversity strengths"
+label var miss_emp_con "(KLD) Number of non-rated dimensions of employee concerns"
+label var miss_emp_str "(KLD) Number of non-rated dimensions of employee strengths"
+label var miss_env_con "(KLD) Number of non-rated dimensions of environment concerns"
+label var miss_env_str "(KLD) Number of non-rated dimensions of environment strengths"
+label var miss_gam_con "(KLD) Number of non-rated dimensions of gambling concerns"
+label var miss_hum_con "(KLD) Number of non-rated dimensions of human rights concerns"
+label var miss_hum_str "(KLD) Number of non-rated dimensions of human rights strengths"
+label var miss_mil_con "(KLD) Number of non-rated dimensions of military concerns"
+label var miss_nuc_con "(KLD) Number of non-rated dimensions of nuclear concerns"
+label var miss_pro_con "(KLD) Number of non-rated dimensions of product concerns"					
+label var miss_pro_str "(KLD) Number of non-rated dimensions of product strengths"
+label var miss_tob_con "(KLD) Number of non-rated dimensions of tobacco concerns"
 
 *	Number of sub-dimensions
 foreach variable in alc_con cgov_con cgov_str com_con com_str div_con div_str ///
@@ -173,10 +213,6 @@ foreach variable in alc_con cgov_con cgov_str com_con com_str div_con div_str //
 	label var sum_adj_`variable' "(KLD) Adjusted sum of `variable'"
 	
 }
-
-
-
-
 
 ***	Aggregate 
 *	Strengths and concerns sums
