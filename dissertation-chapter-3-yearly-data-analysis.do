@@ -28,7 +28,6 @@ xtset
 *	M = net_kld
 
 /*	REGRESSIONS IN THE BARON AND KENNY (1986) APPROACH
-
 	STEP 1: 		Y = cX + e1				revt_usd = c(over_rtg)
 	STEP 2:			M = aX + e2				net_kld  = a(over_rtg)
 	STEP 3:			Y = c'X + bM + e3		revt_usd = c'(over_rtg) + b(net_kld)
