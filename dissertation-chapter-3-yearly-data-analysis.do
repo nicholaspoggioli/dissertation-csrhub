@@ -470,15 +470,197 @@ restore
 
 ///	DIRECT
 xtreg revt_usd over_rtg, fe cluster(gvkey)
+est sto pooldir1
+outreg2 [pooldir1] ///
+	using "tables-and-figures\ch3\ch3-fe-direct-same-year", ///
+	replace excel word ///
+	stats(coef se pval) dec(4) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	drop(revt_usd) ///
+	nocons addtext(Firm FEs, Yes, Year FEs, No)
 
+xtreg revt_usd over_rtg i.year, fe cluster(gvkey)
+est sto pooldir2
 
+xtreg revt_usd over_rtg dltt i.year, fe cluster(gvkey)
+est sto pooldir3
 
-///	MEDIATOR
+xtreg revt_usd over_rtg dltt at i.year, fe cluster(gvkey)
+est sto pooldir4
+
+xtreg revt_usd over_rtg dltt at emp i.year, fe cluster(gvkey)
+est sto pooldir5
+
+xtreg revt_usd over_rtg dltt at emp age i.year, fe cluster(gvkey)
+est sto pooldir6
+
+xtreg revt_usd over_rtg dltt at emp age xad i.year, fe cluster(gvkey)
+est sto pooldir7
+
+xtreg revt_usd over_rtg dltt at emp age xad xrd i.year, fe cluster(gvkey)
+est sto pooldir8
+
+***	Table
+outreg2 [pooldir2 pooldir3 pooldir4 pooldir5 ///
+	pooldir6 pooldir7 pooldir8] ///
+	using "tables-and-figures\ch3\ch3-fe-direct-same-year", excel word ///
+	stats(coef se pval) dec(4) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	drop(revt_usd i.year 2016o.year) ///
+	nocons addtext(Firm FEs, Yes, Year FEs, Yes)
+
+***	Assume missing xrd and xad are 0
+*	CSTAT Global has no xrd or xad data
+preserve
+
+*	xad
+replace xad=0 if xad==. & in_cstatn==1
+
+*	xrd
+replace xrd=0 if xrd==. & in_cstatn==1
+
+*	Estimate
+xtreg revt_usd over_rtg dltt at emp age xad xrd i.year, fe cluster(gvkey)
+est sto pooldir9
+
+***	Table
+outreg2 [pooldir9] ///
+	using "tables-and-figures\ch3\ch3-fe-direct-same-year", excel word ///
+	stats(coef se pval) dec(4) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	drop(revt_usd i.year o.year) ///
+	nocons addtext(Firm FEs, Yes, Year FEs, Yes)
+restore		
+	
+	
+///	MEDIATOR MODEL
 xtreg net_kld over_rtg, fe cluster(gvkey)
+est sto poolmed1
+outreg2 [poolmed1] ///
+	using "tables-and-figures\ch3\ch3-fe-mediator-same-year", ///
+	replace excel word ///
+	stats(coef se pval) dec(4) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	drop(net_kld) ///
+	nocons addtext(Firm FEs, Yes, Year FEs, No)
+
+xtreg net_kld over_rtg i.year, fe cluster(gvkey)
+est sto poolmed2
+
+xtreg net_kld over_rtg dltt i.year, fe cluster(gvkey)
+est sto poolmed3
+
+xtreg net_kld over_rtg dltt at i.year, fe cluster(gvkey)
+est sto poolmed4
+
+xtreg net_kld over_rtg dltt at emp i.year, fe cluster(gvkey)
+est sto poolmed5
+
+xtreg net_kld over_rtg dltt at emp age i.year, fe cluster(gvkey)
+est sto poolmed6
+
+xtreg net_kld over_rtg dltt at emp age xad i.year, fe cluster(gvkey)
+est sto poolmed7
+
+xtreg net_kld over_rtg dltt at emp age xad xrd i.year, fe cluster(gvkey)
+est sto poolmed8
+
+***	Table
+outreg2 [poolmed2 poolmed3 poolmed4 poolmed5 ///
+	poolmed6 poolmed7 poolmed8] ///
+	using "tables-and-figures\ch3\ch3-fe-mediator-same-year", excel word ///
+	stats(coef se pval) dec(4) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	drop(net_kld i.year 2016o.year) ///
+	nocons addtext(Firm FEs, Yes, Year FEs, Yes)
+
+***	Assume missing xrd and xad are 0
+*	CSTAT Global has no xrd or xad data
+preserve
+
+*	xad
+replace xad=0 if xad==. & in_cstatn==1
+
+*	xrd
+replace xrd=0 if xrd==. & in_cstatn==1
+
+*	Estimate
+xtreg net_kld over_rtg dltt at emp age xad xrd i.year, fe cluster(gvkey)
+est sto poolmed9
+
+*	Table
+outreg2 [poolmed9] ///
+	using "tables-and-figures\ch3\ch3-fe-mediator-same-year", excel word ///
+	stats(coef se pval) dec(4) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	drop(net_kld i.year 2016o.year) ///
+	nocons addtext(Firm FEs, Yes, Year FEs, Yes)
+restore	
 
 
-/// MEDIATION TEST
+///	MEDIATION TEST
 xtreg revt_usd net_kld over_rtg, fe cluster(gvkey)
+est sto pooltest1
+outreg2 [pooltest1] ///
+	using "tables-and-figures\ch3\ch3-fe-mediation-test-same-year", ///
+	replace excel word ///
+	stats(coef se pval) dec(4) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	drop(revt_usd) ///
+	nocons addtext(Firm FEs, Yes, Year FEs, No)
+
+xtreg revt_usd net_kld over_rtg i.year, fe cluster(gvkey)
+est sto pooltest2
+
+xtreg revt_usd net_kld over_rtg dltt i.year, fe cluster(gvkey)
+est sto pooltest3
+
+xtreg revt_usd net_kld over_rtg dltt at i.year, fe cluster(gvkey)
+est sto pooltest4
+
+xtreg revt_usd net_kld over_rtg dltt at emp i.year, fe cluster(gvkey)
+est sto pooltest5
+
+xtreg revt_usd net_kld over_rtg dltt at emp age i.year, fe cluster(gvkey)
+est sto pooltest6
+
+xtreg revt_usd net_kld over_rtg dltt at emp age xad i.year, fe cluster(gvkey)
+est sto pooltest7
+
+xtreg revt_usd net_kld over_rtg dltt at emp age xad xrd i.year, fe cluster(gvkey)
+est sto pooltest8
+
+*	Table
+outreg2 [pooltest2 pooltest3 pooltest4 pooltest5 ///
+	pooltest6 pooltest7 pooltest8] ///
+	using "tables-and-figures\ch3\ch3-fe-mediation-test-same-year", excel word ///
+	stats(coef se pval) dec(4) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	drop(revt_usd i.year 2016o.year) ///
+	nocons addtext(Firm FEs, Yes, Year FEs, Yes)
+
+***	Assume missing xrd and xad are 0
+*	CSTAT Global has no xrd or xad data
+preserve
+
+*	xad
+replace xad=0 if xad==. & in_cstatn==1
+
+*	xrd
+replace xrd=0 if xrd==. & in_cstatn==1
+
+*	Estimate
+xtreg revt_usd net_kld over_rtg dltt at emp age xad xrd i.year, fe cluster(gvkey)
+est sto pooltest9
+
+***	Table
+outreg2 [pooltest9] ///
+	using "tables-and-figures\ch3\ch3-fe-mediation-test-same-year", excel word ///
+	stats(coef se pval) dec(4) ///
+	alpha(0.001, 0.01, 0.05) nor2 ///
+	drop(revt_usd i.year 2016o.year) ///
+	nocons addtext(Firm FEs, Yes, Year FEs, Yes)
+restore
 
 
 
