@@ -20,12 +20,6 @@ set scheme plotplainblind
 ///	LOAD DATA
 use data/matched-csrhub-cstat-2008-2017, clear
 
-***	Drop unneeded variables
-drop xrdp
-
-///	RENAME
-rename (dltt_usd at_usd) (dltt at)
-
 
 						***===============================***
 						*									*
@@ -36,7 +30,7 @@ rename (dltt_usd at_usd) (dltt at)
 asdoc pwcorr revt_usd revt_usd_ihs f.revt_usd f.revt_usd_ihs over_rtg trt3_sdw_pos trt3_sdw_neg trt2_sdw_pos ///
 	trt2_sdw_neg trt1_sdw_pos trt1_sdw_neg dltt at age emp xad xrd year, ///
 	st(.05) dec(2) ///
-	replace save(tables-and-figures/descriptive-statistics/correlation-table.doc)
+	replace save(tables-and-figures/descriptive-statistics/ch2-correlation-table.doc)
 
 ***	Assume missing xrd and xad are 0
 preserve

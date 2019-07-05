@@ -1252,6 +1252,18 @@ label var sic2division "SIC division (2-digit level)"
 					*  SAVE FINAL MATCHED CSRHUB-CSTAT DATASET 	*
 					*											*
 					***=======================================***
+***	Drop unneeded variables
+drop xrdp
+
+///	RENAME
+rename (dltt_usd at_usd) (dltt at)
+
+///	LABEL
+label var emp "(CSTAT) Number of employees, in 1000s"
+
+label var at "(CSTAT) Assets, in $millions"
+					
+///	SAVE					
 compress
 label data "Firm-year matched CSRHub-CSTAT data, 2008-2017"
 capt n drop _merge
