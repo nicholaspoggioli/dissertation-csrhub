@@ -404,7 +404,6 @@ merge 1:1 ticker year using data/kld-all.dta
 
 
 ///	SAVE
-***	Drop unneeded variables
 
 
 ***	Save all
