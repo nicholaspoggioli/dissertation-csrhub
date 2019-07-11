@@ -62,6 +62,11 @@ asdoc pwcorr `variables' , ///
 asdoc sum `variables', ///
 	dec(2) ///
 	save(tables-and-figures/descriptive-statistics/ch3-summary-statistics.doc)
+	
+///	REVENUE
+asdoc sum revt_usd revt_usd_ihs, d ///
+	dec(2) ///
+	save(tables-and-figures/descriptive-statistics/ch3-summary-statistics-revenue-comparison.doc)
 
 
 
