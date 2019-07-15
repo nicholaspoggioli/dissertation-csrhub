@@ -301,10 +301,10 @@ foreach dv in revt_usd revt_usd_ihs {
 					
 
 
-					***===========================***
-					*	FIXED EFFECTS ESTIMATION	*
-					*	DV: SAME YEAR				*
-					***===========================***
+***===========================***
+*	FIXED EFFECTS ESTIMATION	*
+*	DV: SAME YEAR				*
+***===========================***
 local iv prod_rtg
 local mediator net_kld_prod
 
@@ -505,6 +505,442 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	restore
 
 }
+
+
+
+***===========================***
+*	POOLED ESTIMATION			*
+*	DV: TEMPORAL DYNAMICS		*
+***===========================***
+local iv prod_rtg
+local mediator net_kld_prod
+
+foreach dv in revt_usd revt_usd_ihs {
+
+
+	///	DIRECT
+	reg f.`dv' l.`iv', cluster(gvkey)
+	est sto pooldirlag1
+	outreg2 [pooldirlag1] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects", ///
+		replace excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(f.`dv') ///
+		nocons addtext(Firm FEs, No, Year FEs, No)
+
+	reg f.`dv' l.`iv' i.year, cluster(gvkey)
+	est sto pooldirlag2
+
+	reg f.`dv' l.`iv' l.dltt i.year, cluster(gvkey)
+	est sto pooldirlag3
+
+	reg f.`dv' l.`iv' l.dltt l.at i.year, cluster(gvkey)
+	est sto pooldirlag4
+
+	reg f.`dv' l.`iv' l.dltt l.at l.emp i.year, cluster(gvkey)
+	est sto pooldirlag5
+
+	reg f.`dv' l.`iv' l.dltt l.at l.emp l.age i.year, cluster(gvkey)
+	est sto pooldirlag6
+
+	reg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, cluster(gvkey)
+	est sto pooldirlag7
+
+	reg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, cluster(gvkey)
+	est sto pooldirlag8
+
+	***	Table
+	outreg2 [pooldirlag2 pooldirlag3 pooldirlag4 pooldirlag5 ///
+		pooldirlag6 pooldirlag7 pooldirlag8] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects", ///
+		excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(f.`dv' i.year) ///
+		nocons addtext(Firm FEs, No, Year FEs, Yes)
+
+	***	Assume missing l.xrd and l.xad are 0
+	*	CSTl.at Global has no l.xrd or l.xad dl.ata
+	preserve
+
+	*	l.xad
+	replace xad=0 if xad==. & in_cstatn==1
+
+	*	l.xrd
+	replace xrd=0 if xrd==. & in_cstatn==1
+
+	*	Estiml.ate
+	reg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, cluster(gvkey)
+	est sto pooldirlag9
+
+	***	Table
+	outreg2 [pooldirlag9] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects", excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(f.`dv' i.year) ///
+		nocons addtext(Firm FEs, No, Year FEs, Yes)
+	restore		
+		
+		
+	///	MEDIATOR MODEL
+	reg `mediator' l.`iv', cluster(gvkey)
+	est sto poolmed1
+	outreg2 [poolmed1] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects", ///
+		replace excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(`mediator') ///
+		nocons addtext(Firm FEs, No, Year FEs, No)
+
+	reg `mediator' l.`iv' i.year, cluster(gvkey)
+	est sto poolmed2
+
+	reg `mediator' l.`iv' l.dltt i.year, cluster(gvkey)
+	est sto poolmed3
+
+	reg `mediator' l.`iv' l.dltt l.at i.year, cluster(gvkey)
+	est sto poolmed4
+
+	reg `mediator' l.`iv' l.dltt l.at l.emp i.year, cluster(gvkey)
+	est sto poolmed5
+
+	reg `mediator' l.`iv' l.dltt l.at l.emp l.age i.year, cluster(gvkey)
+	est sto poolmed6
+
+	reg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, cluster(gvkey)
+	est sto poolmed7
+
+	reg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, cluster(gvkey)
+	est sto poolmed8
+
+	***	Table
+	outreg2 [poolmed2 poolmed3 poolmed4 poolmed5 ///
+		poolmed6 poolmed7 poolmed8] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects", excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(`mediator' i.year) ///
+		nocons addtext(Firm FEs, No, Year FEs, Yes)
+
+	***	Assume missing xrd and xad are 0
+	*	CSTAT Global has no xrd or xad data
+	preserve
+
+	*	xad
+	replace xad=0 if xad==. & in_cstatn==1
+
+	*	xrd
+	replace xrd=0 if xrd==. & in_cstatn==1
+
+	*	Estimate
+	reg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, cluster(gvkey)
+	est sto poolmed9
+
+	*	Table
+	outreg2 [poolmed9] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects", excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(`mediator' i.year) ///
+		nocons addtext(Firm FEs, No, Year FEs, Yes)
+	restore	
+
+
+	///	MEDIATION TEST
+	reg f.`dv' `mediator' l.`iv', cluster(gvkey)
+	est sto pooltest1
+	outreg2 [pooltest1] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects", ///
+		replace excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(`dv') ///
+		nocons addtext(Firm FEs, No, Year FEs, No)
+
+	reg f.`dv' `mediator' l.`iv' i.year, cluster(gvkey)
+	est sto pooltest2
+
+	reg f.`dv' `mediator' l.`iv' l.dltt i.year, cluster(gvkey)
+	est sto pooltest3
+
+	reg f.`dv' `mediator' l.`iv' l.dltt l.at i.year, cluster(gvkey)
+	est sto pooltest4
+
+	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp i.year, cluster(gvkey)
+	est sto pooltest5
+
+	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age i.year, cluster(gvkey)
+	est sto pooltest6
+
+	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, ///
+		cluster(gvkey)
+	est sto pooltest7
+
+	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, ///
+		cluster(gvkey)
+	est sto pooltest8
+
+	*	Table
+	outreg2 [pooltest2 pooltest3 pooltest4 pooltest5 ///
+		pooltest6 pooltest7 pooltest8] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects", ///
+		excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(f.`dv' i.year) ///
+		nocons addtext(Firm FEs, No, Year FEs, Yes)
+
+	***	Assume missing l.xrd and l.xad are 0
+	*	CSTl.at Global has no l.xrd or l.xad dl.ata
+	preserve
+
+	*	xad
+	replace xad=0 if xad==. & in_cstatn==1
+
+	*	xrd
+	replace xrd=0 if xrd==. & in_cstatn==1
+
+	*	Estiml.ate
+	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, ///
+		cluster(gvkey)
+	est sto pooltest9
+
+	***	Table
+	outreg2 [pooltest9] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects", ///
+		excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(f.`dv' i.year) ///
+		nocons addtext(Firm FEs, No, Year FEs, Yes)
+	restore
+
+}
+
+
+***===============================***
+*	FIXED EFFECTS ESTIMATION		*
+*	DV: TEMPORAL DYNAMICS			*
+***===============================***
+xtset 
+
+local iv prod_rtg
+local mediator net_kld_prod
+
+foreach dv in revt_usd revt_usd_ihs {
+
+	///	DIRECT
+	reg f.`dv' l.`iv', cluster(gvkey)
+	est sto pooldirlag1
+	outreg2 [pooldirlag1] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects-ihs", ///
+		replace excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(f.`dv') ///
+		nocons addtext(Firm FEs, No, Year FEs, No)
+
+	reg f.`dv' l.`iv' i.year, cluster(gvkey)
+	est sto pooldirlag2
+
+	reg f.`dv' l.`iv' l.dltt i.year, cluster(gvkey)
+	est sto pooldirlag3
+
+	reg f.`dv' l.`iv' l.dltt l.at i.year, cluster(gvkey)
+	est sto pooldirlag4
+
+	reg f.`dv' l.`iv' l.dltt l.at l.emp i.year, cluster(gvkey)
+	est sto pooldirlag5
+
+	reg f.`dv' l.`iv' l.dltt l.at l.emp l.age i.year, cluster(gvkey)
+	est sto pooldirlag6
+
+	reg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, cluster(gvkey)
+	est sto pooldirlag7
+
+	reg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, cluster(gvkey)
+	est sto pooldirlag8
+
+	***	Table
+	outreg2 [pooldirlag2 pooldirlag3 pooldirlag4 pooldirlag5 ///
+		pooldirlag6 pooldirlag7 pooldirlag8] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects-ihs", ///
+		excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(f.`dv' i.year) ///
+		nocons addtext(Firm FEs, No, Year FEs, Yes)
+
+	***	Assume missing l.xrd and l.xad are 0
+	*	CSTl.at Global has no l.xrd or l.xad dl.ata
+	preserve
+
+	*	l.xad
+	replace xad=0 if xad==. & in_cstatn==1
+
+	*	l.xrd
+	replace xrd=0 if xrd==. & in_cstatn==1
+
+	*	Estiml.ate
+	reg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, cluster(gvkey)
+	est sto pooldirlag9
+
+	***	Table
+	outreg2 [pooldirlag9] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects-ihs", excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(f.`dv' i.year) ///
+		nocons addtext(Firm FEs, No, Year FEs, Yes)
+	restore		
+		
+		
+	///	MEDIATOR MODEL
+	reg `mediator' l.`iv', cluster(gvkey)
+	est sto poolmed1
+	outreg2 [poolmed1] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects-ihs", ///
+		replace excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(`mediator') ///
+		nocons addtext(Firm FEs, No, Year FEs, No)
+
+	reg `mediator' l.`iv' i.year, cluster(gvkey)
+	est sto poolmed2
+
+	reg `mediator' l.`iv' l.dltt i.year, cluster(gvkey)
+	est sto poolmed3
+
+	reg `mediator' l.`iv' l.dltt l.at i.year, cluster(gvkey)
+	est sto poolmed4
+
+	reg `mediator' l.`iv' l.dltt l.at l.emp i.year, cluster(gvkey)
+	est sto poolmed5
+
+	reg `mediator' l.`iv' l.dltt l.at l.emp l.age i.year, cluster(gvkey)
+	est sto poolmed6
+
+	reg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, cluster(gvkey)
+	est sto poolmed7
+
+	reg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, cluster(gvkey)
+	est sto poolmed8
+
+	***	Table
+	outreg2 [poolmed2 poolmed3 poolmed4 poolmed5 ///
+		poolmed6 poolmed7 poolmed8] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects-ihs", excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(`mediator' i.year) ///
+		nocons addtext(Firm FEs, No, Year FEs, Yes)
+
+	***	Assume missing xrd and xad are 0
+	*	CSTAT Global has no xrd or xad data
+	preserve
+
+	*	xad
+	replace xad=0 if xad==. & in_cstatn==1
+
+	*	xrd
+	replace xrd=0 if xrd==. & in_cstatn==1
+
+	*	Estimate
+	reg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, cluster(gvkey)
+	est sto poolmed9
+
+	*	Table
+	outreg2 [poolmed9] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects-ihs", excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(`mediator' i.year) ///
+		nocons addtext(Firm FEs, No, Year FEs, Yes)
+	restore	
+
+
+	///	MEDIATION TEST
+	reg f.`dv' `mediator' l.`iv', cluster(gvkey)
+	est sto pooltest1
+	outreg2 [pooltest1] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects-ihs", ///
+		replace excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(`dv') ///
+		nocons addtext(Firm FEs, No, Year FEs, No)
+
+	reg f.`dv' `mediator' l.`iv' i.year, cluster(gvkey)
+	est sto pooltest2
+
+	reg f.`dv' `mediator' l.`iv' l.dltt i.year, cluster(gvkey)
+	est sto pooltest3
+
+	reg f.`dv' `mediator' l.`iv' l.dltt l.at i.year, cluster(gvkey)
+	est sto pooltest4
+
+	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp i.year, cluster(gvkey)
+	est sto pooltest5
+
+	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age i.year, cluster(gvkey)
+	est sto pooltest6
+
+	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, ///
+		cluster(gvkey)
+	est sto pooltest7
+
+	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, ///
+		cluster(gvkey)
+	est sto pooltest8
+
+	*	Table
+	outreg2 [pooltest2 pooltest3 pooltest4 pooltest5 ///
+		pooltest6 pooltest7 pooltest8] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects-ihs", ///
+		excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(f.`dv' i.year) ///
+		nocons addtext(Firm FEs, No, Year FEs, Yes)
+
+	***	Assume missing l.xrd and l.xad are 0
+	*	CSTl.at Global has no l.xrd or l.xad dl.ata
+	preserve
+
+	*	xad
+	replace xad=0 if xad==. & in_cstatn==1
+
+	*	xrd
+	replace xrd=0 if xrd==. & in_cstatn==1
+
+	*	Estiml.ate
+	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, ///
+		cluster(gvkey)
+	est sto pooltest9
+
+	***	Table
+	outreg2 [pooltest9] ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects-ihs", ///
+		excel word ///
+		stats(coef se pval) dec(4) ///
+		alpha(0.001, 0.01, 0.05) nor2 ///
+		drop(f.`dv' i.year) ///
+		nocons addtext(Firm FEs, No, Year FEs, Yes)
+	restore
+
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -925,6 +1361,13 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	restore
 
 }
+
+
+
+
+
+
+
 
 
 
