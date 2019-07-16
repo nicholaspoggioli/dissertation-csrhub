@@ -107,7 +107,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `dv' `iv', cluster(gvkey)
 	est sto pooldir1
 	outreg2 [pooldir1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-same-year", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-direct", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -138,7 +138,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [pooldir2 pooldir3 pooldir4 pooldir5 ///
 		pooldir6 pooldir7 pooldir8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year) ///
@@ -160,7 +160,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooldir9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year) ///
@@ -172,7 +172,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `mediator' `iv', cluster(gvkey)
 	est sto poolmed1
 	outreg2 [poolmed1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-same-year", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediator", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -203,7 +203,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [poolmed2 poolmed3 poolmed4 poolmed5 ///
 		poolmed6 poolmed7 poolmed8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -225,7 +225,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	*	Table
 	outreg2 [poolmed9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -237,7 +237,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `dv' `mediator' `iv', cluster(gvkey)
 	est sto pooltest1
 	outreg2 [pooltest1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-same-year", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediation-test", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -268,7 +268,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	*	Table
 	outreg2 [pooltest2 pooltest3 pooltest4 pooltest5 ///
 		pooltest6 pooltest7 pooltest8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year) ///
@@ -290,7 +290,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooltest9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year) ///
@@ -314,7 +314,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg `dv' `iv', fe cluster(gvkey)
 	est sto fedir1
 	outreg2 [fedir1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-direct-same-year", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -346,7 +346,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	***	Table
 	outreg2 [fedir2 fedir3 fedir4 fedir5 ///
 		fedir6 fedir7 fedir8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -369,7 +369,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 
 	***	Table
 	outreg2 [fedir9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -382,7 +382,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg `mediator' `iv', fe cluster(gvkey)
 	est sto femed1
 	outreg2 [femed1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediator-same-year", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -414,7 +414,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	***	Table
 	outreg2 [femed2 femed3 femed4 femed5 ///
 		femed6 femed7 femed8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year 2016o.year) ///
@@ -437,7 +437,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 
 	*	Table
 	outreg2 [femed9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year 2016o.year) ///
@@ -450,7 +450,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg `dv' `mediator' `iv', fe cluster(gvkey)
 	est sto fetest1
 	outreg2 [fetest1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediation-test-same-year", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -482,7 +482,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	*	Table
 	outreg2 [fetest2 fetest3 fetest4 fetest5 ///
 		fetest6 fetest7 fetest8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -505,7 +505,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 
 	***	Table
 	outreg2 [fetest9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -530,8 +530,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg f.`dv' l.`iv', cluster(gvkey)
 	est sto pooldirlag1
 	outreg2 [pooldirlag1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv') ///
@@ -562,8 +562,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [pooldirlag2 pooldirlag3 pooldirlag4 pooldirlag5 ///
 		pooldirlag6 pooldirlag7 pooldirlag8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -586,7 +586,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooldirlag9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -599,8 +599,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `mediator' l.`iv', cluster(gvkey)
 	est sto poolmed1
 	outreg2 [poolmed1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator') ///
@@ -630,7 +630,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [poolmed2 poolmed3 poolmed4 poolmed5 ///
 		poolmed6 poolmed7 poolmed8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -653,7 +653,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	*	Table
 	outreg2 [poolmed9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -666,8 +666,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg f.`dv' `mediator' l.`iv', cluster(gvkey)
 	est sto pooltest1
 	outreg2 [pooltest1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv') ///
@@ -699,8 +699,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	*	Table
 	outreg2 [pooltest2 pooltest3 pooltest4 pooltest5 ///
 		pooltest6 pooltest7 pooltest8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -724,8 +724,8 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooltest9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -751,8 +751,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg f.`dv' l.`iv', cluster(gvkey)
 	est sto pooldirlag1
 	outreg2 [pooldirlag1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects-ihs", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv') ///
@@ -782,8 +782,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [pooldirlag2 pooldirlag3 pooldirlag4 pooldirlag5 ///
 		pooldirlag6 pooldirlag7 pooldirlag8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects-ihs", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -805,7 +805,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooldirlag9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects-ihs", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -817,8 +817,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `mediator' l.`iv', cluster(gvkey)
 	est sto poolmed1
 	outreg2 [poolmed1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects-ihs", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator') ///
@@ -848,7 +848,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [poolmed2 poolmed3 poolmed4 poolmed5 ///
 		poolmed6 poolmed7 poolmed8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects-ihs", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -870,7 +870,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	*	Table
 	outreg2 [poolmed9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects-ihs", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -882,8 +882,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg f.`dv' `mediator' l.`iv', cluster(gvkey)
 	est sto pooltest1
 	outreg2 [pooltest1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects-ihs", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv') ///
@@ -915,8 +915,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	*	Table
 	outreg2 [pooltest2 pooltest3 pooltest4 pooltest5 ///
 		pooltest6 pooltest7 pooltest8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects-ihs", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -939,8 +939,8 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooltest9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects-ihs", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -983,7 +983,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `dv' `iv', cluster(gvkey)
 	est sto pooldir1
 	outreg2 [pooldir1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-same-year", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-direct", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -1014,7 +1014,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [pooldir2 pooldir3 pooldir4 pooldir5 ///
 		pooldir6 pooldir7 pooldir8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year) ///
@@ -1036,7 +1036,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooldir9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year) ///
@@ -1048,7 +1048,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `mediator' `iv', cluster(gvkey)
 	est sto poolmed1
 	outreg2 [poolmed1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-same-year", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediator", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -1079,7 +1079,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [poolmed2 poolmed3 poolmed4 poolmed5 ///
 		poolmed6 poolmed7 poolmed8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -1101,7 +1101,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	*	Table
 	outreg2 [poolmed9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -1113,7 +1113,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `dv' `mediator' `iv', cluster(gvkey)
 	est sto pooltest1
 	outreg2 [pooltest1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-same-year", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediation-test", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -1144,7 +1144,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	*	Table
 	outreg2 [pooltest2 pooltest3 pooltest4 pooltest5 ///
 		pooltest6 pooltest7 pooltest8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year) ///
@@ -1166,7 +1166,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooltest9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year) ///
@@ -1190,7 +1190,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg `dv' `iv', fe cluster(gvkey)
 	est sto fedir1
 	outreg2 [fedir1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-direct-same-year", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -1221,7 +1221,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	***	Table
 	outreg2 [fedir2 fedir3 fedir4 fedir5 ///
 		fedir6 fedir7 fedir8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -1243,7 +1243,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 
 	***	Table
 	outreg2 [fedir9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -1255,7 +1255,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg `mediator' `iv', fe cluster(gvkey)
 	est sto femed1
 	outreg2 [femed1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediator-same-year", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -1286,7 +1286,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	***	Table
 	outreg2 [femed2 femed3 femed4 femed5 ///
 		femed6 femed7 femed8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year 2016o.year) ///
@@ -1308,7 +1308,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 
 	*	Table
 	outreg2 [femed9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year 2016o.year) ///
@@ -1320,7 +1320,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg `dv' `mediator' `iv', fe cluster(gvkey)
 	est sto fetest1
 	outreg2 [fetest1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediation-test-same-year", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -1351,7 +1351,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	*	Table
 	outreg2 [fetest2 fetest3 fetest4 fetest5 ///
 		fetest6 fetest7 fetest8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -1373,7 +1373,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 
 	***	Table
 	outreg2 [fetest9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -1398,8 +1398,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg f.`dv' l.`iv', cluster(gvkey)
 	est sto pooldirlag1
 	outreg2 [pooldirlag1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv') ///
@@ -1429,8 +1429,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [pooldirlag2 pooldirlag3 pooldirlag4 pooldirlag5 ///
 		pooldirlag6 pooldirlag7 pooldirlag8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -1452,7 +1452,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooldirlag9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -1464,8 +1464,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `mediator' l.`iv', cluster(gvkey)
 	est sto poolmed1
 	outreg2 [poolmed1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator') ///
@@ -1495,7 +1495,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [poolmed2 poolmed3 poolmed4 poolmed5 ///
 		poolmed6 poolmed7 poolmed8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -1517,7 +1517,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	*	Table
 	outreg2 [poolmed9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -1529,8 +1529,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg f.`dv' `mediator' l.`iv', cluster(gvkey)
 	est sto pooltest1
 	outreg2 [pooltest1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv') ///
@@ -1562,8 +1562,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	*	Table
 	outreg2 [pooltest2 pooltest3 pooltest4 pooltest5 ///
 		pooltest6 pooltest7 pooltest8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -1586,8 +1586,8 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooltest9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -1613,8 +1613,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg f.`dv' l.`iv', cluster(gvkey)
 	est sto pooldirlag1
 	outreg2 [pooldirlag1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects-ihs", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv') ///
@@ -1644,8 +1644,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [pooldirlag2 pooldirlag3 pooldirlag4 pooldirlag5 ///
 		pooldirlag6 pooldirlag7 pooldirlag8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects-ihs", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -1667,7 +1667,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooldirlag9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects-ihs", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -1679,8 +1679,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `mediator' l.`iv', cluster(gvkey)
 	est sto poolmed1
 	outreg2 [poolmed1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects-ihs", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator') ///
@@ -1710,7 +1710,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [poolmed2 poolmed3 poolmed4 poolmed5 ///
 		poolmed6 poolmed7 poolmed8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects-ihs", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -1732,7 +1732,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	*	Table
 	outreg2 [poolmed9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects-ihs", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -1744,8 +1744,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg f.`dv' `mediator' l.`iv', cluster(gvkey)
 	est sto pooltest1
 	outreg2 [pooltest1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects-ihs", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv') ///
@@ -1777,8 +1777,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	*	Table
 	outreg2 [pooltest2 pooltest3 pooltest4 pooltest5 ///
 		pooltest6 pooltest7 pooltest8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects-ihs", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -1801,8 +1801,8 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooltest9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects-ihs", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -1844,7 +1844,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `dv' `iv', cluster(gvkey)
 	est sto pooldir1
 	outreg2 [pooldir1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-same-year", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-direct", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -1876,7 +1876,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [pooldir2 pooldir3 pooldir4 pooldir5 ///
 		pooldir6 pooldir7 pooldir8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year) ///
@@ -1899,7 +1899,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooldir9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year) ///
@@ -1911,7 +1911,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `mediator' `iv', cluster(gvkey)
 	est sto poolmed1
 	outreg2 [poolmed1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-same-year", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediator", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -1943,7 +1943,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [poolmed2 poolmed3 poolmed4 poolmed5 ///
 		poolmed6 poolmed7 poolmed8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -1966,7 +1966,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	*	Table
 	outreg2 [poolmed9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -1978,7 +1978,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `dv' `mediator' `iv', cluster(gvkey)
 	est sto pooltest1
 	outreg2 [pooltest1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-same-year", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediation-test", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -2010,7 +2010,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	*	Table
 	outreg2 [pooltest2 pooltest3 pooltest4 pooltest5 ///
 		pooltest6 pooltest7 pooltest8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year) ///
@@ -2033,7 +2033,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooltest9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-same-year-pooled-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year) ///
@@ -2057,7 +2057,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg `dv' `iv', fe cluster(gvkey)
 	est sto fedir1
 	outreg2 [fedir1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-direct-same-year", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -2088,7 +2088,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	***	Table
 	outreg2 [fedir2 fedir3 fedir4 fedir5 ///
 		fedir6 fedir7 fedir8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -2110,7 +2110,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 
 	***	Table
 	outreg2 [fedir9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -2122,7 +2122,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg `mediator' `iv', fe cluster(gvkey)
 	est sto femed1
 	outreg2 [femed1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediator-same-year", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -2153,7 +2153,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	***	Table
 	outreg2 [femed2 femed3 femed4 femed5 ///
 		femed6 femed7 femed8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year 2016o.year) ///
@@ -2175,7 +2175,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 
 	*	Table
 	outreg2 [femed9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year 2016o.year) ///
@@ -2187,7 +2187,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg `dv' `mediator' `iv', fe cluster(gvkey)
 	est sto fetest1
 	outreg2 [fetest1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediation-test-same-year", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -2218,7 +2218,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	*	Table
 	outreg2 [fetest2 fetest3 fetest4 fetest5 ///
 		fetest6 fetest7 fetest8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -2240,7 +2240,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 
 	***	Table
 	outreg2 [fetest9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -2265,8 +2265,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg f.`dv' l.`iv', cluster(gvkey)
 	est sto pooldirlag1
 	outreg2 [pooldirlag1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv') ///
@@ -2296,8 +2296,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [pooldirlag2 pooldirlag3 pooldirlag4 pooldirlag5 ///
 		pooldirlag6 pooldirlag7 pooldirlag8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -2319,7 +2319,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooldirlag9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-direct-time-effects", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -2331,8 +2331,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `mediator' l.`iv', cluster(gvkey)
 	est sto poolmed1
 	outreg2 [poolmed1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator') ///
@@ -2362,7 +2362,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [poolmed2 poolmed3 poolmed4 poolmed5 ///
 		poolmed6 poolmed7 poolmed8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -2384,7 +2384,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	*	Table
 	outreg2 [poolmed9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediator-time-effects", excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -2396,8 +2396,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg f.`dv' `mediator' l.`iv', cluster(gvkey)
 	est sto pooltest1
 	outreg2 [pooltest1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects", ///
-		replace excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv') ///
@@ -2429,8 +2429,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	*	Table
 	outreg2 [pooltest2 pooltest3 pooltest4 pooltest5 ///
 		pooltest6 pooltest7 pooltest8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -2453,8 +2453,8 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooltest9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-pooled-mediation-test-time-effects", ///
-		excel word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -2480,7 +2480,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg `dv' `iv', fe cluster(gvkey)
 	est sto fedir1
 	outreg2 [fedir1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-direct-same-year", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -2511,7 +2511,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	***	Table
 	outreg2 [fedir2 fedir3 fedir4 fedir5 ///
 		fedir6 fedir7 fedir8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -2533,7 +2533,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 
 	***	Table
 	outreg2 [fedir9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-direct-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -2545,7 +2545,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg `mediator' `iv', fe cluster(gvkey)
 	est sto femed1
 	outreg2 [femed1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediator-same-year", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -2576,7 +2576,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	***	Table
 	outreg2 [femed2 femed3 femed4 femed5 ///
 		femed6 femed7 femed8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year 2016o.year) ///
@@ -2598,7 +2598,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 
 	*	Table
 	outreg2 [femed9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediator-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year 2016o.year) ///
@@ -2610,7 +2610,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg `dv' `mediator' `iv', fe cluster(gvkey)
 	est sto fetest1
 	outreg2 [fetest1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediation-test-same-year", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -2641,7 +2641,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	*	Table
 	outreg2 [fetest2 fetest3 fetest4 fetest5 ///
 		fetest6 fetest7 fetest8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
@@ -2663,7 +2663,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 
 	***	Table
 	outreg2 [fetest9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-mediation-test-same-year", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
