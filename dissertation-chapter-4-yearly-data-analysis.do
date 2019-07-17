@@ -530,7 +530,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg f.`dv' l.`iv', cluster(gvkey)
 	est sto pooldirlag1
 	outreg2 [pooldirlag1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-direct", ///
 		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -562,7 +562,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [pooldirlag2 pooldirlag3 pooldirlag4 pooldirlag5 ///
 		pooldirlag6 pooldirlag7 pooldirlag8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-direct", ///
 		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -586,7 +586,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooldirlag9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-direct",  word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-direct",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year) ///
@@ -599,7 +599,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg `mediator' l.`iv', cluster(gvkey)
 	est sto poolmed1
 	outreg2 [poolmed1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-mediator", ///
 		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -630,7 +630,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	***	Table
 	outreg2 [poolmed2 poolmed3 poolmed4 poolmed5 ///
 		poolmed6 poolmed7 poolmed8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator",  word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-mediator",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -653,7 +653,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	*	Table
 	outreg2 [poolmed9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediator",  word ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-mediator",  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year) ///
@@ -666,7 +666,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	reg f.`dv' `mediator' l.`iv', cluster(gvkey)
 	est sto pooltest1
 	outreg2 [pooltest1] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-mediation-test", ///
 		replace  word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -699,7 +699,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	*	Table
 	outreg2 [pooltest2 pooltest3 pooltest4 pooltest5 ///
 		pooltest6 pooltest7 pooltest8] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-mediation-test", ///
 		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -724,7 +724,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 	***	Table
 	outreg2 [pooltest9] ///
-		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-pooled-mediation-test", ///
+		using "tables-and-figures\ch4\ch4-`dv'-`iv'-time-effects-mediation-test", ///
 		 word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -1610,7 +1610,7 @@ local mediator net_kld_emp
 foreach dv in revt_usd revt_usd_ihs {
 
 	///	DIRECT
-	reg f.`dv' l.`iv', cluster(gvkey)
+	xtreg f.`dv' l.`iv', fe cluster(gvkey)
 	est sto pooldirlag1
 	outreg2 [pooldirlag1] ///
 		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-time-effects-direct", ///
@@ -1620,25 +1620,25 @@ foreach dv in revt_usd revt_usd_ihs {
 		drop(f.`dv') ///
 		nocons addtext(Firm FEs, No, Year FEs, No)
 
-	reg f.`dv' l.`iv' i.year, cluster(gvkey)
+	xtreg f.`dv' l.`iv' i.year, fe cluster(gvkey)
 	est sto pooldirlag2
 
-	reg f.`dv' l.`iv' l.dltt i.year, cluster(gvkey)
+	xtreg f.`dv' l.`iv' l.dltt i.year, fe cluster(gvkey)
 	est sto pooldirlag3
 
-	reg f.`dv' l.`iv' l.dltt l.at i.year, cluster(gvkey)
+	xtreg f.`dv' l.`iv' l.dltt l.at i.year, fe cluster(gvkey)
 	est sto pooldirlag4
 
-	reg f.`dv' l.`iv' l.dltt l.at l.emp i.year, cluster(gvkey)
+	xtreg f.`dv' l.`iv' l.dltt l.at l.emp i.year, fe cluster(gvkey)
 	est sto pooldirlag5
 
-	reg f.`dv' l.`iv' l.dltt l.at l.emp l.age i.year, cluster(gvkey)
+	xtreg f.`dv' l.`iv' l.dltt l.at l.emp l.age i.year, fe cluster(gvkey)
 	est sto pooldirlag6
 
-	reg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, cluster(gvkey)
+	xtreg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, fe cluster(gvkey)
 	est sto pooldirlag7
 
-	reg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, cluster(gvkey)
+	xtreg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, fe cluster(gvkey)
 	est sto pooldirlag8
 
 	***	Table
@@ -1662,7 +1662,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	replace xrd=0 if xrd==. & in_cstatn==1
 
 	*	Estiml.ate
-	reg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, cluster(gvkey)
+	xtreg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, fe cluster(gvkey)
 	est sto pooldirlag9
 
 	***	Table
@@ -1676,7 +1676,7 @@ foreach dv in revt_usd revt_usd_ihs {
 		
 		
 	///	MEDIATOR MODEL
-	reg `mediator' l.`iv', cluster(gvkey)
+	xtreg `mediator' l.`iv', fe cluster(gvkey)
 	est sto poolmed1
 	outreg2 [poolmed1] ///
 		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-time-effects-mediator", ///
@@ -1686,25 +1686,25 @@ foreach dv in revt_usd revt_usd_ihs {
 		drop(`mediator') ///
 		nocons addtext(Firm FEs, No, Year FEs, No)
 
-	reg `mediator' l.`iv' i.year, cluster(gvkey)
+	xtreg `mediator' l.`iv' i.year, fe cluster(gvkey)
 	est sto poolmed2
 
-	reg `mediator' l.`iv' l.dltt i.year, cluster(gvkey)
+	xtreg `mediator' l.`iv' l.dltt i.year, fe cluster(gvkey)
 	est sto poolmed3
 
-	reg `mediator' l.`iv' l.dltt l.at i.year, cluster(gvkey)
+	xtreg `mediator' l.`iv' l.dltt l.at i.year, fe cluster(gvkey)
 	est sto poolmed4
 
-	reg `mediator' l.`iv' l.dltt l.at l.emp i.year, cluster(gvkey)
+	xtreg `mediator' l.`iv' l.dltt l.at l.emp i.year, fe cluster(gvkey)
 	est sto poolmed5
 
-	reg `mediator' l.`iv' l.dltt l.at l.emp l.age i.year, cluster(gvkey)
+	xtreg `mediator' l.`iv' l.dltt l.at l.emp l.age i.year, fe cluster(gvkey)
 	est sto poolmed6
 
-	reg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, cluster(gvkey)
+	xtreg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, fe cluster(gvkey)
 	est sto poolmed7
 
-	reg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, cluster(gvkey)
+	xtreg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, fe cluster(gvkey)
 	est sto poolmed8
 
 	***	Table
@@ -1727,7 +1727,7 @@ foreach dv in revt_usd revt_usd_ihs {
 	replace xrd=0 if xrd==. & in_cstatn==1
 
 	*	Estimate
-	reg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, cluster(gvkey)
+	xtreg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, fe cluster(gvkey)
 	est sto poolmed9
 
 	*	Table
@@ -1741,7 +1741,7 @@ foreach dv in revt_usd revt_usd_ihs {
 
 
 	///	MEDIATION TEST
-	reg f.`dv' `mediator' l.`iv', cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv', fe cluster(gvkey)
 	est sto pooltest1
 	outreg2 [pooltest1] ///
 		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-time-effects-mediation-test", ///
@@ -1751,27 +1751,27 @@ foreach dv in revt_usd revt_usd_ihs {
 		drop(`dv') ///
 		nocons addtext(Firm FEs, No, Year FEs, No)
 
-	reg f.`dv' `mediator' l.`iv' i.year, cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' i.year, fe cluster(gvkey)
 	est sto pooltest2
 
-	reg f.`dv' `mediator' l.`iv' l.dltt i.year, cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' l.dltt i.year, fe cluster(gvkey)
 	est sto pooltest3
 
-	reg f.`dv' `mediator' l.`iv' l.dltt l.at i.year, cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' l.dltt l.at i.year, fe cluster(gvkey)
 	est sto pooltest4
 
-	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp i.year, cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp i.year, fe cluster(gvkey)
 	est sto pooltest5
 
-	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age i.year, cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age i.year, fe cluster(gvkey)
 	est sto pooltest6
 
-	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, ///
-		cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, ///
+		fe cluster(gvkey)
 	est sto pooltest7
 
-	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, ///
-		cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, ///
+		fe cluster(gvkey)
 	est sto pooltest8
 
 	*	Table
@@ -1795,8 +1795,8 @@ foreach dv in revt_usd revt_usd_ihs {
 	replace xrd=0 if xrd==. & in_cstatn==1
 
 	*	Estiml.ate
-	reg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, ///
-		cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, ///
+		fe cluster(gvkey)
 	est sto pooltest9
 
 	***	Table
@@ -2193,7 +2193,8 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv') ///
 		nocons addtext(Firm FEs, Yes, Year FEs, No)
-
+	sleep 500
+		
 	xtreg `dv' `mediator' `iv' i.year, fe cluster(gvkey)
 	est sto fetest2
 
@@ -2223,7 +2224,8 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`dv' i.year 2016o.year) ///
 		nocons addtext(Firm FEs, Yes, Year FEs, Yes)
-
+	sleep 500
+		
 	***	Assume missing xrd and xad are 0
 	*	CSTAT Global has no xrd or xad data
 	preserve
@@ -2480,7 +2482,7 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg f.`dv' l.`iv', fe cluster(gvkey)
 	est sto fedir1
 	outreg2 [fedir1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-time-effects-direct", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -2490,35 +2492,35 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg f.`dv' l.`iv' i.year, fe cluster(gvkey)
 	est sto fedir2
 
-	xtreg f.`dv' l.`iv' dltt i.year, fe cluster(gvkey)
+	xtreg f.`dv' l.`iv' l.dltt i.year, fe cluster(gvkey)
 	est sto fedir3
 
-	xtreg f.`dv' l.`iv' dltt at i.year, fe cluster(gvkey)
+	xtreg f.`dv' l.`iv' l.dltt l.at i.year, fe cluster(gvkey)
 	est sto fedir4
 
-	xtreg f.`dv' l.`iv' dltt at emp i.year, fe cluster(gvkey)
+	xtreg f.`dv' l.`iv' l.dltt l.at l.emp i.year, fe cluster(gvkey)
 	est sto fedir5
 
-	xtreg f.`dv' l.`iv' dltt at emp age i.year, fe cluster(gvkey)
+	xtreg f.`dv' l.`iv' l.dltt l.at l.emp l.age i.year, fe cluster(gvkey)
 	est sto fedir6
 
-	xtreg f.`dv' l.`iv' dltt at emp age xad i.year, fe cluster(gvkey)
+	xtreg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, fe cluster(gvkey)
 	est sto fedir7
 
-	xtreg f.`dv' l.`iv' dltt at emp age xad xrd i.year, fe cluster(gvkey)
+	xtreg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, fe cluster(gvkey)
 	est sto fedir8
 
 	***	Table
 	outreg2 [fedir2 fedir3 fedir4 fedir5 ///
 		fedir6 fedir7 fedir8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-time-effects-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year 2016o.year) ///
 		nocons addtext(Firm FEs, Yes, Year FEs, Yes)
 
-	***	Assume missing xrd and xad are 0
-	*	CSTAT Global has no xrd or xad data
+	***	Assume missing l.xrd and l.xad are 0
+	*	CSTl.at Global has no l.xrd or l.xad dl.ata
 	preserve
 
 	*	xad
@@ -2527,13 +2529,13 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	*	xrd
 	replace xrd=0 if xrd==. & in_cstatn==1
 
-	*	Estimate
-	xtreg f.`dv' l.`iv' dltt at emp age xad xrd i.year, fe cluster(gvkey)
+	*	Estiml.ate
+	xtreg f.`dv' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, fe cluster(gvkey)
 	est sto fedir9
 
 	***	Table
 	outreg2 [fedir9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-direct", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-time-effects-direct", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year 2016o.year) ///
@@ -2541,11 +2543,11 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	restore		
 		
 		
-	///	MEDIATOR MODEL
+	///	mediator MODEL
 	xtreg `mediator' l.`iv', fe cluster(gvkey)
 	est sto femed1
 	outreg2 [femed1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-time-effects-mediator", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -2555,35 +2557,35 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg `mediator' l.`iv' i.year, fe cluster(gvkey)
 	est sto femed2
 
-	xtreg `mediator' l.`iv' dltt i.year, fe cluster(gvkey)
+	xtreg `mediator' l.`iv' l.dltt i.year, fe cluster(gvkey)
 	est sto femed3
 
-	xtreg `mediator' l.`iv' dltt at i.year, fe cluster(gvkey)
+	xtreg `mediator' l.`iv' l.dltt l.at i.year, fe cluster(gvkey)
 	est sto femed4
 
-	xtreg `mediator' l.`iv' dltt at emp i.year, fe cluster(gvkey)
+	xtreg `mediator' l.`iv' l.dltt l.at l.emp i.year, fe cluster(gvkey)
 	est sto femed5
 
-	xtreg `mediator' l.`iv' dltt at emp age i.year, fe cluster(gvkey)
+	xtreg `mediator' l.`iv' l.dltt l.at l.emp l.age i.year, fe cluster(gvkey)
 	est sto femed6
 
-	xtreg `mediator' l.`iv' dltt at emp age xad i.year, fe cluster(gvkey)
+	xtreg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, fe cluster(gvkey)
 	est sto femed7
 
-	xtreg `mediator' l.`iv' dltt at emp age xad xrd i.year, fe cluster(gvkey)
+	xtreg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, fe cluster(gvkey)
 	est sto femed8
 
 	***	Table
 	outreg2 [femed2 femed3 femed4 femed5 ///
 		femed6 femed7 femed8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-time-effects-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year 2016o.year) ///
 		nocons addtext(Firm FEs, Yes, Year FEs, Yes)
 
-	***	Assume missing xrd and xad are 0
-	*	CSTAT Global has no xrd or xad data
+	***	Assume missing l.xrd and l.xad are 0
+	*	CSTl.at Global has no l.xrd or l.xad dl.ata
 	preserve
 
 	*	xad
@@ -2592,13 +2594,13 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	*	xrd
 	replace xrd=0 if xrd==. & in_cstatn==1
 
-	*	Estimate
-	xtreg `mediator' l.`iv' dltt at emp age xad xrd i.year, fe cluster(gvkey)
+	*	Estiml.ate
+	xtreg `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, fe cluster(gvkey)
 	est sto femed9
 
 	*	Table
 	outreg2 [femed9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediator", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-time-effects-mediator", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(`mediator' i.year 2016o.year) ///
@@ -2606,11 +2608,11 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	restore	
 
 
-	///	MEDIATION TEST
+	///	mediation TEST
 	xtreg f.`dv' `mediator' l.`iv', fe cluster(gvkey)
 	est sto fetest1
 	outreg2 [fetest1] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-time-effects-mediation-test", ///
 		replace word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
@@ -2620,35 +2622,35 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	xtreg f.`dv' `mediator' l.`iv' i.year, fe cluster(gvkey)
 	est sto fetest2
 
-	xtreg f.`dv' `mediator' l.`iv' dltt i.year, fe cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' l.dltt i.year, fe cluster(gvkey)
 	est sto fetest3
 
-	xtreg f.`dv' `mediator' l.`iv' dltt at i.year, fe cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' l.dltt l.at i.year, fe cluster(gvkey)
 	est sto fetest4
 
-	xtreg f.`dv' `mediator' l.`iv' dltt at emp i.year, fe cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp i.year, fe cluster(gvkey)
 	est sto fetest5
 
-	xtreg f.`dv' `mediator' l.`iv' dltt at emp age i.year, fe cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age i.year, fe cluster(gvkey)
 	est sto fetest6
 
-	xtreg f.`dv' `mediator' l.`iv' dltt at emp age xad i.year, fe cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad i.year, fe cluster(gvkey)
 	est sto fetest7
 
-	xtreg f.`dv' `mediator' l.`iv' dltt at emp age xad xrd i.year, fe cluster(gvkey)
+	xtreg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, fe cluster(gvkey)
 	est sto fetest8
 
 	*	Table
 	outreg2 [fetest2 fetest3 fetest4 fetest5 ///
 		fetest6 fetest7 fetest8] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-time-effects-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year 2016o.year) ///
 		nocons addtext(Firm FEs, Yes, Year FEs, Yes)
 
-	***	Assume missing xrd and xad are 0
-	*	CSTAT Global has no xrd or xad data
+	***	Assume missing l.xrd and l.xad are 0
+	*	CSTl.at Global has no l.xrd or l.xad dl.ata
 	preserve
 
 	*	xad
@@ -2657,13 +2659,13 @@ foreach dv in revt_usd revt_usd_ihs `dv' {
 	*	xrd
 	replace xrd=0 if xrd==. & in_cstatn==1
 
-	*	Estimate
-	xtreg f.`dv' `mediator' l.`iv' dltt at emp age xad xrd i.year, fe cluster(gvkey)
+	*	Estiml.ate
+	xtreg f.`dv' `mediator' l.`iv' l.dltt l.at l.emp l.age l.xad l.xrd i.year, fe cluster(gvkey)
 	est sto fetest9
 
 	***	Table
 	outreg2 [fetest9] ///
-		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-same-year-mediation-test", word ///
+		using "tables-and-figures\ch4\ch4-fe-`dv'-`iv'-time-effects-mediation-test", word ///
 		stats(coef se pval) dec(4) ///
 		alpha(0.001, 0.01, 0.05) nor2 ///
 		drop(f.`dv' i.year 2016o.year) ///
