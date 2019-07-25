@@ -65,6 +65,8 @@ label var env_rtg "(CSRHUB) environment rating"
 					*  		DESCRIPTIVE STATISTICS		*
 					*									*
 					***===============================***	
+set scheme plotplainblind
+
 ///	VARIABLES
 local variables revt_usd revt_usd_ihs ///
 	prod_rtg net_kld_prod net_kld_prod_str net_kld_prod_con ///	
@@ -87,6 +89,23 @@ asdoc sum revt_usd revt_usd_ihs, d ///
 	dec(2) ///
 	save(tables-and-figures/descriptive-statistics/ch4-summary-statistics-revenue-comparison.doc)
 sleep 500
+
+///	SKEWNESS OF REVENUE BY INDUSTRY
+tabstat revt_usd, by(sic2cat) stat(N mean p50 skew) f(%9.2fc)
+
+tabstat revt_usd_ihs, by(sic2cat) stat(N mean p50 skew) f(%9.2fc)
+
+***	Histogram
+histogram revt_usd, bin(100) name(g1, replace) freq nodraw ///
+	xti("Untransformed revenue ({c $|}millions USD)")
+
+histogram revt_usd_ihs, bin(100) name(g2, replace) freq nodraw ///
+	xti("Inverse hyperbolic sine-transformed revenue") ///
+	yti("")
+
+graph combine g1 g2, c(2) r(1) ycommon ///
+	ti("Untransformed and transformed revenue distributions")
+	
 
 
 					***=======================***
