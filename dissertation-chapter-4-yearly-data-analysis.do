@@ -107,6 +107,43 @@ graph combine g1 g2, c(2) r(1) ycommon ///
 	ti("Untransformed and transformed revenue distributions")
 	
 
+///	TOP 10 AND BOTTOM 10 FIRMS
+***	Revenue
+
+*	All years
+gsort -revt_usd
+list firm year revt_usd in 1/10
+
+gsort revt_usd
+list firm year revt_usd in 1/10
+
+***	Customers
+*	SIC
+gsort -net_kld_prod
+list firm year net_kld_prod in 1/10
+
+gsort net_kld_prod
+list firm year net_kld_prod in 1/10
+
+*	CSR
+gsort -net_kld_prod
+list firm year net_kld_prod in 1/10
+
+gsort net_kld_prod
+list firm year net_kld_prod in 1/10
+
+***	Employees
+
+***	Environment
+
+
+
+///	SIC AND CSR ACROSS STAKEHOLDER GROUPS
+
+***	SIC
+tabstat prod_rtg emp_rtg env_rtg, stat(mean p50 min max N)
+
+xtsum prod_rtg emp_rtg env_rtg
 
 					***=======================***
 					*							*
