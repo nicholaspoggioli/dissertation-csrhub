@@ -26,16 +26,16 @@ replace net_kld_con = net_kld_con*-1
 *		CSR ----> SIC ----> Revenue
 *	
 *	Partial mediation model:
-*		CSR ----> Revenue
-*		  \     	^
-*		   \       /
-*			\     /
-*			  SIC
+*		CSR (X) ----> Revenue (Y)
+*		    \     	   ^
+*		     \        /
+*			  \      /
+*			  SIC (M)
 *
 *
-*	Y = revt_usd_ihs
-*	X = over_rtg
-*	M = net_kld
+*	Revenue Y 	= revt_usd_ihs
+*	CSR 	X 	= over_rtg
+*	SIC 	M 	= net_kld
 
 /*	REGRESSIONS IN THE BARON AND KENNY (1986) APPROACH
 	STEP 1: 		Y = cX + e1				revt_usd_ihs = c(over_rtg)
