@@ -11,15 +11,8 @@ use data/csrhub-cstat-kld-matched.dta, clear
 
 xtset
 
-
-
 ***	Recode net concerns to negative
 replace net_kld_con = net_kld_con*-1
-
-
-
-
-
 
 ///	MODELS
 *	Full mediation model:
